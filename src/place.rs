@@ -28,6 +28,7 @@ impl Place {
 #[cfg(test)]
 mod tests_int {
     use std::collections::HashMap;
+    use crate::attack_types::AttackType;
     use crate::place::Place;
 
     #[test]
@@ -39,5 +40,53 @@ mod tests_int {
         };
 
         assert_eq!(Some(reward), place.claim_rewards(HashMap::new()));
+    }
+
+    #[test]
+    fn claim_rewards_all_resistance() {
+        let reward = HashMap::new();
+        let mut resistance = HashMap::new();
+
+        resistance.insert(AttackType::Physical, 1);
+        resistance.insert(AttackType::Fire, 2);
+        resistance.insert(AttackType::Frost, 3);
+        resistance.insert(AttackType::Lightning, 4);
+        resistance.insert(AttackType::Light, 5);
+        resistance.insert(AttackType::Darkness, 6);
+        resistance.insert(AttackType::Nature, 7);
+        resistance.insert(AttackType::Corruption, 8);
+        resistance.insert(AttackType::Holy, 9);
+
+        let place = Place {
+            resistance: resistance.clone(),
+            reward: reward.clone(),
+        };
+
+        assert_eq!(Some(reward), place.claim_rewards(resistance));
+    }
+
+    #[test]
+    fn claim_rewards_all_resistance_one_missing() {
+        let reward = HashMap::new();
+        let mut resistance = HashMap::new();
+
+        resistance.insert(AttackType::Physical, 1);
+        resistance.insert(AttackType::Fire, 2);
+        resistance.insert(AttackType::Frost, 3);
+        resistance.insert(AttackType::Lightning, 4);
+        resistance.insert(AttackType::Light, 5);
+        resistance.insert(AttackType::Darkness, 6);
+        resistance.insert(AttackType::Nature, 7);
+        resistance.insert(AttackType::Corruption, 8);
+        resistance.insert(AttackType::Holy, 9);
+
+        let place = Place {
+            resistance: resistance.clone(),
+            reward: reward.clone(),
+        };
+
+        resistance.remove(&AttackType::Physical);
+
+        assert_eq!(None, place.claim_rewards(resistance));
     }
 }
