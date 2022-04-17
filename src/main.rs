@@ -8,6 +8,7 @@ mod crafting_materials;
 mod place;
 mod command_state;
 mod tcp_listener;
+mod commands;
 
 fn main() {
     Listener::new().listen()

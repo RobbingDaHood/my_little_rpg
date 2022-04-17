@@ -3,9 +3,11 @@ use std::time::Duration;
 use serde_json::json;
 use crate::Game;
 use std::io::Read;
+use std::io::Write;
+use crate::commands::Command;
 
 pub struct Listener {
-    tcp_listener: TcpListener
+    tcp_listener: TcpListener,
 }
 
 impl Listener {
@@ -47,10 +49,15 @@ impl Listener {
         let command_as_string = String::from_utf8(command.to_vec()).unwrap();
         println!("Received request with following command: {}", command_as_string);
 
-        if command_as_string == "State" {
-            println!("{}", json!(game));
-        }
 
+        match Command::try_from(&command_as_string) {
+            Err(e) => if let Err(e) = stream.write(format!("{:?}", e).as_bytes()) {
+                panic!("{}", e);
+            },
+            Ok(Command::State) => if let Err(e) = stream.write(format!("{} \n", json!(game)).as_bytes()) {
+                panic!("{}", e);
+            }
+        }
 
         game
     }
