@@ -1,6 +1,9 @@
 use std::collections::HashMap;
 use crate::attack_types::AttackType;
 use crate::Game;
+use crate::item::Item;
+use crate::item_modifier::ItemModifier;
+use crate::modifier_gain::ModifierGain;
 use crate::place_generator::{generate_place, PlaceGeneratorInput};
 
 pub fn generate_new_game() -> Game {
@@ -30,5 +33,16 @@ pub fn generate_new_game() -> Game {
         places.push(generate_place(&input));
     }
 
-    Game::new(places)
+    let mut equipped_items = Vec::new();
+    let mut modifiers = Vec::new();
+
+    for attack_type in AttackType::get_all_attack_types() {
+        let modifier = ItemModifier::new(Vec::new(), vec![ModifierGain::FlatDamage(attack_type, 100)]);
+        modifiers.push(modifier);
+    }
+
+    let item = Item::new(modifiers);
+    equipped_items.push(item);
+
+    Game::new(places, equipped_items)
 }

@@ -11,6 +11,10 @@ mod tcp_listener;
 mod commands;
 mod place_generator;
 mod game_generator;
+mod modifier_cost;
+mod modifier_gain;
+mod item_modifier;
+mod item;
 
 fn main() {
     Listener::new().listen()
