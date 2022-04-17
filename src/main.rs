@@ -9,6 +9,7 @@ mod place;
 mod command_state;
 mod tcp_listener;
 mod commands;
+mod place_generator;
 
 fn main() {
     Listener::new().listen()
