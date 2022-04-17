@@ -10,6 +10,7 @@ mod command_state;
 mod tcp_listener;
 mod commands;
 mod place_generator;
+mod game_generator;
 
 fn main() {
     Listener::new().listen()

@@ -5,6 +5,7 @@ use crate::Game;
 use std::io::Read;
 use std::io::Write;
 use crate::commands::Command;
+use crate::game_generator::generate_new_game;
 
 pub struct Listener {
     tcp_listener: TcpListener,
@@ -16,7 +17,7 @@ impl Listener {
     }
 
     pub fn listen(&self) {
-        let mut game = Game::new(Vec::new());
+        let mut game = generate_new_game();
         println!("Game is ready and listening on: 0.0.0.0:1337");
 
         for stream in self.tcp_listener.incoming() {

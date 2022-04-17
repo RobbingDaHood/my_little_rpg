@@ -12,7 +12,13 @@ pub struct PlaceGeneratorInput {
     min_resistance: HashMap<attack_types::AttackType, u64>,
 }
 
-pub fn generate_place(input: PlaceGeneratorInput) -> Place {
+impl PlaceGeneratorInput {
+    pub fn new(max_resistance: HashMap<attack_types::AttackType, u64>, min_resistance: HashMap<attack_types::AttackType, u64>) -> Self {
+        Self { max_resistance, min_resistance }
+    }
+}
+
+pub fn generate_place(input: &PlaceGeneratorInput) -> Place {
     let mut resistance = HashMap::new();
     let mut reward = HashMap::new();
 
@@ -29,9 +35,9 @@ pub fn generate_place(input: PlaceGeneratorInput) -> Place {
         let min_value = input.min_resistance.get(attack_type);
 
         if max_value.is_none() && min_value.is_none() {
-            println!("Error: generate_place: could not find min nor max values for type {:?}. Will not add the attack_type to resistances.", attack_type);
+            println!("Error: generate_place: Could not find min nor max values for type {:?}. Will not add the attack_type to resistances.", attack_type);
         } else if max_value.is_none() {
-            println!("Error: generate_place: could not find max even though min were defined {:?}. Will not add the attack_type to resistances.", attack_type);
+            println!("Error: generate_place: Could not find max even though min were defined {:?}. Will not add the attack_type to resistances.", attack_type);
         } else {
             let max_value = max_value.unwrap();
             let min_value = min_value.unwrap_or(&1);
@@ -87,7 +93,7 @@ mod tests_int {
             max_resistance: max,
         };
 
-        let place = generate_place(input);
+        let place = generate_place(&input);
 
         println!("test_generate_place: {:?}", place);
     }
@@ -103,7 +109,7 @@ mod tests_int {
             max_resistance: max,
         };
 
-        let place = generate_place(input);
+        let place = generate_place(&input);
 
         assert_eq!(&1, place.resistance().get(&AttackType::Fire).unwrap());
         assert_eq!(&1, place.reward().get(&CraftingMaterial::Gold).unwrap())
