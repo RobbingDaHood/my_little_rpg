@@ -13,4 +13,11 @@ impl ItemModifier {
     pub fn new(costs: Vec<ModifierCost>, gains: Vec<ModifierGain>) -> Self {
         Self { costs, gains }
     }
+
+    pub fn costs(&self) -> &Vec<ModifierCost> {
+        &self.costs
+    }
+    pub fn gains(&self) -> &Vec<ModifierGain> {
+        &self.gains
+    }
 }

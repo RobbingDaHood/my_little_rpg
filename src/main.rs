@@ -6,7 +6,6 @@ mod game;
 mod attack_types;
 mod crafting_materials;
 mod place;
-mod command_state;
 mod tcp_listener;
 mod commands;
 mod place_generator;
@@ -15,6 +14,7 @@ mod modifier_cost;
 mod modifier_gain;
 mod item_modifier;
 mod item;
+mod command_move;
 
 fn main() {
     Listener::new().listen()

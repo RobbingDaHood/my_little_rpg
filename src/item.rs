@@ -10,4 +10,9 @@ impl Item {
     pub fn new(modifiers: Vec<ItemModifier>) -> Self {
         Self { modifiers }
     }
+
+
+    pub fn modifiers(&self) -> &Vec<ItemModifier> {
+        &self.modifiers
+    }
 }
