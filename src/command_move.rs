@@ -9,19 +9,32 @@ pub fn execute_move_command(game: &mut Game, index: usize) -> String {
 
     let mut current_damage = HashMap::new();
 
+
     for item in game.equipped_items() {
         for modifier in item.modifiers() {
-            // if costs are paid
+            // TODO: if costs are paid
+
+            // TODO: return step by step what the items do.
 
             for gain in modifier.gains() {
                 match gain {
                     ModifierGain::FlatDamage(attack_type, amount) => {
-                        *current_damage.entry(attack_type).or_insert(0) += amount;
+                        *current_damage.entry(attack_type.clone()).or_insert(0) += amount;
                     }
                 }
             }
         }
+
+        if let Some(reward) = game.places().get(index)
+            .expect("Error: execute_move_command: Could not find place even though it were within the index.")
+            .claim_rewards(&current_damage) {
+            // TODO add rewards
+
+            // TODO reroll place
+            return "We are winning".to_string();
+        }
     }
+
 
     println!("{:?}", current_damage);
 
@@ -37,7 +50,7 @@ mod tests_int {
     fn test_execute_move_command() {
         let mut game = generate_new_game();
 
-        assert_eq!("", execute_move_command(&mut game, 0));
+        assert_eq!("We are winning", execute_move_command(&mut game, 0));
     }
 
     #[test]

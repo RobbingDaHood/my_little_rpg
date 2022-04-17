@@ -20,7 +20,7 @@ impl Place {
     pub fn reward(&self) -> &HashMap<CraftingMaterial, u64> {
         &self.reward
     }
-    pub fn claim_rewards(&self, attacks: HashMap<attack_types::AttackType, u64>) -> Option<HashMap<CraftingMaterial, u64>> {
+    pub fn claim_rewards(&self, attacks: &HashMap<attack_types::AttackType, u64>) -> Option<HashMap<CraftingMaterial, u64>> {
         let are_all_resistance_defeated = self.resistance.iter()
             .all(|(resistance_type, resistance_value)|
                 match attacks.get(resistance_type) {
@@ -48,7 +48,7 @@ mod tests_int {
             reward: reward.clone(),
         };
 
-        assert_eq!(Some(reward), place.claim_rewards(HashMap::new()));
+        assert_eq!(Some(reward), place.claim_rewards(&HashMap::new()));
     }
 
     #[test]
@@ -71,7 +71,7 @@ mod tests_int {
             reward: reward.clone(),
         };
 
-        assert_eq!(Some(reward), place.claim_rewards(resistance));
+        assert_eq!(Some(reward), place.claim_rewards(&resistance));
     }
 
     #[test]
@@ -96,6 +96,6 @@ mod tests_int {
 
         resistance.remove(&AttackType::Physical);
 
-        assert_eq!(None, place.claim_rewards(resistance));
+        assert_eq!(None, place.claim_rewards(&resistance));
     }
 }
