@@ -4,6 +4,7 @@ use serde_json::json;
 use crate::Game;
 use std::io::Read;
 use std::io::Write;
+use crate::command_move::execute_move_command;
 use crate::commands::Command;
 use crate::game_generator::generate_new_game;
 
@@ -23,7 +24,7 @@ impl Listener {
         for stream in self.tcp_listener.incoming() {
             match stream {
                 Ok(mut stream) => {
-                    game = self.handle_request(&mut stream, game);
+                    self.handle_request(&mut stream,  &mut game);
                 }
                 Err(e) => {
                     println!("Error: {}", e);
@@ -33,7 +34,7 @@ impl Listener {
         }
     }
 
-    fn handle_request(&self, stream: &mut TcpStream, game: Game) -> Game {
+    fn handle_request(&self, stream: &mut TcpStream, game: &mut Game) {
         let command_as_string = Self::read_command(stream);
 
         match Command::try_from(&command_as_string) {
@@ -42,10 +43,11 @@ impl Listener {
             },
             Ok(Command::State) => if let Err(e) = stream.write(format!("{} \n", json!(game)).as_bytes()) {
                 panic!("{}", e);
+            },
+            Ok(Command::Move(place_index)) => if let Err(e) = stream.write(format!("{} \n", execute_move_command(game, place_index)).as_bytes()) {
+                panic!("{}", e);
             }
         }
-
-        game
     }
 
     fn read_command(stream: &mut TcpStream) -> String {
