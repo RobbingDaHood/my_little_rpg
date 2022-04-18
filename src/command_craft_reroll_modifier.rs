@@ -56,12 +56,12 @@ mod tests_int {
     use crate::command_craft_reroll_modifier::{execute_craft_reroll_modifier};
     use crate::command_equip_unequip::execute_swap_equipped_item;
     use crate::command_move::execute_move_command;
-    use crate::game_generator::generate_new_game;
+    use crate::game_generator::generate_testing_game;
     use crate::treasure_types::TreasureType::Gold;
 
     #[test]
     fn test_execute_craft_item() {
-        let mut game = generate_new_game();
+        let mut game = generate_testing_game();
 
         assert_eq!(Err("Cant pay the crafting cost for reroll_modifier, the cost is 10 and you only have Some(0)".to_string()), execute_craft_reroll_modifier(&mut game, 0, 0));
 

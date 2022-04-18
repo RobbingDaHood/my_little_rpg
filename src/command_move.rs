@@ -134,7 +134,7 @@ fn calculate_item_resource_cost(item: &&Item) -> HashMap<ItemResourceType, u64> 
 mod tests_int {
     use crate::attack_types::AttackType;
     use crate::command_move::execute_move_command;
-    use crate::game_generator::generate_new_game;
+    use crate::game_generator::generate_testing_game;
     use crate::item::Item;
     use crate::item_modifier::ItemModifier;
     use crate::item_resource::ItemResourceType;
@@ -143,7 +143,7 @@ mod tests_int {
 
     #[test]
     fn test_execute_move_command() {
-        let mut game = generate_new_game();
+        let mut game = generate_testing_game();
         let place = game.places[0].clone();
         assert_eq!(None, game.treasure.get(&TreasureType::Gold));
         assert_eq!(None, game.item_resources.get(&ItemResourceType::Mana));
@@ -174,7 +174,7 @@ mod tests_int {
 
     #[test]
     fn test_execute_move_command_index_out_of_bounds() {
-        let mut game = generate_new_game();
+        let mut game = generate_testing_game();
 
         let result = execute_move_command(&mut game, 11);
 
@@ -189,7 +189,7 @@ mod tests_int {
 
     #[test]
     fn test_execute_not_enough_damage() {
-        let mut game = generate_new_game();
+        let mut game = generate_testing_game();
         game.equipped_items = Vec::new();
 
         let result = execute_move_command(&mut game, 0);
@@ -205,7 +205,7 @@ mod tests_int {
 
     #[test]
     fn test_execute_move_command_item_after_claim_does_not_activate() {
-        let mut game = generate_new_game();
+        let mut game = generate_testing_game();
         let place = game.places[0].clone();
         assert_eq!(None, game.treasure.get(&TreasureType::Gold));
         assert_eq!(None, game.item_resources.get(&ItemResourceType::Mana));

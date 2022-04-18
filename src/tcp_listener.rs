@@ -9,7 +9,7 @@ use crate::command_create_new_item::execute_create_item;
 use crate::command_equip_unequip::{execute_equip_item, execute_swap_equipped_item};
 use crate::command_move::execute_move_command;
 use crate::commands::Command;
-use crate::game_generator::generate_new_game;
+use crate::game_generator::generate_testing_game;
 
 pub struct Listener {
     tcp_listener: TcpListener,
@@ -21,7 +21,7 @@ impl Listener {
     }
 
     pub fn listen(&self) {
-        let mut game = generate_new_game();
+        let mut game = generate_testing_game();
         println!("Game is ready and listening on: 0.0.0.0:1337");
 
         for stream in self.tcp_listener.incoming() {

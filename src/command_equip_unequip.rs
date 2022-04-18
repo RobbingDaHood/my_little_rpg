@@ -34,11 +34,11 @@ pub fn execute_swap_equipped_item(game: &mut Game, equipped_item_position_1: usi
 #[cfg(test)]
 mod tests_int {
     use crate::command_equip_unequip::{execute_equip_item, execute_swap_equipped_item};
-    use crate::game_generator::generate_new_game;
+    use crate::game_generator::generate_testing_game;
 
     #[test]
     fn test_execute_equip_item() {
-        let mut game = generate_new_game();
+        let mut game = generate_testing_game();
 
         let equipped_item = game.equipped_items[0].clone();
         let inventory_item = game.inventory[0].clone();
@@ -51,7 +51,7 @@ mod tests_int {
 
     #[test]
     fn test_execute_equip_item_inventory_out_of_bounds() {
-        let mut game = generate_new_game();
+        let mut game = generate_testing_game();
 
         let equipped_item = game.equipped_items[0].clone();
         let inventory_item = game.inventory[0].clone();
@@ -64,7 +64,7 @@ mod tests_int {
 
     #[test]
     fn test_execute_equip_item_equipment_out_of_bounds() {
-        let mut game = generate_new_game();
+        let mut game = generate_testing_game();
 
         let equipped_item = game.equipped_items[0].clone();
         let inventory_item = game.inventory[0].clone();
@@ -77,7 +77,7 @@ mod tests_int {
 
     #[test]
     fn test_execute_swap_equipped_item() {
-        let mut game = generate_new_game();
+        let mut game = generate_testing_game();
 
         let equipped_item_1 = game.equipped_items[0].clone();
         let equipped_item_2 = game.equipped_items[1].clone();
@@ -90,7 +90,7 @@ mod tests_int {
 
     #[test]
     fn test_execute_swap_equipped_item_equipped_item_1_out_of_bounds() {
-        let mut game = generate_new_game();
+        let mut game = generate_testing_game();
 
         let equipped_item_1 = game.equipped_items[0].clone();
         let equipped_item_2 = game.equipped_items[1].clone();
@@ -103,7 +103,7 @@ mod tests_int {
 
     #[test]
     fn test_execute_swap_equipped_item_equipped_item_2_out_of_bounds() {
-        let mut game = generate_new_game();
+        let mut game = generate_testing_game();
 
         let equipped_item_1 = game.equipped_items[0].clone();
         let equipped_item_2 = game.equipped_items[1].clone();
@@ -116,7 +116,7 @@ mod tests_int {
 
     #[test]
     fn test_execute_swap_equipped_item_equipped_item_1_and_2_are_the_same() {
-        let mut game = generate_new_game();
+        let mut game = generate_testing_game();
 
         let equipped_item_1 = game.equipped_items[0].clone();
         let equipped_item_2 = game.equipped_items[1].clone();

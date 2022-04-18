@@ -8,7 +8,7 @@ use crate::modifier_cost::ModifierCost;
 use crate::modifier_gain::ModifierGain;
 use crate::place_generator::{generate_place, PlaceGeneratorInput};
 
-pub fn generate_new_game() -> Game {
+pub fn generate_testing_game() -> Game {
     let mut min_resistance = HashMap::new();
     min_resistance.insert(AttackType::Fire, 2);
     min_resistance.insert(AttackType::Frost, 3);
