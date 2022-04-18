@@ -7,6 +7,7 @@ use crate::place_generator::generate_place;
 use serde::{Deserialize, Serialize};
 use crate::item_resource::ItemResourceType;
 use crate::modifier_cost::ModifierCost;
+use crate::treasure_types::TreasureType;
 
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
 pub struct ItemReport {
@@ -24,81 +25,29 @@ pub struct ExecuteMoveCommandReport {
 }
 
 pub fn execute_move_command(game: &mut Game, index: usize) -> Result<ExecuteMoveCommandReport, ExecuteMoveCommandReport> {
-    if game.places.len() < index {
-        return Err(ExecuteMoveCommandReport {
-            item_report: Vec::new(),
-            result: format!("Error: execute_move_command: Index {} is out of range of places, places is {} long.", index, game.places.len()),
-        });
-    }
+    if game.places.len() < index { return report_place_does_not_exist(game, index); }
 
     let mut current_damage = HashMap::new();
     let mut current_item_resources = game.item_resources.clone();
     let mut item_report = Vec::new();
 
     for item in &game.equipped_items {
-        let mut item_resource_cost = HashMap::new();
-        for modifier in &item.modifiers {
-            for cost in &modifier.costs {
-                match cost {
-                    ModifierCost::FlatItemResource(item_resource_type, amount) => *item_resource_cost.entry(item_resource_type.clone()).or_insert(0) += amount
-                }
-            }
-        }
-
-        let are_all_costs_payable = item_resource_cost.iter()
-            .all(|(item_resource_type, amount)|
-                match current_item_resources.get(item_resource_type) {
-                    None => false,
-                    Some(stored_amount) => {
-                        stored_amount >= amount
-                    }
-                }
-            ).clone();
+        let item_resource_cost = calculate_item_resource_cost(&item);
+        let are_all_costs_payable = calculate_are_all_costs_payable(&mut current_item_resources, &item_resource_cost);
         if !are_all_costs_payable {
-            item_report.push(ItemReport {
-                item: item.clone(),
-                current_damage: current_damage.clone(),
-                effect_description: "Were not able to pay all the costs".to_string(),
-                item_resource_costs: item_resource_cost.clone(),
-                current_item_resources: current_item_resources.clone(),
-            });
+            update_item_report(&mut current_damage, &mut current_item_resources, &mut item_report, item, &item_resource_cost, "Were not able to pay all the costs");
         } else {
-            for (item_resource_cost_type, amount) in &item_resource_cost {
-                current_item_resources.entry(item_resource_cost_type.clone()).and_modify(|current_amount| *current_amount -= amount);
-            }
-
-            for modifier in &item.modifiers {
-                for gain in &modifier.gains {
-                    match gain {
-                        ModifierGain::FlatDamage(attack_type, amount) => *current_damage.entry(attack_type.clone()).or_insert(0) += amount,
-                        ModifierGain::FlatItemResource(item_resource_type, amount) => *current_item_resources.entry(item_resource_type.clone()).or_insert(0) += amount,
-                    }
-                }
-            }
-
-            item_report.push(ItemReport {
-                item: item.clone(),
-                current_damage: current_damage.clone(),
-                effect_description: "Costs paid and all gains executed.".to_string(),
-                item_resource_costs: item_resource_cost.clone(),
-                current_item_resources: current_item_resources.clone(),
-            });
+            update_cost_effect(&mut current_item_resources, &item_resource_cost);
+            update_gain_effect(&mut current_damage, &mut current_item_resources, &item);
+            update_item_report(&mut current_damage, &mut current_item_resources, &mut item_report, item, &item_resource_cost, "Costs paid and all gains executed.");
 
             game.item_resources = current_item_resources.clone();
 
+            //If we can claim the reward.
             if let Some(rewards) = game.places.get(index)
                 .expect("Error: execute_move_command: Could not find place even though it were within the index.")
                 .claim_rewards(&current_damage) {
-                for (treasure_type, amount) in rewards {
-                    *game.treasure.entry(treasure_type).or_insert(0) += amount;
-                }
-
-                game.places[index] = generate_place(&game.place_generator_input);
-
-                return Ok(ExecuteMoveCommandReport {
-                    item_report,
-                    result: "You won".to_string(),
-                });
+                return update_claim_place_effect(game, index, item_report, rewards);
             }
         }
     }
@@ -107,6 +56,78 @@ pub fn execute_move_command(game: &mut Game, index: usize) -> Result<ExecuteMove
         item_report,
         result: "You did not deal enough damage to overcome the challenges in this place.".to_string(),
     })
+}
+
+fn report_place_does_not_exist(game: &mut Game, index: usize) -> Result<ExecuteMoveCommandReport, ExecuteMoveCommandReport> {
+    return Err(ExecuteMoveCommandReport {
+        item_report: Vec::new(),
+        result: format!("Error: execute_move_command: Index {} is out of range of places, places is {} long.", index, game.places.len()),
+    });
+}
+
+fn update_claim_place_effect(game: &mut Game, index: usize, item_report: Vec<ItemReport>, rewards: HashMap<TreasureType, u64>) -> Result<ExecuteMoveCommandReport, ExecuteMoveCommandReport> {
+    for (treasure_type, amount) in rewards {
+        *game.treasure.entry(treasure_type).or_insert(0) += amount;
+    }
+
+    game.places[index] = generate_place(&game.place_generator_input);
+
+    return Ok(ExecuteMoveCommandReport {
+        item_report,
+        result: "You won".to_string(),
+    });
+}
+
+fn update_gain_effect(current_damage: &mut HashMap<AttackType, u64>, current_item_resources: &mut HashMap<ItemResourceType, u64>, item: &&Item) {
+    for modifier in &item.modifiers {
+        for gain in &modifier.gains {
+            match gain {
+                ModifierGain::FlatDamage(attack_type, amount) => *current_damage.entry(attack_type.clone()).or_insert(0) += amount,
+                ModifierGain::FlatItemResource(item_resource_type, amount) => *current_item_resources.entry(item_resource_type.clone()).or_insert(0) += amount,
+            }
+        }
+    }
+}
+
+fn update_cost_effect(current_item_resources: &mut HashMap<ItemResourceType, u64>, item_resource_cost: &HashMap<ItemResourceType, u64>) {
+    for (item_resource_cost_type, amount) in item_resource_cost {
+        current_item_resources.entry(item_resource_cost_type.clone()).and_modify(|current_amount| *current_amount -= amount);
+    }
+}
+
+fn update_item_report(mut current_damage: &mut HashMap<AttackType, u64>, mut current_item_resources: &mut HashMap<ItemResourceType, u64>, item_report: &mut Vec<ItemReport>, item: &Item, item_resource_cost: &HashMap<ItemResourceType, u64>, effect_description: &str) {
+    item_report.push(ItemReport {
+        item: item.clone(),
+        current_damage: current_damage.clone(),
+        effect_description: effect_description.to_string(),
+        item_resource_costs: item_resource_cost.clone(),
+        current_item_resources: current_item_resources.clone(),
+    });
+}
+
+fn calculate_are_all_costs_payable(mut current_item_resources: &mut HashMap<ItemResourceType, u64>, item_resource_cost: &HashMap<ItemResourceType, u64>) -> bool {
+    let are_all_costs_payable = item_resource_cost.iter()
+        .all(|(item_resource_type, amount)|
+            match current_item_resources.get(item_resource_type) {
+                None => false,
+                Some(stored_amount) => {
+                    stored_amount >= amount
+                }
+            }
+        ).clone();
+    are_all_costs_payable
+}
+
+fn calculate_item_resource_cost(item: &&Item) -> HashMap<ItemResourceType, u64> {
+    let mut item_resource_cost = HashMap::new();
+    for modifier in &item.modifiers {
+        for cost in &modifier.costs {
+            match cost {
+                ModifierCost::FlatItemResource(item_resource_type, amount) => *item_resource_cost.entry(item_resource_type.clone()).or_insert(0) += amount
+            }
+        }
+    }
+    item_resource_cost
 }
 
 #[cfg(test)]
