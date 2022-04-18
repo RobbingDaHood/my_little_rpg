@@ -7,9 +7,10 @@ use std::io::Write;
 use crate::command_craft_reroll_modifier::execute_craft_reroll_modifier;
 use crate::command_create_new_item::execute_create_item;
 use crate::command_equip_unequip::{execute_equip_item, execute_swap_equipped_item};
+use crate::command_expand_places::execute_expand_places;
 use crate::command_move::execute_move_command;
 use crate::commands::Command;
-use crate::game_generator::{generate_new_game, generate_testing_game};
+use crate::game_generator::{generate_new_game};
 
 pub struct Listener {
     tcp_listener: TcpListener,
@@ -27,7 +28,7 @@ impl Listener {
         for stream in self.tcp_listener.incoming() {
             match stream {
                 Ok(mut stream) => {
-                    self.handle_request(&mut stream,  &mut game);
+                    self.handle_request(&mut stream, &mut game);
                 }
                 Err(e) => {
                     println!("Error: {}", e);
@@ -61,7 +62,10 @@ impl Listener {
             },
             Ok(Command::RerollModifier(inventory_index, modifier_index)) => if let Err(e) = stream.write(format!("{} \n", json!(execute_craft_reroll_modifier(game, inventory_index, modifier_index))).as_bytes()) {
                 panic!("{}", e);
-            }
+            },
+            Ok(Command::ExpandPlaces) => if let Err(e) = stream.write(format!("{} \n", json!(execute_expand_places(game))).as_bytes()) {
+                panic!("{}", e);
+            },
         }
     }
 

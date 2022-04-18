@@ -1,11 +1,9 @@
-use std::cmp;
-use std::cmp::{max, min};
+use std::cmp::{max};
 use rand::prelude::ThreadRng;
 use rand::Rng;
 use crate::Game;
 use crate::item::Item;
 use crate::treasure_types::TreasureType::Gold;
-use serde::{Deserialize, Serialize};
 use crate::attack_types::AttackType;
 use crate::item_modifier::ItemModifier;
 use crate::item_resource::ItemResourceType;
@@ -87,7 +85,6 @@ fn execute_craft_reroll_modifier_costs(rng: &mut ThreadRng) -> (Vec<ModifierCost
 #[cfg(test)]
 mod tests_int {
     use crate::command_craft_reroll_modifier::{execute_craft_reroll_modifier};
-    use crate::command_equip_unequip::execute_swap_equipped_item;
     use crate::command_move::execute_move_command;
     use crate::game_generator::generate_testing_game;
     use crate::treasure_types::TreasureType::Gold;
