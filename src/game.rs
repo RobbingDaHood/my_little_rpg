@@ -11,6 +11,7 @@ use crate::place_generator::PlaceGeneratorInput;
 pub struct Game {
     pub(crate) places: Vec<Place>,
     pub(crate) equipped_items: Vec<Item>,
+    pub(crate) inventory: Vec<Item>,
     pub(crate) place_generator_input: PlaceGeneratorInput,
     pub(crate) treasure: HashMap<TreasureType, u64>,
     pub(crate) item_resources: HashMap<ItemResourceType, u64>,

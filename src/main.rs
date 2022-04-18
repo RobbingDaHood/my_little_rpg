@@ -16,6 +16,7 @@ mod item_modifier;
 mod item;
 mod command_move;
 mod item_resource;
+mod command_equip_unequip;
 
 fn main() {
     Listener::new().listen()

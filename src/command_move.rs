@@ -35,7 +35,7 @@ pub fn execute_move_command(game: &mut Game, index: usize) -> Result<ExecuteMove
         let item_resource_cost = calculate_item_resource_cost(&item);
         let are_all_costs_payable = calculate_are_all_costs_payable(&mut current_item_resources, &item_resource_cost);
         if !are_all_costs_payable {
-            update_item_report(&mut current_damage, &mut current_item_resources, &mut item_report, item, &item_resource_cost, "Were not able to pay all the costs");
+            update_item_report(&current_damage, &mut current_item_resources, &mut item_report, item, &item_resource_cost, "Were not able to pay all the costs");
         } else {
             update_cost_effect(&mut current_item_resources, &item_resource_cost);
             update_gain_effect(&mut current_damage, &mut current_item_resources, &item);
@@ -95,7 +95,7 @@ fn update_cost_effect(current_item_resources: &mut HashMap<ItemResourceType, u64
     }
 }
 
-fn update_item_report(mut current_damage: &mut HashMap<AttackType, u64>, mut current_item_resources: &mut HashMap<ItemResourceType, u64>, item_report: &mut Vec<ItemReport>, item: &Item, item_resource_cost: &HashMap<ItemResourceType, u64>, effect_description: &str) {
+fn update_item_report(current_damage: &HashMap<AttackType, u64>, current_item_resources: &HashMap<ItemResourceType, u64>, item_report: &mut Vec<ItemReport>, item: &Item, item_resource_cost: &HashMap<ItemResourceType, u64>, effect_description: &str) {
     item_report.push(ItemReport {
         item: item.clone(),
         current_damage: current_damage.clone(),
@@ -105,7 +105,7 @@ fn update_item_report(mut current_damage: &mut HashMap<AttackType, u64>, mut cur
     });
 }
 
-fn calculate_are_all_costs_payable(mut current_item_resources: &mut HashMap<ItemResourceType, u64>, item_resource_cost: &HashMap<ItemResourceType, u64>) -> bool {
+fn calculate_are_all_costs_payable(current_item_resources: &HashMap<ItemResourceType, u64>, item_resource_cost: &HashMap<ItemResourceType, u64>) -> bool {
     let are_all_costs_payable = item_resource_cost.iter()
         .all(|(item_resource_type, amount)|
             match current_item_resources.get(item_resource_type) {
@@ -210,7 +210,7 @@ mod tests_int {
         assert_eq!(None, game.treasure.get(&TreasureType::Gold));
         assert_eq!(None, game.item_resources.get(&ItemResourceType::Mana));
 
-        let mut power_item = Item {
+        let power_item = Item {
             modifiers: vec![
                 ItemModifier {
                     costs: Vec::new(),

@@ -4,6 +4,7 @@ use serde_json::json;
 use crate::Game;
 use std::io::Read;
 use std::io::Write;
+use crate::command_equip_unequip::{execute_equip_item, execute_swap_equipped_item};
 use crate::command_move::execute_move_command;
 use crate::commands::Command;
 use crate::game_generator::generate_new_game;
@@ -45,6 +46,12 @@ impl Listener {
                 panic!("{}", e);
             },
             Ok(Command::Move(place_index)) => if let Err(e) = stream.write(format!("{} \n", json!(execute_move_command(game, place_index))).as_bytes()) {
+                panic!("{}", e);
+            },
+            Ok(Command::Equip(inventory_position, equipped_item_position)) => if let Err(e) = stream.write(format!("{} \n", json!(execute_equip_item(game, inventory_position, equipped_item_position))).as_bytes()) {
+                panic!("{}", e);
+            },
+            Ok(Command::SwapEquipment(equipped_item_position_1, equipped_item_position_2)) => if let Err(e) = stream.write(format!("{} \n", json!(execute_swap_equipped_item(game, equipped_item_position_1, equipped_item_position_2))).as_bytes()) {
                 panic!("{}", e);
             }
         }

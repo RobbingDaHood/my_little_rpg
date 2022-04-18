@@ -47,7 +47,6 @@ pub fn generate_new_game() -> Game {
     let item = Item { modifiers };
     equipped_items.push(item);
 
-
     //Powerful item
     let mut modifiers = Vec::new();
     for attack_type in AttackType::get_all_attack_types() {
@@ -60,5 +59,18 @@ pub fn generate_new_game() -> Game {
     let item = Item { modifiers };
     equipped_items.push(item);
 
-    Game { places, equipped_items, place_generator_input, treasure: HashMap::new(), item_resources: HashMap::new() }
+    //fill inventory with basic items
+    let mut inventory = Vec::new();
+    for attack_type in AttackType::get_all_attack_types() {
+        inventory.push(Item {
+            modifiers: vec![
+                ItemModifier {
+                    costs: Vec::new(),
+                    gains: vec![ModifierGain::FlatDamage(attack_type, 1)]
+                }
+            ]
+        })
+    }
+
+    Game { places, equipped_items, place_generator_input, treasure: HashMap::new(), item_resources: HashMap::new(), inventory }
 }
