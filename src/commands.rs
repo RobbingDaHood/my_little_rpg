@@ -10,6 +10,7 @@ pub enum Command {
     CreateItem,
     RerollModifier(usize, usize),
     ExpandPlaces,
+    ExpandElements,
 }
 
 impl TryFrom<&String> for Command {
@@ -26,6 +27,7 @@ impl TryFrom<&String> for Command {
             "State" => Ok(Command::State),
             "CreateItem" => Ok(Command::CreateItem),
             "ExpandPlaces" => Ok(Command::ExpandPlaces),
+            "ExpandElements" => Ok(Command::ExpandElements),
             "Move" => {
                 if command_parts.len() < 2 {
                     return Err(format!("Trouble parsing move command, it needs the index of the place. Got {:?}", command_parts));
@@ -96,6 +98,7 @@ mod tests_int {
         assert_eq!(Command::State, Command::try_from(&"State".to_string()).unwrap());
         assert_eq!(Command::CreateItem, Command::try_from(&"CreateItem".to_string()).unwrap());
         assert_eq!(Command::ExpandPlaces, Command::try_from(&"ExpandPlaces".to_string()).unwrap());
+        assert_eq!(Command::ExpandElements, Command::try_from(&"ExpandElements".to_string()).unwrap());
 
         assert_eq!(Command::Move(22), Command::try_from(&"Move 22".to_string()).unwrap());
         assert_eq!(Err("Trouble parsing move command, it needs the index of the place. Got [\"Move\"]".to_string()), Command::try_from(&"Move".to_string()));

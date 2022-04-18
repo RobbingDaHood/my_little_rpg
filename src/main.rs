@@ -20,6 +20,7 @@ mod command_equip_unequip;
 mod command_create_new_item;
 mod command_craft_reroll_modifier;
 mod command_expand_places;
+mod command_expand_elements;
 
 fn main() {
     Listener::new().listen()
