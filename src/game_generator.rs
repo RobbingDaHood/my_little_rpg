@@ -3,6 +3,8 @@ use crate::attack_types::AttackType;
 use crate::Game;
 use crate::item::Item;
 use crate::item_modifier::ItemModifier;
+use crate::item_resource::ItemResourceType;
+use crate::modifier_cost::ModifierCost;
 use crate::modifier_gain::ModifierGain;
 use crate::place_generator::{generate_place, PlaceGeneratorInput};
 
@@ -34,18 +36,29 @@ pub fn generate_new_game() -> Game {
     }
 
     let mut equipped_items = Vec::new();
-    let mut modifiers = Vec::new();
 
+    //Generator item
+    let mut modifiers = Vec::new();
+    let modifier = ItemModifier {
+        costs: Vec::new(),
+        gains: vec![ModifierGain::FlatItemResource(ItemResourceType::Mana, 5)],
+    };
+    modifiers.push(modifier);
+    let item = Item { modifiers };
+    equipped_items.push(item);
+
+
+    //Powerful item
+    let mut modifiers = Vec::new();
     for attack_type in AttackType::get_all_attack_types() {
         let modifier = ItemModifier {
-            costs: Vec::new(),
+            costs: vec![ModifierCost::FlatItemResource(ItemResourceType::Mana, 1)],
             gains: vec![ModifierGain::FlatDamage(attack_type, 100)],
         };
         modifiers.push(modifier);
     }
-
     let item = Item { modifiers };
     equipped_items.push(item);
 
-    Game { places, equipped_items, place_generator_input, treasure: HashMap::new() }
+    Game { places, equipped_items, place_generator_input, treasure: HashMap::new(), item_resources: HashMap::new() }
 }

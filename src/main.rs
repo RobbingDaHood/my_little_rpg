@@ -15,6 +15,7 @@ mod modifier_gain;
 mod item_modifier;
 mod item;
 mod command_move;
+mod item_resource;
 
 fn main() {
     Listener::new().listen()
