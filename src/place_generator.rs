@@ -8,14 +8,8 @@ use rand::Rng;
 
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
 pub struct PlaceGeneratorInput {
-    max_resistance: HashMap<attack_types::AttackType, u64>,
-    min_resistance: HashMap<attack_types::AttackType, u64>,
-}
-
-impl PlaceGeneratorInput {
-    pub fn new(max_resistance: HashMap<attack_types::AttackType, u64>, min_resistance: HashMap<attack_types::AttackType, u64>) -> Self {
-        Self { max_resistance, min_resistance }
-    }
+    pub(crate) max_resistance: HashMap<attack_types::AttackType, u64>,
+    pub(crate) min_resistance: HashMap<attack_types::AttackType, u64>,
 }
 
 pub fn generate_place(input: &PlaceGeneratorInput) -> Place {
@@ -55,7 +49,7 @@ pub fn generate_place(input: &PlaceGeneratorInput) -> Place {
 
     reward.insert(CraftingMaterial::Gold, resistance_sum);
 
-    Place::new(resistance, reward)
+    Place { resistance, reward }
 }
 
 
@@ -111,7 +105,7 @@ mod tests_int {
 
         let place = generate_place(&input);
 
-        assert_eq!(&1, place.resistance().get(&AttackType::Fire).unwrap());
-        assert_eq!(&1, place.reward().get(&CraftingMaterial::Gold).unwrap())
+        assert_eq!(&1, place.resistance.get(&AttackType::Fire).unwrap());
+        assert_eq!(&1, place.reward.get(&CraftingMaterial::Gold).unwrap())
     }
 }

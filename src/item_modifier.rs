@@ -5,19 +5,6 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
 pub struct ItemModifier {
-    costs: Vec<ModifierCost>,
-    gains: Vec<ModifierGain>,
-}
-
-impl ItemModifier {
-    pub fn new(costs: Vec<ModifierCost>, gains: Vec<ModifierGain>) -> Self {
-        Self { costs, gains }
-    }
-
-    pub fn costs(&self) -> &Vec<ModifierCost> {
-        &self.costs
-    }
-    pub fn gains(&self) -> &Vec<ModifierGain> {
-        &self.gains
-    }
+    pub(crate) costs: Vec<ModifierCost>,
+    pub(crate) gains: Vec<ModifierGain>,
 }

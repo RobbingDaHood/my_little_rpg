@@ -6,20 +6,11 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
 pub struct Place {
-    resistance: HashMap<attack_types::AttackType, u64>,
-    reward: HashMap<CraftingMaterial, u64>,
+    pub(crate) resistance: HashMap<attack_types::AttackType, u64>,
+    pub(crate) reward: HashMap<CraftingMaterial, u64>,
 }
 
 impl Place {
-    pub fn new(resistance: HashMap<attack_types::AttackType, u64>, reward: HashMap<CraftingMaterial, u64>) -> Self {
-        Self { resistance, reward }
-    }
-    pub fn resistance(&self) -> &HashMap<attack_types::AttackType, u64> {
-        &self.resistance
-    }
-    pub fn reward(&self) -> &HashMap<CraftingMaterial, u64> {
-        &self.reward
-    }
     pub fn claim_rewards(&self, attacks: &HashMap<attack_types::AttackType, u64>) -> Option<HashMap<CraftingMaterial, u64>> {
         let are_all_resistance_defeated = self.resistance.iter()
             .all(|(resistance_type, resistance_value)|

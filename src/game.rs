@@ -2,21 +2,11 @@ use crate::place::Place;
 
 use serde::{Deserialize, Serialize};
 use crate::item::Item;
+use crate::place_generator::PlaceGeneratorInput;
 
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
 pub struct Game {
-    places: Vec<Place>,
-    equipped_items: Vec<Item>
-}
-
-impl Game {
-    pub fn new(places: Vec<Place>, equipped_items: Vec<Item>) -> Self {
-        Self { places, equipped_items }
-    }
-    pub fn places(&self) -> &Vec<Place> {
-        &self.places
-    }
-    pub fn equipped_items(&self) -> &Vec<Item> {
-        &self.equipped_items
-    }
+    pub(crate) places: Vec<Place>,
+    pub(crate) equipped_items: Vec<Item>,
+    pub(crate) place_generator_input: PlaceGeneratorInput
 }

@@ -1,22 +1,22 @@
 use std::collections::HashMap;
 use crate::Game;
 use crate::modifier_gain::ModifierGain;
+use crate::place_generator::generate_place;
 
 pub fn execute_move_command(game: &mut Game, index: usize) -> String {
-    if game.places().len() < index {
-        return format!("Error: execute_move_command: Index {} is out of range of places, places is {} long.", index, game.places().len());
+    if game.places.len() < index {
+        return format!("Error: execute_move_command: Index {} is out of range of places, places is {} long.", index, game.places.len());
     }
 
     let mut current_damage = HashMap::new();
 
-
-    for item in game.equipped_items() {
-        for modifier in item.modifiers() {
+    for item in &game.equipped_items {
+        for modifier in &item.modifiers {
             // TODO: if costs are paid
 
             // TODO: return step by step what the items do.
 
-            for gain in modifier.gains() {
+            for gain in &modifier.gains {
                 match gain {
                     ModifierGain::FlatDamage(attack_type, amount) => {
                         *current_damage.entry(attack_type.clone()).or_insert(0) += amount;
@@ -25,12 +25,12 @@ pub fn execute_move_command(game: &mut Game, index: usize) -> String {
             }
         }
 
-        if let Some(reward) = game.places().get(index)
+        if let Some(reward) = game.places.get(index)
             .expect("Error: execute_move_command: Could not find place even though it were within the index.")
             .claim_rewards(&current_damage) {
-            // TODO add rewards
+            // TODO get reward
 
-            // TODO reroll place
+            game.places[index] = generate_place(&game.place_generator_input);
             return "We are winning".to_string();
         }
     }
@@ -49,8 +49,10 @@ mod tests_int {
     #[test]
     fn test_execute_move_command() {
         let mut game = generate_new_game();
+        let place = game.places[0].clone();
 
         assert_eq!("We are winning", execute_move_command(&mut game, 0));
+        assert_ne!(place, game.places[0]);
     }
 
     #[test]
