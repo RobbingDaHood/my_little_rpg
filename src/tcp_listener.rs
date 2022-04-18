@@ -4,6 +4,7 @@ use serde_json::json;
 use crate::Game;
 use std::io::Read;
 use std::io::Write;
+use crate::command_craft_reroll_modifier::execute_craft_reroll_modifier;
 use crate::command_create_new_item::execute_create_item;
 use crate::command_equip_unequip::{execute_equip_item, execute_swap_equipped_item};
 use crate::command_move::execute_move_command;
@@ -56,6 +57,9 @@ impl Listener {
                 panic!("{}", e);
             },
             Ok(Command::SwapEquipment(equipped_item_position_1, equipped_item_position_2)) => if let Err(e) = stream.write(format!("{} \n", json!(execute_swap_equipped_item(game, equipped_item_position_1, equipped_item_position_2))).as_bytes()) {
+                panic!("{}", e);
+            },
+            Ok(Command::RerollModifier(inventory_index, modifier_index)) => if let Err(e) = stream.write(format!("{} \n", json!(execute_craft_reroll_modifier(game, inventory_index, modifier_index))).as_bytes()) {
                 panic!("{}", e);
             }
         }

@@ -1,4 +1,4 @@
-use crate::commands::Command::{Equip, Move, SwapEquipment};
+use crate::commands::Command::{Equip, Move, RerollModifier, SwapEquipment};
 use serde::{Deserialize, Serialize};
 use crate::command_create_new_item::execute_create_item;
 
@@ -9,6 +9,7 @@ pub enum Command {
     Equip(usize, usize),
     SwapEquipment(usize, usize),
     CreateItem,
+    RerollModifier(usize, usize),
 }
 
 impl TryFrom<&String> for Command {
@@ -65,6 +66,21 @@ impl TryFrom<&String> for Command {
                     Err(format!("Trouble parsing SwapEquipment command, it needs index of inventory and index of equipment slot. Got {:?}", command_parts))
                 };
             }
+            "RerollModifier" => {
+                if command_parts.len() < 3 {
+                    return Err(format!("Trouble parsing RerollModifier command, it needs index of inventory and index of modifier. Got {:?}", command_parts));
+                }
+
+                return if let Ok(inventory_index) = command_parts[1].parse::<usize>() {
+                    if let Ok(modifier_index) = command_parts[2].parse::<usize>() {
+                        Ok(RerollModifier(inventory_index, modifier_index))
+                    } else {
+                        Err(format!("Trouble parsing RerollModifier command, it needs index of inventory and index of modifier. Got {:?}", command_parts))
+                    }
+                } else {
+                    Err(format!("Trouble parsing RerollModifier command, it needs index of inventory and index of modifier. Got {:?}", command_parts))
+                };
+            }
             _ => Err(format!("Command not known. Got {:?}", command_parts))
         };
     }
@@ -97,6 +113,13 @@ mod tests_int {
         assert_eq!(Err("Trouble parsing SwapEquipment command, it needs index of inventory and index of equipment slot. Got [\"SwapEquipment\", \"21\", \"-1\"]".to_string()), Command::try_from(&"SwapEquipment 21 -1".to_string()));
         assert_eq!(Err("Trouble parsing SwapEquipment command, it needs index of inventory and index of equipment slot. Got [\"SwapEquipment\", \"B\", \"22\"]".to_string()), Command::try_from(&"SwapEquipment B 22".to_string()));
         assert_eq!(Err("Trouble parsing SwapEquipment command, it needs index of inventory and index of equipment slot. Got [\"SwapEquipment\", \"21\", \"B\"]".to_string()), Command::try_from(&"SwapEquipment 21 B".to_string()));
+
+        assert_eq!(Command::RerollModifier(21, 22), Command::try_from(&"RerollModifier 21 22".to_string()).unwrap());
+        assert_eq!(Err("Trouble parsing RerollModifier command, it needs index of inventory and index of modifier. Got [\"RerollModifier\"]".to_string()), Command::try_from(&"RerollModifier".to_string()));
+        assert_eq!(Err("Trouble parsing RerollModifier command, it needs index of inventory and index of modifier. Got [\"RerollModifier\", \"-1\", \"22\"]".to_string()), Command::try_from(&"RerollModifier -1 22".to_string()));
+        assert_eq!(Err("Trouble parsing RerollModifier command, it needs index of inventory and index of modifier. Got [\"RerollModifier\", \"21\", \"-1\"]".to_string()), Command::try_from(&"RerollModifier 21 -1".to_string()));
+        assert_eq!(Err("Trouble parsing RerollModifier command, it needs index of inventory and index of modifier. Got [\"RerollModifier\", \"B\", \"22\"]".to_string()), Command::try_from(&"RerollModifier B 22".to_string()));
+        assert_eq!(Err("Trouble parsing RerollModifier command, it needs index of inventory and index of modifier. Got [\"RerollModifier\", \"21\", \"B\"]".to_string()), Command::try_from(&"RerollModifier 21 B".to_string()));
 
         assert_eq!(Err("Command not known. Got [\"InvalidCommand\"]".to_string()), Command::try_from(&"InvalidCommand".to_string()));
     }
