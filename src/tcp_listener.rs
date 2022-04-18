@@ -44,7 +44,7 @@ impl Listener {
             Ok(Command::State) => if let Err(e) = stream.write(format!("{} \n", json!(game)).as_bytes()) {
                 panic!("{}", e);
             },
-            Ok(Command::Move(place_index)) => if let Err(e) = stream.write(format!("{} \n", execute_move_command(game, place_index)).as_bytes()) {
+            Ok(Command::Move(place_index)) => if let Err(e) = stream.write(format!("{} \n", json!(execute_move_command(game, place_index))).as_bytes()) {
                 panic!("{}", e);
             }
         }
