@@ -1,5 +1,6 @@
 use crate::commands::Command::{Equip, Move, SwapEquipment};
 use serde::{Deserialize, Serialize};
+use crate::command_create_new_item::execute_create_item;
 
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize, Eq, Hash)]
 pub enum Command {
@@ -7,6 +8,7 @@ pub enum Command {
     Move(usize),
     Equip(usize, usize),
     SwapEquipment(usize, usize),
+    CreateItem,
 }
 
 impl TryFrom<&String> for Command {
@@ -21,6 +23,7 @@ impl TryFrom<&String> for Command {
 
         return match command_parts[0] {
             "State" => Ok(Command::State),
+            "CreateItem" => Ok(Command::CreateItem),
             "Move" => {
                 if command_parts.len() < 2 {
                     return Err(format!("Trouble parsing move command, it needs the index of the place. Got {:?}", command_parts));
@@ -74,6 +77,7 @@ mod tests_int {
     #[test]
     fn try_from() {
         assert_eq!(Command::State, Command::try_from(&"State".to_string()).unwrap());
+        assert_eq!(Command::CreateItem, Command::try_from(&"CreateItem".to_string()).unwrap());
 
         assert_eq!(Command::Move(22), Command::try_from(&"Move 22".to_string()).unwrap());
         assert_eq!(Err("Trouble parsing move command, it needs the index of the place. Got [\"Move\"]".to_string()), Command::try_from(&"Move".to_string()));
