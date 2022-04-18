@@ -69,8 +69,12 @@ pub fn execute_move_command(game: &mut Game, index: usize) -> Result<ExecuteMove
 
 #[cfg(test)]
 mod tests_int {
+    use crate::attack_types::AttackType;
     use crate::command_move::execute_move_command;
     use crate::game_generator::generate_new_game;
+    use crate::item::Item;
+    use crate::item_modifier::ItemModifier;
+    use crate::modifier_gain::ModifierGain;
     use crate::treasure_types::TreasureType;
 
     #[test]
@@ -120,5 +124,35 @@ mod tests_int {
         assert_eq!("You did not deal enough damage to overcome the challenges in this place.".to_string(), result.result);
         assert_eq!(0, result.item_report.len());
         assert_eq!(None, game.treasure.get(&TreasureType::Gold));
+    }
+
+    #[test]
+    fn test_execute_multiple_items() {
+        let mut game = generate_new_game();
+        let place = game.places[0].clone();
+
+        let bad_item = Item {
+            modifiers : vec![
+                ItemModifier {
+                    gains : vec! [
+                        ModifierGain::FlatDamage(AttackType::Corruption, 1)
+                    ],
+                    costs : Vec::new()
+                }
+            ]
+        };
+
+        game.equipped_items.insert(0, bad_item);
+
+        let result = execute_move_command(&mut game, 0);
+
+        assert!(result.is_ok());
+
+        let result = result.unwrap();
+        assert_eq!("You won".to_string(), result.result);
+        assert_eq!(2, result.item_report.len());
+        assert_ne!(place, game.places[0]);
+        assert_eq!(place.reward.get(&TreasureType::Gold), game.treasure.get(&TreasureType::Gold));
+        assert_ne!(&0, game.treasure.get(&TreasureType::Gold).unwrap());
     }
 }
