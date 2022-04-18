@@ -132,9 +132,13 @@ fn calculate_item_resource_cost(item: &&Item) -> HashMap<ItemResourceType, u64> 
 
 #[cfg(test)]
 mod tests_int {
+    use crate::attack_types::AttackType;
     use crate::command_move::execute_move_command;
     use crate::game_generator::generate_new_game;
+    use crate::item::Item;
+    use crate::item_modifier::ItemModifier;
     use crate::item_resource::ItemResourceType;
+    use crate::modifier_gain::ModifierGain;
     use crate::treasure_types::TreasureType;
 
     #[test]
@@ -142,6 +146,7 @@ mod tests_int {
         let mut game = generate_new_game();
         let place = game.places[0].clone();
         assert_eq!(None, game.treasure.get(&TreasureType::Gold));
+        assert_eq!(None, game.item_resources.get(&ItemResourceType::Mana));
 
         let result = execute_move_command(&mut game, 0);
 
@@ -196,5 +201,52 @@ mod tests_int {
         assert_eq!("You did not deal enough damage to overcome the challenges in this place.".to_string(), result.result);
         assert_eq!(0, result.item_report.len());
         assert_eq!(None, game.treasure.get(&TreasureType::Gold));
+    }
+
+    #[test]
+    fn test_execute_move_command_item_after_claim_does_not_activate() {
+        let mut game = generate_new_game();
+        let place = game.places[0].clone();
+        assert_eq!(None, game.treasure.get(&TreasureType::Gold));
+        assert_eq!(None, game.item_resources.get(&ItemResourceType::Mana));
+
+        let mut power_item = Item {
+            modifiers: vec![
+                ItemModifier {
+                    costs: Vec::new(),
+                    gains: AttackType::get_all_attack_types().iter()
+                        .map(|attack_type| ModifierGain::FlatDamage(attack_type.clone(), 100))
+                        .collect(),
+                }
+            ]
+        };
+        game.equipped_items.insert(0, power_item);
+
+        let result = execute_move_command(&mut game, 0);
+
+        assert!(result.is_ok());
+
+        let result = result.unwrap();
+        assert_eq!("You won".to_string(), result.result);
+        assert_eq!(1, result.item_report.len()); //Only the first item got activated, because that were enough.
+        assert_ne!(place, game.places[0]);
+        assert_eq!(place.reward.get(&TreasureType::Gold), game.treasure.get(&TreasureType::Gold));
+        assert_ne!(&0, game.treasure.get(&TreasureType::Gold).unwrap());
+        assert_eq!(None, game.item_resources.get(&ItemResourceType::Mana));
+
+        //Putting the power item at the end
+        game.equipped_items.swap(0, 2);
+        game.equipped_items.swap(0, 1);
+
+        let result = execute_move_command(&mut game, 0);
+
+        assert!(result.is_ok());
+
+        let result = result.unwrap();
+        assert_eq!("You won".to_string(), result.result);
+        assert_eq!(3, result.item_report.len()); //Now all three have a report.
+        assert_ne!(place, game.places[0]);
+        assert!(place.reward.get(&TreasureType::Gold).unwrap() < game.treasure.get(&TreasureType::Gold).unwrap());
+        assert_eq!(Some(&5), game.item_resources.get(&ItemResourceType::Mana));
     }
 }
