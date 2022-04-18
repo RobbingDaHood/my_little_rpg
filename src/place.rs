@@ -1,17 +1,17 @@
 use std::collections::HashMap;
 use crate::attack_types;
-use crate::crafting_materials::CraftingMaterial;
+use crate::treasure_types::TreasureType;
 
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
 pub struct Place {
     pub(crate) resistance: HashMap<attack_types::AttackType, u64>,
-    pub(crate) reward: HashMap<CraftingMaterial, u64>,
+    pub(crate) reward: HashMap<TreasureType, u64>,
 }
 
 impl Place {
-    pub fn claim_rewards(&self, attacks: &HashMap<attack_types::AttackType, u64>) -> Option<HashMap<CraftingMaterial, u64>> {
+    pub fn claim_rewards(&self, attacks: &HashMap<attack_types::AttackType, u64>) -> Option<HashMap<TreasureType, u64>> {
         let are_all_resistance_defeated = self.resistance.iter()
             .all(|(resistance_type, resistance_value)|
                 match attacks.get(resistance_type) {

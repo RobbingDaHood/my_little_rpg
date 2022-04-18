@@ -3,7 +3,7 @@ use crate::attack_types;
 use crate::place::Place;
 use serde::{Deserialize, Serialize};
 use crate::attack_types::AttackType;
-use crate::crafting_materials::CraftingMaterial;
+use crate::treasure_types::TreasureType;
 use rand::Rng;
 
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
@@ -47,7 +47,7 @@ pub fn generate_place(input: &PlaceGeneratorInput) -> Place {
         }
     }
 
-    reward.insert(CraftingMaterial::Gold, resistance_sum);
+    reward.insert(TreasureType::Gold, resistance_sum);
 
     Place { resistance, reward }
 }
@@ -57,7 +57,7 @@ pub fn generate_place(input: &PlaceGeneratorInput) -> Place {
 mod tests_int {
     use std::collections::HashMap;
     use crate::attack_types::AttackType;
-    use crate::crafting_materials::CraftingMaterial;
+    use crate::treasure_types::TreasureType;
     use crate::place_generator::{generate_place, PlaceGeneratorInput};
 
     #[test]
@@ -106,6 +106,6 @@ mod tests_int {
         let place = generate_place(&input);
 
         assert_eq!(&1, place.resistance.get(&AttackType::Fire).unwrap());
-        assert_eq!(&1, place.reward.get(&CraftingMaterial::Gold).unwrap())
+        assert_eq!(&1, place.reward.get(&TreasureType::Gold).unwrap())
     }
 }

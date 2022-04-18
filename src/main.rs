@@ -4,7 +4,7 @@ use crate::tcp_listener::Listener;
 
 mod game;
 mod attack_types;
-mod crafting_materials;
+mod treasure_types;
 mod place;
 mod tcp_listener;
 mod commands;

@@ -47,5 +47,5 @@ pub fn generate_new_game() -> Game {
     let item = Item { modifiers };
     equipped_items.push(item);
 
-    Game { places, equipped_items, place_generator_input }
+    Game { places, equipped_items, place_generator_input, treasure: HashMap::new() }
 }
