@@ -8,6 +8,33 @@ use crate::modifier_cost::ModifierCost;
 use crate::modifier_gain::ModifierGain;
 use crate::place_generator::{generate_place, PlaceGeneratorInput};
 
+pub fn generate_new_game() -> Game {
+    let mut min_resistance = HashMap::new();
+    min_resistance.insert(AttackType::Physical, 1);
+
+    let mut max_resistance = HashMap::new();
+    max_resistance.insert(AttackType::Physical, 2);
+
+    let place_generator_input = PlaceGeneratorInput { max_resistance, min_resistance };
+
+    let mut places = Vec::new();
+    places.push(generate_place(&place_generator_input));
+
+    //Simple item
+    let equipped_items = vec![
+        Item {
+            modifiers: vec![
+                ItemModifier {
+                    costs: Vec::new(),
+                    gains: vec![ModifierGain::FlatDamage(AttackType::Physical, 2)],
+                }
+            ]
+        }
+    ];
+
+    Game { places, equipped_items, place_generator_input, treasure: HashMap::new(), item_resources: HashMap::new(), inventory: Vec::new() }
+}
+
 pub fn generate_testing_game() -> Game {
     let mut min_resistance = HashMap::new();
     min_resistance.insert(AttackType::Fire, 2);
@@ -49,7 +76,7 @@ pub fn generate_testing_game() -> Game {
 
     //Powerful item
     let mut modifiers = Vec::new();
-    for attack_type in AttackType::get_all_attack_types() {
+    for attack_type in AttackType::get_all() {
         let modifier = ItemModifier {
             costs: vec![ModifierCost::FlatItemResource(ItemResourceType::Mana, 1)],
             gains: vec![ModifierGain::FlatDamage(attack_type, 100)],
@@ -61,12 +88,12 @@ pub fn generate_testing_game() -> Game {
 
     //fill inventory with basic items
     let mut inventory = Vec::new();
-    for attack_type in AttackType::get_all_attack_types() {
+    for attack_type in AttackType::get_all() {
         inventory.push(Item {
             modifiers: vec![
                 ItemModifier {
                     costs: Vec::new(),
-                    gains: vec![ModifierGain::FlatDamage(attack_type, 1)]
+                    gains: vec![ModifierGain::FlatDamage(attack_type, 1)],
                 }
             ]
         })

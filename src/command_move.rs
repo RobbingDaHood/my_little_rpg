@@ -214,7 +214,7 @@ mod tests_int {
             modifiers: vec![
                 ItemModifier {
                     costs: Vec::new(),
-                    gains: AttackType::get_all_attack_types().iter()
+                    gains: AttackType::get_all().iter()
                         .map(|attack_type| ModifierGain::FlatDamage(attack_type.clone(), 100))
                         .collect(),
                 }

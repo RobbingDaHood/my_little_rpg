@@ -15,7 +15,7 @@ pub enum AttackType {
 }
 
 impl AttackType {
-    pub fn get_all_attack_types() -> Vec<AttackType> {
+    pub fn get_all() -> Vec<AttackType> {
         vec![
             Physical,
             Fire,
