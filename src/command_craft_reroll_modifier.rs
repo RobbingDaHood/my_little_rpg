@@ -29,6 +29,8 @@ pub fn execute_craft_reroll_modifier(game: &mut Game, inventory_index: usize, mo
     }
 
     //Create item
+
+    //TODO Respect min/max simultanius
     let mut rng = rand::thread_rng();
 
     let (modifier_costs, cost) = execute_craft_reroll_modifier_costs(&mut rng);

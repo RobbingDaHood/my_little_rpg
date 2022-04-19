@@ -15,7 +15,7 @@ pub fn execute_expand_elements(game: &mut Game) -> Result<AttackType, String> {
         return Err(format!("Cant pay the crafting cost for execute_expand_elements, the cost is {} and you only have {:?}", crafting_cost, game.treasure.get(&Gold)));
     }
 
-    //Create new place
+    //Add new element
     let new_element = AttackType::get_all()[game.place_generator_input.max_resistance.len()].clone();
     game.place_generator_input.max_resistance.insert(new_element.clone(), 2);
     game.place_generator_input.min_resistance.insert(new_element.clone(), 1);

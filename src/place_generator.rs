@@ -60,6 +60,8 @@ pub fn generate_place(input: &PlaceGeneratorInput) -> Place {
             }
         }
     }
+
+    // TODO make smarter
     reward.insert(TreasureType::Gold, resistance_sum);
 
     Place { resistance, reward }
@@ -105,6 +107,8 @@ mod tests_int {
         let place = generate_place(&input);
 
         println!("test_generate_place: {:?}", place);
+        assert!(place.resistance.len() <= 5);
+        assert!(place.resistance.len() >= 2);
     }
 
     #[test]
@@ -113,6 +117,7 @@ mod tests_int {
 
         let mut max = HashMap::new();
         max.insert(AttackType::Fire, 2);
+
         let input = PlaceGeneratorInput {
             min_resistance: min,
             max_resistance: max,
@@ -123,6 +128,7 @@ mod tests_int {
         let place = generate_place(&input);
 
         assert_eq!(&1, place.resistance.get(&AttackType::Fire).unwrap());
-        assert_eq!(&1, place.reward.get(&TreasureType::Gold).unwrap())
+        assert_eq!(&1, place.reward.get(&TreasureType::Gold).unwrap());
+        assert_eq!(place.resistance.len(), 1);
     }
 }

@@ -21,6 +21,8 @@ mod command_create_new_item;
 mod command_craft_reroll_modifier;
 mod command_expand_places;
 mod command_expand_elements;
+mod command_expand_max_element;
+mod command_expand_min_element;
 
 fn main() {
     Listener::new().listen()
