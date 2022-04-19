@@ -23,6 +23,7 @@ mod command_expand_places;
 mod command_expand_elements;
 mod command_expand_max_element;
 mod command_expand_min_element;
+mod command_expand_equipment_slots;
 
 fn main() {
     Listener::new().listen()

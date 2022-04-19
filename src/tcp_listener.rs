@@ -8,6 +8,7 @@ use crate::command_craft_reroll_modifier::execute_craft_reroll_modifier;
 use crate::command_create_new_item::execute_create_item;
 use crate::command_equip_unequip::{execute_equip_item, execute_swap_equipped_item};
 use crate::command_expand_elements::execute_expand_elements;
+use crate::command_expand_equipment_slots::execute_expand_equipment_slots;
 use crate::command_expand_max_element::execute_expand_max_element;
 use crate::command_expand_min_element::execute_expand_min_element;
 use crate::command_expand_places::execute_expand_places;
@@ -76,6 +77,9 @@ impl Listener {
                 panic!("{}", e);
             },
             Ok(Command::ExpandMinElement) => if let Err(e) = stream.write(format!("{} \n", json!(execute_expand_min_element(game))).as_bytes()) {
+                panic!("{}", e);
+            },
+            Ok(Command::ExpandEquipmentSlots) => if let Err(e) = stream.write(format!("{} \n", json!(execute_expand_equipment_slots(game))).as_bytes()) {
                 panic!("{}", e);
             },
         }

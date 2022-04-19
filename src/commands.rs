@@ -13,6 +13,7 @@ pub enum Command {
     ExpandElements,
     ExpandMaxElement,
     ExpandMinElement,
+    ExpandEquipmentSlots,
 }
 
 impl TryFrom<&String> for Command {
@@ -32,6 +33,7 @@ impl TryFrom<&String> for Command {
             "ExpandElements" => Ok(Command::ExpandElements),
             "ExpandMaxElement" => Ok(Command::ExpandMaxElement),
             "ExpandMinElement" => Ok(Command::ExpandMinElement),
+            "ExpandEquipmentSlots" => Ok(Command::ExpandEquipmentSlots),
             "Move" => {
                 if command_parts.len() < 2 {
                     return Err(format!("Trouble parsing move command, it needs the index of the place. Got {:?}", command_parts));
@@ -105,6 +107,7 @@ mod tests_int {
         assert_eq!(Command::ExpandElements, Command::try_from(&"ExpandElements".to_string()).unwrap());
         assert_eq!(Command::ExpandMaxElement, Command::try_from(&"ExpandMaxElement".to_string()).unwrap());
         assert_eq!(Command::ExpandMinElement, Command::try_from(&"ExpandMinElement".to_string()).unwrap());
+        assert_eq!(Command::ExpandEquipmentSlots, Command::try_from(&"ExpandEquipmentSlots".to_string()).unwrap());
 
         assert_eq!(Command::Move(22), Command::try_from(&"Move 22".to_string()).unwrap());
         assert_eq!(Err("Trouble parsing move command, it needs the index of the place. Got [\"Move\"]".to_string()), Command::try_from(&"Move".to_string()));
