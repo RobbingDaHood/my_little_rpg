@@ -1,15 +1,7 @@
-use std::cmp::{max};
-use rand::prelude::ThreadRng;
-use rand::Rng;
 use crate::Game;
 use crate::item::Item;
 use crate::treasure_types::TreasureType::Gold;
-use crate::attack_types::AttackType;
-use crate::item_modifier::ItemModifier;
-use crate::item_resource::ItemResourceType;
-use crate::modifier_cost::ModifierCost;
-use crate::modifier_gain::ModifierGain;
-use crate::modifier_gain::ModifierGain::{FlatDamage, FlatItemResource};
+use crate::roll_modifier::execute_craft_roll_modifier;
 
 pub fn execute_craft_reroll_modifier(game: &mut Game, inventory_index: usize, modifier_index: usize) -> Result<Item, String> {
     //validation
@@ -29,58 +21,10 @@ pub fn execute_craft_reroll_modifier(game: &mut Game, inventory_index: usize, mo
     }
 
     //Create item
-
-    //TODO Respect min/max simultanius
-    let mut rng = rand::thread_rng();
-
-    let (modifier_costs, cost) = execute_craft_reroll_modifier_costs(&mut rng);
-
-    let modifier_gain = execute_craft_reroll_modifier_benefits(game, &mut rng, cost);
-
-    let new_item_modifier = ItemModifier {
-        costs: modifier_costs,
-        gains: modifier_gain,
-    };
-
+    let new_item_modifier = execute_craft_roll_modifier(game);
     game.inventory[inventory_index].modifiers[modifier_index] = new_item_modifier;
 
     Ok(game.inventory[inventory_index].clone())
-}
-
-fn execute_craft_reroll_modifier_benefits(game: &mut Game, rng: &mut ThreadRng, cost: u64) -> Vec<ModifierGain> {
-    let attack_types = game.place_generator_input.min_resistance.iter()
-        .map(|(attack_type, _)| attack_type.clone())
-        .collect::<Vec<AttackType>>();
-
-    let all_modifier_gain_options = ModifierGain::get_all_given_attack_types(attack_types);
-    let modifier_gain = vec![
-        match &all_modifier_gain_options[rng.gen_range(0..all_modifier_gain_options.len())] {
-            FlatDamage(attack_type, _) => {
-                let min_damage = *game.place_generator_input.min_resistance.get(attack_type).unwrap_or(&0);
-                let max_damage = *game.place_generator_input.max_resistance.get(attack_type).unwrap_or(&1);
-                let damage = rng.gen_range(min_damage..max_damage + 1);
-                let damage = damage / 2;
-                let damage = damage + cost;
-                let damage = max(1, damage);
-
-                ModifierGain::FlatDamage(attack_type.clone(), damage.clone())
-            }
-            FlatItemResource(item_resource_type, _) => {
-                ModifierGain::FlatItemResource(item_resource_type.clone(), cost + 1)
-            }
-        }
-    ];
-    modifier_gain
-}
-
-fn execute_craft_reroll_modifier_costs(rng: &mut ThreadRng) -> (Vec<ModifierCost>, u64) {
-    let mut modifier_costs = Vec::new();
-    let mut cost = 0;
-    if rng.gen_range(0..2) != 0 {
-        cost = rng.gen_range(1..10);
-        modifier_costs.push(ModifierCost::FlatItemResource(ItemResourceType::Mana, cost));
-    }
-    (modifier_costs, cost)
 }
 
 

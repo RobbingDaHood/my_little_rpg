@@ -24,6 +24,7 @@ mod command_expand_elements;
 mod command_expand_max_element;
 mod command_expand_min_element;
 mod command_expand_equipment_slots;
+mod roll_modifier;
 
 fn main() {
     Listener::new().listen()

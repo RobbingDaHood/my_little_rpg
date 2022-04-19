@@ -26,10 +26,11 @@ pub fn generate_place(input: &PlaceGeneratorInput) -> Place {
     }
 
     let mut rng = rand::thread_rng();
-    let mut resistance_sum = 0;
-    let mut count_elements = 0;
     let minimum_elements = min(relevant_attack_types.len(), input.min_simultaneous_resistances as usize);
     let maximum_elements = min(relevant_attack_types.len(), input.max_simultaneous_resistances as usize);
+
+    let mut resistance_sum = 0;
+    let mut count_elements = 0;
     while count_elements < minimum_elements {
         for attack_type in relevant_attack_types.clone() {
             if minimum_elements == relevant_attack_types.len() || rng.gen_range(0..2) != 0 {
