@@ -15,7 +15,7 @@ pub fn generate_new_game() -> Game {
     let mut max_resistance = HashMap::new();
     max_resistance.insert(AttackType::Physical, 2);
 
-    let place_generator_input = PlaceGeneratorInput { max_resistance, min_resistance };
+    let place_generator_input = PlaceGeneratorInput { max_resistance, min_resistance, max_simultaneous_resistances: 1, min_simultaneous_resistances: 1 };
 
     let mut places = Vec::new();
     places.push(generate_place(&place_generator_input));
@@ -55,7 +55,7 @@ pub fn generate_testing_game() -> Game {
     max_resistance.insert(AttackType::Corruption, 80);
     max_resistance.insert(AttackType::Holy, 90);
 
-    let place_generator_input = PlaceGeneratorInput { max_resistance, min_resistance };
+    let place_generator_input = PlaceGeneratorInput { max_resistance, min_resistance, max_simultaneous_resistances: 22, min_simultaneous_resistances: 23  };
 
     let mut places = Vec::new();
     for _i in 0..10 {
