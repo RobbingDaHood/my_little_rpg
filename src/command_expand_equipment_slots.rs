@@ -49,6 +49,10 @@ mod tests_int {
         assert!(result.is_ok());
         assert_eq!(3, game.equipped_items.len());
 
-        assert_eq!(Err("Cant pay the crafting cost for execute_expand_equipment_slots, the cost is 1024 and you only have Some(725)".to_string()), execute_expand_equipment_slots(&mut game));
+        let result = execute_expand_equipment_slots(&mut game);
+        assert!(result.is_ok());
+        assert_eq!(4, game.equipped_items.len());
+
+        assert_eq!(Err("Cant pay the crafting cost for execute_expand_equipment_slots, the cost is 3125 and you only have Some(1701)".to_string()), execute_expand_equipment_slots(&mut game));
     }
 }

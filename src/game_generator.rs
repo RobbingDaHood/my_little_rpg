@@ -17,9 +17,6 @@ pub fn generate_new_game() -> Game {
 
     let place_generator_input = PlaceGeneratorInput { max_resistance, min_resistance, max_simultaneous_resistances: 1, min_simultaneous_resistances: 1 };
 
-    let mut places = Vec::new();
-    places.push(generate_place(&place_generator_input));
-
     //Simple item
     let equipped_items = vec![
         Item {
@@ -32,7 +29,11 @@ pub fn generate_new_game() -> Game {
         }
     ];
 
-    Game { places, equipped_items, place_generator_input, treasure: HashMap::new(), item_resources: HashMap::new(), inventory: Vec::new() }
+    let mut game = Game { places: Vec::new(), equipped_items, place_generator_input, treasure: HashMap::new(), item_resources: HashMap::new(), inventory: Vec::new() };
+
+    game.places.push(generate_place(&game));
+
+    game
 }
 
 pub fn generate_testing_game() -> Game {
@@ -55,12 +56,7 @@ pub fn generate_testing_game() -> Game {
     max_resistance.insert(AttackType::Corruption, 80);
     max_resistance.insert(AttackType::Holy, 90);
 
-    let place_generator_input = PlaceGeneratorInput { max_resistance, min_resistance, max_simultaneous_resistances: 22, min_simultaneous_resistances: 23  };
-
-    let mut places = Vec::new();
-    for _i in 0..10 {
-        places.push(generate_place(&place_generator_input));
-    }
+    let place_generator_input = PlaceGeneratorInput { max_resistance, min_resistance, max_simultaneous_resistances: 22, min_simultaneous_resistances: 23 };
 
     let mut equipped_items = Vec::new();
 
@@ -99,5 +95,11 @@ pub fn generate_testing_game() -> Game {
         })
     }
 
-    Game { places, equipped_items, place_generator_input, treasure: HashMap::new(), item_resources: HashMap::new(), inventory }
+    let mut game = Game { places: Vec::new(), equipped_items, place_generator_input, treasure: HashMap::new(), item_resources: HashMap::new(), inventory };
+
+    for _i in 0..10 {
+        game.places.push(generate_place(&game));
+    }
+
+    game
 }

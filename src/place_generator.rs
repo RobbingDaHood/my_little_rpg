@@ -1,6 +1,6 @@
-use std::cmp::min;
+use std::cmp::{max, min};
 use std::collections::{HashMap, HashSet};
-use crate::attack_types;
+use crate::{attack_types, Game};
 use crate::place::Place;
 use serde::{Deserialize, Serialize};
 use crate::attack_types::AttackType;
@@ -15,27 +15,27 @@ pub struct PlaceGeneratorInput {
     pub(crate) min_simultaneous_resistances: u8,
 }
 
-pub fn generate_place(input: &PlaceGeneratorInput) -> Place {
-    let mut resistance : HashMap<AttackType, u64> = HashMap::new();
+pub fn generate_place(game: &Game) -> Place {
+    let mut resistance: HashMap<AttackType, u64> = HashMap::new();
     let mut reward = HashMap::new();
 
     let mut relevant_attack_types = HashSet::new();
 
-    for attack_type in input.max_resistance.keys().chain(input.min_resistance.keys()).collect::<Vec<&AttackType>>() {
+    for attack_type in game.place_generator_input.max_resistance.keys().chain(game.place_generator_input.min_resistance.keys()).collect::<Vec<&AttackType>>() {
         relevant_attack_types.insert(attack_type);
     }
 
     let mut rng = rand::thread_rng();
-    let minimum_elements = min(relevant_attack_types.len(), input.min_simultaneous_resistances as usize);
-    let maximum_elements = min(relevant_attack_types.len(), input.max_simultaneous_resistances as usize);
+    let minimum_elements = min(relevant_attack_types.len(), game.place_generator_input.min_simultaneous_resistances as usize);
+    let maximum_elements = min(relevant_attack_types.len(), game.place_generator_input.max_simultaneous_resistances as usize);
 
     let mut resistance_sum = 0;
     let mut count_elements = 0;
     while count_elements < minimum_elements {
         for attack_type in relevant_attack_types.clone() {
             if minimum_elements == relevant_attack_types.len() || rng.gen_range(0..2) != 0 {
-                let max_value = input.max_resistance.get(attack_type);
-                let min_value = input.min_resistance.get(attack_type);
+                let max_value = game.place_generator_input.max_resistance.get(attack_type);
+                let min_value = game.place_generator_input.min_resistance.get(attack_type);
 
                 if max_value.is_none() && min_value.is_none() {
                     println!("Error: generate_place: Could not find min nor max values for type {:?}. Will not add the attack_type to resistances.", attack_type);
@@ -62,8 +62,13 @@ pub fn generate_place(input: &PlaceGeneratorInput) -> Place {
         }
     }
 
-    // TODO make smarter
-    reward.insert(TreasureType::Gold, resistance_sum);
+    let reward_from_resistance = (resistance_sum / AttackType::get_all().len() as u64) * count_elements as u64;
+
+    let possible_resistance_values_sum = game.place_generator_input.max_resistance.values().chain(game.place_generator_input.min_resistance.values()).sum::<u64>();
+    let average_possible_resistance_values = possible_resistance_values_sum / relevant_attack_types.len() as u64;
+    let reward_from_difficulty = average_possible_resistance_values / max(game.places.len(), 1) as u64;
+
+    reward.insert(TreasureType::Gold, reward_from_resistance + reward_from_difficulty);
 
     Place { resistance, reward }
 }
@@ -71,65 +76,29 @@ pub fn generate_place(input: &PlaceGeneratorInput) -> Place {
 
 #[cfg(test)]
 mod tests_int {
-    use std::collections::HashMap;
     use crate::attack_types::AttackType;
+    use crate::game_generator::{generate_new_game, generate_testing_game};
     use crate::treasure_types::TreasureType;
-    use crate::place_generator::{generate_place, PlaceGeneratorInput};
+    use crate::place_generator::{generate_place};
 
     #[test]
     fn test_generate_place() {
-        let mut min = HashMap::new();
-        min.insert(AttackType::Physical, 1);
-        min.insert(AttackType::Fire, 2);
-        min.insert(AttackType::Frost, 3);
-        min.insert(AttackType::Lightning, 4);
-        min.insert(AttackType::Light, 5);
-        min.insert(AttackType::Darkness, 6);
-        min.insert(AttackType::Nature, 7);
-        min.insert(AttackType::Corruption, 8);
+        let game = generate_testing_game();
 
-        let mut max = HashMap::new();
-        max.insert(AttackType::Fire, 20);
-        max.insert(AttackType::Frost, 30);
-        max.insert(AttackType::Lightning, 40);
-        max.insert(AttackType::Light, 50);
-        max.insert(AttackType::Darkness, 60);
-        max.insert(AttackType::Nature, 70);
-        max.insert(AttackType::Corruption, 80);
-        max.insert(AttackType::Holy, 90);
-
-        let input = PlaceGeneratorInput {
-            min_resistance: min,
-            max_resistance: max,
-            min_simultaneous_resistances: 2,
-            max_simultaneous_resistances: 5,
-        };
-
-        let place = generate_place(&input);
+        let place = generate_place(&game);
 
         println!("test_generate_place: {:?}", place);
-        assert!(place.resistance.len() <= 5);
-        assert!(place.resistance.len() >= 2);
+        assert_eq!(place.resistance.len(), 8);
     }
 
     #[test]
     fn test_generate_place_one_element() {
-        let min = HashMap::new();
+        let game = generate_new_game();
 
-        let mut max = HashMap::new();
-        max.insert(AttackType::Fire, 2);
+        let place = generate_place(&game);
 
-        let input = PlaceGeneratorInput {
-            min_resistance: min,
-            max_resistance: max,
-            min_simultaneous_resistances: 1,
-            max_simultaneous_resistances: 1,
-        };
-
-        let place = generate_place(&input);
-
-        assert_eq!(&1, place.resistance.get(&AttackType::Fire).unwrap());
-        assert_eq!(&1, place.reward.get(&TreasureType::Gold).unwrap());
+        assert_eq!(&1, place.resistance.get(&AttackType::Physical).unwrap());
+        assert_eq!(&3, place.reward.get(&TreasureType::Gold).unwrap());
         assert_eq!(place.resistance.len(), 1);
     }
 }

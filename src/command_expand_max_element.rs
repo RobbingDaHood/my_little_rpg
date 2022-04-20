@@ -39,14 +39,14 @@ mod tests_int {
 
         assert_eq!(Err("Cant pay the crafting cost for execute_expand_max_element, the cost is 2 and you only have Some(0)".to_string()), execute_expand_max_element(&mut game));
 
-        for _i in 0..1000 {
+        for _i in 0..100 {
             assert!(execute_move_command(&mut game, 0).is_ok());
         }
         assert!(game.treasure.get(&Gold).unwrap() > &0);
         assert_eq!(1, game.place_generator_input.max_resistance.len());
         assert_eq!(1, game.place_generator_input.min_resistance.len());
 
-        for _i in 2..10 {
+        for _i in 2..9 {
             let result = execute_expand_max_element(&mut game);
 
             assert!(result.is_ok());
@@ -54,7 +54,7 @@ mod tests_int {
             assert_eq!(1, game.place_generator_input.min_resistance.len());
         }
 
-        assert_eq!(Err("Cant pay the crafting cost for execute_expand_max_element, the cost is 512 and you only have Some(490)".to_string()), execute_expand_max_element(&mut game));
+        assert_eq!(Err("Cant pay the crafting cost for execute_expand_max_element, the cost is 256 and you only have Some(46)".to_string()), execute_expand_max_element(&mut game));
         assert_eq!(1, game.place_generator_input.max_resistance.len());
         assert_eq!(1, game.place_generator_input.min_resistance.len());
     }

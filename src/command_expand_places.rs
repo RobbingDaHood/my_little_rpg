@@ -13,7 +13,7 @@ pub fn execute_expand_places(game: &mut Game) -> Result<Place, String> {
     }
 
     //Create new place
-    let new_place = generate_place(&game.place_generator_input);
+    let new_place = generate_place(game);
     game.places.push(new_place.clone());
 
     Ok(new_place.clone())

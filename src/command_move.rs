@@ -70,7 +70,7 @@ fn update_claim_place_effect(game: &mut Game, index: usize, item_report: Vec<Ite
         *game.treasure.entry(treasure_type).or_insert(0) += amount;
     }
 
-    game.places[index] = generate_place(&game.place_generator_input);
+    game.places[index] = generate_place(game);
 
     return Ok(ExecuteMoveCommandReport {
         item_report,
