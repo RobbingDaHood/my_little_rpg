@@ -70,7 +70,7 @@ fn execute_craft_roll_modifier_benefits(game: &mut Game, rng: &mut ThreadRng, co
                 FlatDamage(attack_type, _) => {
                     let min_damage = *game.place_generator_input.min_resistance.get(attack_type).unwrap_or(&0);
                     let max_damage = *game.place_generator_input.max_resistance.get(attack_type).unwrap_or(&1);
-                    let damage = rng.gen_range(min_damage..max_damage + 1);
+                    let damage = rng.gen_range(min_damage..=max_damage);
                     let damage = damage / 2;
                     let damage = max(1, damage);
                     let damage = damage + cost_bonus * 2;

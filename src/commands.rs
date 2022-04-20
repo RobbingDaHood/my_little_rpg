@@ -1,4 +1,4 @@
-use crate::commands::Command::{Equip, Move, RerollModifier, SwapEquipment};
+use crate::commands::Command::{AddModifier, Equip, Move, RerollModifier, SwapEquipment};
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize, Eq, Hash)]
@@ -14,6 +14,7 @@ pub enum Command {
     ExpandMaxElement,
     ExpandMinElement,
     ExpandEquipmentSlots,
+    AddModifier(usize),
 }
 
 impl TryFrom<&String> for Command {
@@ -43,6 +44,17 @@ impl TryFrom<&String> for Command {
                     Ok(Move(place_index))
                 } else {
                     Err(format!("Trouble parsing move command, it needs the index of the place. Got {:?}", command_parts))
+                };
+            },
+            "AddModifier" => {
+                if command_parts.len() < 2 {
+                    return Err(format!("Trouble parsing AddModifier command, it needs the index of the item. Got {:?}", command_parts));
+                }
+
+                return if let Ok(inventory_position) = command_parts[1].parse::<usize>() {
+                    Ok(AddModifier(inventory_position))
+                } else {
+                    return Err(format!("Trouble parsing AddModifier command, it needs the index of the item. Got {:?}", command_parts));
                 };
             }
             "Equip" => {
@@ -113,6 +125,11 @@ mod tests_int {
         assert_eq!(Err("Trouble parsing move command, it needs the index of the place. Got [\"Move\"]".to_string()), Command::try_from(&"Move".to_string()));
         assert_eq!(Err("Trouble parsing move command, it needs the index of the place. Got [\"Move\", \"-1\"]".to_string()), Command::try_from(&"Move -1".to_string()));
         assert_eq!(Err("Trouble parsing move command, it needs the index of the place. Got [\"Move\", \"B\"]".to_string()), Command::try_from(&"Move B".to_string()));
+
+        assert_eq!(Command::AddModifier(22), Command::try_from(&"AddModifier 22".to_string()).unwrap());
+        assert_eq!(Err("Trouble parsing AddModifier command, it needs the index of the item. Got [\"AddModifier\"]".to_string()), Command::try_from(&"AddModifier".to_string()));
+        assert_eq!(Err("Trouble parsing AddModifier command, it needs the index of the item. Got [\"AddModifier\", \"-1\"]".to_string()), Command::try_from(&"AddModifier -1".to_string()));
+        assert_eq!(Err("Trouble parsing AddModifier command, it needs the index of the item. Got [\"AddModifier\", \"B\"]".to_string()), Command::try_from(&"AddModifier B".to_string()));
 
         assert_eq!(Command::Equip(21, 22), Command::try_from(&"Equip 21 22".to_string()).unwrap());
         assert_eq!(Err("Trouble parsing Equip command, it needs index of inventory and index of equipment slot. Got [\"Equip\"]".to_string()), Command::try_from(&"Equip".to_string()));

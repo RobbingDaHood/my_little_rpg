@@ -11,6 +11,7 @@ use crate::command_expand_elements::execute_expand_elements;
 use crate::command_expand_equipment_slots::execute_expand_equipment_slots;
 use crate::command_expand_max_element::execute_expand_max_element;
 use crate::command_expand_min_element::execute_expand_min_element;
+use crate::command_expand_modifier::execute_expand_modifiers;
 use crate::command_expand_places::execute_expand_places;
 use crate::command_move::execute_move_command;
 use crate::commands::Command;
@@ -80,6 +81,9 @@ impl Listener {
                 panic!("{}", e);
             },
             Ok(Command::ExpandEquipmentSlots) => if let Err(e) = stream.write(format!("{} \n", json!(execute_expand_equipment_slots(game))).as_bytes()) {
+                panic!("{}", e);
+            },
+            Ok(Command::AddModifier(place_index)) => if let Err(e) = stream.write(format!("{} \n", json!(execute_expand_modifiers(game, place_index))).as_bytes()) {
                 panic!("{}", e);
             },
         }
