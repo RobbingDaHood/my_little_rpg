@@ -1,13 +1,25 @@
+use std::collections::HashMap;
 use rand::Rng;
 use crate::attack_types::AttackType;
 use crate::Game;
+use crate::place_generator::PlaceGeneratorInput;
+use crate::treasure_types::TreasureType;
 use crate::treasure_types::TreasureType::Gold;
 
-pub fn execute_expand_min_element(game: &mut Game) -> Result<AttackType, String> {
+use serde::{Deserialize, Serialize};
+
+#[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
+pub struct ExecuteExpandMinElementReport {
+    new_place_generator_input: PlaceGeneratorInput,
+    cost: HashMap<TreasureType, u64>,
+    leftover_spending_treasure: HashMap<TreasureType, u64>,
+}
+
+pub fn execute_expand_min_element(game: &mut Game) -> Result<ExecuteExpandMinElementReport, String> {
     //Crafting cost
     let crafting_cost = game.place_generator_input.min_resistance.values().sum::<u64>() / game.place_generator_input.min_resistance.len() as u64;
 
-    let max_possible_elements : Vec<AttackType> = game.place_generator_input.min_resistance.iter()
+    let max_possible_elements: Vec<AttackType> = game.place_generator_input.min_resistance.iter()
         .filter(|(attack_type, amount)| game.place_generator_input.max_resistance.get(attack_type).unwrap() > &(*amount + crafting_cost))
         .map(|(attack_type, _)| attack_type.clone())
         .collect();
@@ -29,12 +41,15 @@ pub fn execute_expand_min_element(game: &mut Game) -> Result<AttackType, String>
 
     *game.place_generator_input.min_resistance.get_mut(&picked_element).unwrap() += crafting_cost;
 
-    Ok(picked_element.clone())
+    Ok(ExecuteExpandMinElementReport {
+        new_place_generator_input: game.place_generator_input.clone(),
+        cost: HashMap::from([(Gold, crafting_cost.clone())]),
+        leftover_spending_treasure: game.treasure.clone(),
+    })
 }
 
 #[cfg(test)]
 mod tests_int {
-    use crate::attack_types::AttackType;
     use crate::command_expand_max_element::execute_expand_max_element;
     use crate::command_expand_min_element::execute_expand_min_element;
     use crate::command_move::execute_move_command;
@@ -60,7 +75,7 @@ mod tests_int {
 
         assert!(execute_expand_max_element(&mut game).is_ok());
 
-        assert_eq!(Ok(AttackType::Physical), execute_expand_min_element(&mut game));
+        assert!(execute_expand_min_element(&mut game).is_ok());
         assert_eq!(Err("There are no element minimum values that can be upgraded, consider expanding a max element value.".to_string()), execute_expand_min_element(&mut game));
     }
 }

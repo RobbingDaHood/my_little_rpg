@@ -1,6 +1,13 @@
 use crate::Game;
+use serde::{Deserialize, Serialize};
+use crate::item::Item;
 
-pub fn execute_equip_item(game: &mut Game, inventory_position: usize, equipped_item_position: usize) -> Result<String, String> {
+#[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
+pub struct ExecuteEquipOrSwapReport {
+    new_equipped_items: Vec<Item>,
+}
+
+pub fn execute_equip_item(game: &mut Game, inventory_position: usize, equipped_item_position: usize) -> Result<ExecuteEquipOrSwapReport, String> {
     if game.equipped_items.len() < equipped_item_position {
         return Err(format!("equipped_item_position {} is not within the range of the equipment slots {}", equipped_item_position, game.equipped_items.len()));
     }
@@ -11,10 +18,10 @@ pub fn execute_equip_item(game: &mut Game, inventory_position: usize, equipped_i
     game.inventory.push(game.equipped_items.remove(equipped_item_position));
     game.equipped_items.insert(equipped_item_position, game.inventory.remove(inventory_position));
 
-    Ok("Equipped item.".to_string())
+    Ok(ExecuteEquipOrSwapReport { new_equipped_items: game.equipped_items.clone() })
 }
 
-pub fn execute_swap_equipped_item(game: &mut Game, equipped_item_position_1: usize, equipped_item_position_2: usize) -> Result<String, String> {
+pub fn execute_swap_equipped_item(game: &mut Game, equipped_item_position_1: usize, equipped_item_position_2: usize) -> Result<ExecuteEquipOrSwapReport, String> {
     if game.equipped_items.len() < equipped_item_position_1 {
         return Err(format!("equipped_item_position_1 {} is not within the range of the equipment slots {}", equipped_item_position_1, game.equipped_items.len()));
     }
@@ -27,13 +34,13 @@ pub fn execute_swap_equipped_item(game: &mut Game, equipped_item_position_1: usi
 
     game.equipped_items.swap(equipped_item_position_1, equipped_item_position_2);
 
-    Ok("Swapped equipped item.".to_string())
+    Ok(ExecuteEquipOrSwapReport { new_equipped_items: game.equipped_items.clone() })
 }
 
 
 #[cfg(test)]
 mod tests_int {
-    use crate::command_equip_unequip::{execute_equip_item, execute_swap_equipped_item};
+    use crate::command_equip_swap::{execute_equip_item, execute_swap_equipped_item};
     use crate::game_generator::generate_testing_game;
 
     #[test]
@@ -43,7 +50,7 @@ mod tests_int {
         let equipped_item = game.equipped_items[0].clone();
         let inventory_item = game.inventory[0].clone();
 
-        assert_eq!(Ok("Equipped item.".to_string()), execute_equip_item(&mut game, 0, 0));
+        assert!(execute_equip_item(&mut game, 0, 0).is_ok());
 
         assert_eq!(&equipped_item, game.inventory.last().unwrap());
         assert_eq!(inventory_item, game.equipped_items[0]);
@@ -82,7 +89,7 @@ mod tests_int {
         let equipped_item_1 = game.equipped_items[0].clone();
         let equipped_item_2 = game.equipped_items[1].clone();
 
-        assert_eq!(Ok("Swapped equipped item.".to_string()), execute_swap_equipped_item(&mut game, 0, 1));
+        assert!(execute_swap_equipped_item(&mut game, 0, 1).is_ok());
 
         assert_eq!(equipped_item_2, game.equipped_items[0]);
         assert_eq!(equipped_item_1, game.equipped_items[1]);

@@ -1,8 +1,18 @@
+use std::collections::HashMap;
 use crate::attack_types::AttackType;
 use crate::Game;
+use crate::treasure_types::TreasureType;
 use crate::treasure_types::TreasureType::Gold;
+use serde::{Deserialize, Serialize};
 
-pub fn execute_expand_elements(game: &mut Game) -> Result<AttackType, String> {
+#[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
+pub struct ExecuteExpandElementsReport {
+    new_element_type: AttackType,
+    cost: HashMap<TreasureType, u64>,
+    leftover_spending_treasure: HashMap<TreasureType, u64>,
+}
+
+pub fn execute_expand_elements(game: &mut Game) -> Result<ExecuteExpandElementsReport, String> {
     if game.place_generator_input.max_resistance.len() >= AttackType::get_all().len() {
         return Err("Already at maximum elements.".to_string());
     }
@@ -20,7 +30,11 @@ pub fn execute_expand_elements(game: &mut Game) -> Result<AttackType, String> {
     game.place_generator_input.max_resistance.insert(new_element.clone(), 2);
     game.place_generator_input.min_resistance.insert(new_element.clone(), 1);
 
-    Ok(new_element.clone())
+    Ok(ExecuteExpandElementsReport {
+        new_element_type: new_element.clone(),
+        cost: HashMap::from([(Gold, crafting_cost.clone())]),
+        leftover_spending_treasure: game.treasure.clone(),
+    })
 }
 
 #[cfg(test)]

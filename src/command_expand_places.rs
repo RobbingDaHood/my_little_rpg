@@ -1,9 +1,19 @@
+use std::collections::HashMap;
 use crate::Game;
 use crate::place::Place;
 use crate::place_generator::generate_place;
 use crate::treasure_types::TreasureType::Gold;
+use serde::{Deserialize, Serialize};
+use crate::treasure_types::TreasureType;
 
-pub fn execute_expand_places(game: &mut Game) -> Result<Place, String> {
+#[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
+pub struct ExecuteExpandPlacesReport {
+    new_place: Place,
+    cost: HashMap<TreasureType, u64>,
+    leftover_spending_treasure: HashMap<TreasureType, u64>,
+}
+
+pub fn execute_expand_places(game: &mut Game) -> Result<ExecuteExpandPlacesReport, String> {
     //Crafting cost
     let crafting_cost = (game.places.len() * 10) as u64;
     if *game.treasure.entry(Gold).or_insert(0) >= crafting_cost {
@@ -16,7 +26,11 @@ pub fn execute_expand_places(game: &mut Game) -> Result<Place, String> {
     let new_place = generate_place(game);
     game.places.push(new_place.clone());
 
-    Ok(new_place.clone())
+    Ok(ExecuteExpandPlacesReport {
+        new_place: new_place.clone(),
+        cost: HashMap::from([(Gold, crafting_cost.clone())]),
+        leftover_spending_treasure: game.treasure.clone(),
+    })
 }
 
 #[cfg(test)]

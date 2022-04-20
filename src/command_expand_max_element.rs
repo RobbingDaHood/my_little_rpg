@@ -1,9 +1,20 @@
+use std::collections::HashMap;
 use rand::Rng;
 use crate::attack_types::AttackType;
 use crate::Game;
 use crate::treasure_types::TreasureType::Gold;
+use serde::{Deserialize, Serialize};
+use crate::place_generator::PlaceGeneratorInput;
+use crate::treasure_types::TreasureType;
 
-pub fn execute_expand_max_element(game: &mut Game) -> Result<AttackType, String> {
+#[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
+pub struct ExecuteExpandMaxElementReport {
+    new_place_generator_input: PlaceGeneratorInput,
+    cost: HashMap<TreasureType, u64>,
+    leftover_spending_treasure: HashMap<TreasureType, u64>,
+}
+
+pub fn execute_expand_max_element(game: &mut Game) -> Result<ExecuteExpandMaxElementReport, String> {
     //Crafting cost
     let crafting_cost = game.place_generator_input.max_resistance.values().sum::<u64>() / game.place_generator_input.max_resistance.len() as u64;
     if *game.treasure.entry(Gold).or_insert(0) >= crafting_cost {
@@ -21,7 +32,11 @@ pub fn execute_expand_max_element(game: &mut Game) -> Result<AttackType, String>
 
     *game.place_generator_input.max_resistance.get_mut(&picked_element).unwrap() += crafting_cost;
 
-    Ok(picked_element.clone())
+    Ok(ExecuteExpandMaxElementReport {
+        new_place_generator_input: game.place_generator_input.clone(),
+        cost: HashMap::from([(Gold, crafting_cost.clone())]),
+        leftover_spending_treasure: game.treasure.clone(),
+    })
 }
 
 #[cfg(test)]

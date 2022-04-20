@@ -1,9 +1,19 @@
+use std::collections::HashMap;
 use crate::Game;
 use crate::item::Item;
 use crate::treasure_types::TreasureType::Gold;
 use crate::roll_modifier::execute_craft_roll_modifier;
+use crate::treasure_types::TreasureType;
+use serde::{Deserialize, Serialize};
 
-pub fn execute_craft_reroll_modifier(game: &mut Game, inventory_index: usize, modifier_index: usize) -> Result<Item, String> {
+#[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
+pub struct ExecuteCraftRerollModifierReport {
+    new_item: Item,
+    cost: HashMap<TreasureType, u64>,
+    leftover_spending_treasure: HashMap<TreasureType, u64>,
+}
+
+pub fn execute_craft_reroll_modifier(game: &mut Game, inventory_index: usize, modifier_index: usize) -> Result<ExecuteCraftRerollModifierReport, String> {
     //validation
     if game.inventory.len() <= inventory_index {
         return Err(format!("inventory_index {} is not within the range of the inventory {}", inventory_index, game.inventory.len()));
@@ -24,12 +34,17 @@ pub fn execute_craft_reroll_modifier(game: &mut Game, inventory_index: usize, mo
     let new_item_modifier = execute_craft_roll_modifier(game);
     game.inventory[inventory_index].modifiers[modifier_index] = new_item_modifier;
 
-    Ok(game.inventory[inventory_index].clone())
+    Ok(ExecuteCraftRerollModifierReport {
+        new_item: game.inventory[inventory_index].clone(),
+        cost: HashMap::from([(Gold, crafting_cost.clone())]),
+        leftover_spending_treasure: game.treasure.clone(),
+    })
 }
 
 
 #[cfg(test)]
 mod tests_int {
+    use std::collections::HashMap;
     use crate::command_craft_reroll_modifier::{execute_craft_reroll_modifier};
     use crate::command_move::execute_move_command;
     use crate::game_generator::generate_testing_game;
@@ -50,7 +65,9 @@ mod tests_int {
         let result = execute_craft_reroll_modifier(&mut game, 0, 0);
 
         assert!(result.is_ok());
-        assert_ne!(old_item, result.unwrap());
+        assert_ne!(old_item, result.clone().unwrap().new_item);
+        assert_eq!(HashMap::from([(Gold, 5)]), result.clone().unwrap().cost);
+        assert!(result.clone().unwrap().leftover_spending_treasure.get(&Gold).unwrap() > &0);
 
         let old_item = game.inventory[0].clone();
         let old_gold = game.treasure.get(&Gold).unwrap().clone();

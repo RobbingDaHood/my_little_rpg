@@ -7,6 +7,7 @@ use crate::place_generator::generate_place;
 use serde::{Deserialize, Serialize};
 use crate::item_resource::ItemResourceType;
 use crate::modifier_cost::ModifierCost;
+use crate::place::Place;
 use crate::treasure_types::TreasureType;
 
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
@@ -22,10 +23,17 @@ pub struct ItemReport {
 pub struct ExecuteMoveCommandReport {
     item_report: Vec<ItemReport>,
     result: String,
+    new_place: Place,
 }
 
-pub fn execute_move_command(game: &mut Game, index: usize) -> Result<ExecuteMoveCommandReport, ExecuteMoveCommandReport> {
-    if game.places.len() < index { return report_place_does_not_exist(game, index); }
+#[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
+pub struct ExecuteMoveCommandErrorReport {
+    item_report: Vec<ItemReport>,
+    result: String,
+}
+
+pub fn execute_move_command(game: &mut Game, index: usize) -> Result<ExecuteMoveCommandReport, ExecuteMoveCommandErrorReport> {
+    if game.places.len() <= index { return report_place_does_not_exist(game, index); }
 
     let mut current_damage = HashMap::new();
     let mut current_item_resources = game.item_resources.clone();
@@ -52,20 +60,20 @@ pub fn execute_move_command(game: &mut Game, index: usize) -> Result<ExecuteMove
         }
     }
 
-    Err(ExecuteMoveCommandReport {
+    Err(ExecuteMoveCommandErrorReport {
         item_report,
         result: "You did not deal enough damage to overcome the challenges in this place.".to_string(),
     })
 }
 
-fn report_place_does_not_exist(game: &mut Game, index: usize) -> Result<ExecuteMoveCommandReport, ExecuteMoveCommandReport> {
-    return Err(ExecuteMoveCommandReport {
+fn report_place_does_not_exist(game: &mut Game, index: usize) -> Result<ExecuteMoveCommandReport, ExecuteMoveCommandErrorReport> {
+    return Err(ExecuteMoveCommandErrorReport {
         item_report: Vec::new(),
         result: format!("Error: execute_move_command: Index {} is out of range of places, places is {} long.", index, game.places.len()),
     });
 }
 
-fn update_claim_place_effect(game: &mut Game, index: usize, item_report: Vec<ItemReport>, rewards: HashMap<TreasureType, u64>) -> Result<ExecuteMoveCommandReport, ExecuteMoveCommandReport> {
+fn update_claim_place_effect(game: &mut Game, index: usize, item_report: Vec<ItemReport>, rewards: HashMap<TreasureType, u64>) -> Result<ExecuteMoveCommandReport, ExecuteMoveCommandErrorReport> {
     for (treasure_type, amount) in rewards {
         *game.treasure.entry(treasure_type).or_insert(0) += amount;
     }
@@ -75,6 +83,7 @@ fn update_claim_place_effect(game: &mut Game, index: usize, item_report: Vec<Ite
     return Ok(ExecuteMoveCommandReport {
         item_report,
         result: "You won".to_string(),
+        new_place: game.places[index].clone(),
     });
 }
 

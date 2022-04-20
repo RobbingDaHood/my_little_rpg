@@ -6,7 +6,7 @@ use std::io::Read;
 use std::io::Write;
 use crate::command_craft_reroll_modifier::execute_craft_reroll_modifier;
 use crate::command_create_new_item::execute_create_item;
-use crate::command_equip_unequip::{execute_equip_item, execute_swap_equipped_item};
+use crate::command_equip_swap::{execute_equip_item, execute_swap_equipped_item};
 use crate::command_expand_elements::execute_expand_elements;
 use crate::command_expand_equipment_slots::execute_expand_equipment_slots;
 use crate::command_expand_max_element::execute_expand_max_element;

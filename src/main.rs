@@ -16,7 +16,7 @@ mod item_modifier;
 mod item;
 mod command_move;
 mod item_resource;
-mod command_equip_unequip;
+mod command_equip_swap;
 mod command_create_new_item;
 mod command_craft_reroll_modifier;
 mod command_expand_places;

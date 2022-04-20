@@ -1,9 +1,19 @@
+use std::collections::HashMap;
 use crate::command_create_new_item::execute_create_item;
 use crate::Game;
 use crate::item::Item;
 use crate::treasure_types::TreasureType::Gold;
+use serde::{Deserialize, Serialize};
+use crate::treasure_types::TreasureType;
 
-pub fn execute_expand_equipment_slots(game: &mut Game) -> Result<Item, String> {
+#[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
+pub struct ExecuteExpandEquipmentSlotsReport {
+    new_equipped_items: Vec<Item>,
+    cost: HashMap<TreasureType, u64>,
+    leftover_spending_treasure: HashMap<TreasureType, u64>,
+}
+
+pub fn execute_expand_equipment_slots(game: &mut Game) -> Result<ExecuteExpandEquipmentSlotsReport, String> {
     //Crafting cost
     let crafting_cost = (game.equipped_items.len() + 1).pow(5) as u64;
     if *game.treasure.entry(Gold).or_insert(0) >= crafting_cost {
@@ -16,12 +26,16 @@ pub fn execute_expand_equipment_slots(game: &mut Game) -> Result<Item, String> {
     let item = if game.inventory.len() > 0 {
         game.inventory.remove(game.inventory.len() - 1)
     } else {
-        execute_create_item(game)
+        execute_create_item(game).new_item
     };
 
     game.equipped_items.push(item.clone());
 
-    Ok(item)
+    Ok(ExecuteExpandEquipmentSlotsReport {
+        new_equipped_items: game.equipped_items.clone(),
+        cost: HashMap::from([(Gold, crafting_cost.clone())]),
+        leftover_spending_treasure: game.treasure.clone(),
+    })
 }
 
 #[cfg(test)]

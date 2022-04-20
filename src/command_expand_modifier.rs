@@ -1,9 +1,19 @@
+use std::collections::HashMap;
 use crate::Game;
 use crate::item::Item;
 use crate::roll_modifier::execute_craft_roll_modifier;
 use crate::treasure_types::TreasureType::Gold;
+use serde::{Deserialize, Serialize};
+use crate::treasure_types::TreasureType;
 
-pub fn execute_expand_modifiers(game: &mut Game, inventory_index: usize) -> Result<Item, String> {
+#[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
+pub struct ExecuteExpandModifiersReport {
+    new_item: Item,
+    cost: HashMap<TreasureType, u64>,
+    leftover_spending_treasure: HashMap<TreasureType, u64>,
+}
+
+pub fn execute_expand_modifiers(game: &mut Game, inventory_index: usize) -> Result<ExecuteExpandModifiersReport, String> {
     //validation
     if game.inventory.len() <= inventory_index {
         return Err(format!("inventory_index {} is not within the range of the inventory {}", inventory_index, game.inventory.len()));
@@ -21,7 +31,11 @@ pub fn execute_expand_modifiers(game: &mut Game, inventory_index: usize) -> Resu
     let new_item_modifier = execute_craft_roll_modifier(game);
     game.inventory[inventory_index].modifiers.push(new_item_modifier);
 
-    Ok(game.inventory[inventory_index].clone())
+    Ok(ExecuteExpandModifiersReport {
+        new_item: game.inventory[inventory_index].clone(),
+        cost: HashMap::from([(Gold, crafting_cost.clone())]),
+        leftover_spending_treasure: game.treasure.clone(),
+    })
 }
 
 
@@ -49,7 +63,7 @@ mod tests_int {
         let result = execute_expand_modifiers(&mut game, 0);
 
         assert!(result.is_ok());
-        assert_ne!(old_item, result.unwrap());
+        assert_ne!(old_item, result.unwrap().new_item);
         assert_eq!(2, game.inventory[0].modifiers.len());
 
         let old_item = game.inventory[0].clone();
