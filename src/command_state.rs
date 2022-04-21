@@ -3,7 +3,14 @@ use crate::place::Place;
 use crate::place_generator::{PlaceGeneratorInput};
 use serde::{Deserialize, Serialize};
 use crate::command_craft_reroll_modifier::execute_craft_reroll_modifier_calculate_cost;
+use crate::command_expand_elements::execute_expand_elements_calculate_cost;
+use crate::command_expand_equipment_slots::execute_expand_equipment_slots_calculate_cost;
+use crate::command_expand_max_element::execute_expand_max_element_calculate_cost;
+use crate::command_expand_max_simultaneous_element::execute_expand_max_simultaneous_element_calculate_cost;
+use crate::command_expand_min_element::execute_expand_min_element_calculate_cost;
+use crate::command_expand_min_simultanius_element::execute_expand_min_simultaneous_element_calculate_cost;
 use crate::command_expand_modifier::execute_expand_modifiers_calculate_cost;
+use crate::command_expand_places::execute_expand_places_calculate_cost;
 use crate::Game;
 use crate::item::Item;
 use crate::item_resource::ItemResourceType;
@@ -17,6 +24,18 @@ pub struct PresentationGameState {
     pub(crate) place_generator_input: PlaceGeneratorInput,
     pub(crate) treasure: HashMap<TreasureType, u64>,
     pub(crate) item_resources: HashMap<ItemResourceType, u64>,
+    crafting_actions: PlaceCosts,
+}
+
+#[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
+pub struct PlaceCosts {
+    expand_places: u64,
+    expand_elements: u64,
+    expand_max_element: u64,
+    expand_min_element: u64,
+    expand_max_simultaneous_element: u64,
+    expand_min_simultaneous_element: u64,
+    expand_equipment_slots: u64,
 }
 
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
@@ -25,7 +44,6 @@ pub struct PresentationItem {
     item: Item,
     crafting_actions: ItemCosts,
 }
-
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
 pub struct ItemCosts {
     reroll_modifier: Vec<CostsInList>,
@@ -58,6 +76,16 @@ pub fn execute_state(game: &mut Game) -> PresentationGameState {
         })
         .collect();
 
+    let crafting_actions = PlaceCosts {
+        expand_places: execute_expand_places_calculate_cost(game),
+        expand_elements: execute_expand_elements_calculate_cost(game),
+        expand_max_element: execute_expand_max_element_calculate_cost(game),
+        expand_min_element: execute_expand_min_element_calculate_cost(game),
+        expand_max_simultaneous_element: execute_expand_max_simultaneous_element_calculate_cost(game),
+        expand_min_simultaneous_element: execute_expand_min_simultaneous_element_calculate_cost(game),
+        expand_equipment_slots: execute_expand_equipment_slots_calculate_cost(game),
+    };
+
     PresentationGameState {
         places,
         equipped_items,
@@ -65,6 +93,7 @@ pub fn execute_state(game: &mut Game) -> PresentationGameState {
         place_generator_input: game.place_generator_input.clone(),
         treasure: game.treasure.clone(),
         item_resources: game.item_resources.clone(),
+        crafting_actions,
     }
 }
 
