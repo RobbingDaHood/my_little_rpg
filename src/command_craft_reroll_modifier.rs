@@ -43,7 +43,7 @@ pub fn execute_craft_reroll_modifier(game: &mut Game, inventory_index: usize, mo
     })
 }
 
-pub fn execute_craft_reroll_modifier_calculate_cost(game: &mut Game, inventory_index: usize, modifier_index: usize) -> u64 {
+pub fn execute_craft_reroll_modifier_calculate_cost(game: &Game, inventory_index: usize, modifier_index: usize) -> u64 {
     (game.inventory[inventory_index].modifiers.len() * (modifier_index + 1) * 5) as u64
 }
 

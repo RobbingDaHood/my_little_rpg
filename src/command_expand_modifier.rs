@@ -40,7 +40,7 @@ pub fn execute_expand_modifiers(game: &mut Game, inventory_index: usize) -> Resu
     })
 }
 
-pub fn execute_expand_modifiers_calculate_cost(game: &mut Game, inventory_index: usize) -> u64 {
+pub fn execute_expand_modifiers_calculate_cost(game: &Game, inventory_index: usize) -> u64 {
     (game.inventory[inventory_index].modifiers.len().pow(5) + 10) as u64
 }
 
