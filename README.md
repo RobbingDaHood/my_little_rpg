@@ -21,3 +21,20 @@ It is also recommended to have some method of parsing JSON. A popular choice is 
 1. printf "State" | ncat -C localhost 1337 | jq .
 2. printf "Move 0" | ncat -C localhost 1337
 3. printf "Help" | ncat -C localhost 1337
+
+# Some more about Command line interface games
+
+When all the input and output happens through the command line then you can: 
+1. Use all the command line tools you have. 
+2. Organize the output from the game as you like.
+3. Save the output data to files in whatever order you like. 
+4. You can automate anything you like. Even create a fully autonomus AI if that is what you want. 
+5. Open scripts in multiple terminals both for automation and visuals. 
+6. You can treat the game as a backend and add any frontend you please. 
+
+Command line games give you a lot of freedom. 
+
+## This is not a text based games
+Text based game wiki: https://en.wikipedia.org/wiki/Text-based_game 
+
+The main difference is that text based games locks you into text based UI; You cannot use any CLI tools (at least not directly) on top of it, like with a CLI game. 
