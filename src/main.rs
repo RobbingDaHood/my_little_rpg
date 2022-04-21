@@ -29,6 +29,7 @@ mod command_expand_modifier;
 mod command_help;
 mod command_expand_max_simultaneous_element;
 mod command_expand_min_simultanius_element;
+mod command_state;
 
 fn main() {
     Listener::new().listen()
