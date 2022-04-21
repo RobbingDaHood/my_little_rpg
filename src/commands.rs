@@ -1,4 +1,4 @@
-use crate::commands::Command::{AddModifier, Equip, Move, RerollModifier, SwapEquipment};
+use crate::commands::Command::{AddModifier, CreateItem, Equip, ExpandElements, ExpandEquipmentSlots, ExpandMaxElement, ExpandMinElement, ExpandPlaces, Help, Move, RerollModifier, State, SwapEquipment};
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize, Eq, Hash)]
@@ -13,8 +13,31 @@ pub enum Command {
     ExpandElements,
     ExpandMaxElement,
     ExpandMinElement,
+    ExpandMaxSimultaneousElement,
+    ExpandMinSimultaneousElement,
     ExpandEquipmentSlots,
     AddModifier(usize),
+    Help,
+}
+
+impl Command {
+    pub fn get_all() -> Vec<Command> {
+        vec![
+            State,
+            Move(0),
+            Equip(0, 0),
+            SwapEquipment(0, 0),
+            CreateItem,
+            RerollModifier(0, 0),
+            ExpandPlaces,
+            ExpandElements,
+            ExpandMaxElement,
+            ExpandMinElement,
+            ExpandEquipmentSlots,
+            AddModifier(0),
+            Help,
+        ]
+    }
 }
 
 impl TryFrom<&String> for Command {
@@ -35,6 +58,9 @@ impl TryFrom<&String> for Command {
             "ExpandMaxElement" => Ok(Command::ExpandMaxElement),
             "ExpandMinElement" => Ok(Command::ExpandMinElement),
             "ExpandEquipmentSlots" => Ok(Command::ExpandEquipmentSlots),
+            "ExpandMaxSimultaneousElement" => Ok(Command::ExpandMaxSimultaneousElement),
+            "ExpandMinSimultaneousElement" => Ok(Command::ExpandMinSimultaneousElement),
+            "Help" => Ok(Command::Help),
             "Move" => {
                 if command_parts.len() < 2 {
                     return Err(format!("Trouble parsing move command, it needs the index of the place. Got {:?}", command_parts));
@@ -45,7 +71,7 @@ impl TryFrom<&String> for Command {
                 } else {
                     Err(format!("Trouble parsing move command, it needs the index of the place. Got {:?}", command_parts))
                 };
-            },
+            }
             "AddModifier" => {
                 if command_parts.len() < 2 {
                     return Err(format!("Trouble parsing AddModifier command, it needs the index of the item. Got {:?}", command_parts));
@@ -120,6 +146,9 @@ mod tests_int {
         assert_eq!(Command::ExpandMaxElement, Command::try_from(&"ExpandMaxElement".to_string()).unwrap());
         assert_eq!(Command::ExpandMinElement, Command::try_from(&"ExpandMinElement".to_string()).unwrap());
         assert_eq!(Command::ExpandEquipmentSlots, Command::try_from(&"ExpandEquipmentSlots".to_string()).unwrap());
+        assert_eq!(Command::ExpandMaxSimultaneousElement, Command::try_from(&"ExpandMaxSimultaneousElement".to_string()).unwrap());
+        assert_eq!(Command::ExpandMinSimultaneousElement, Command::try_from(&"ExpandMinSimultaneousElement".to_string()).unwrap());
+        assert_eq!(Command::Help, Command::try_from(&"Help".to_string()).unwrap());
 
         assert_eq!(Command::Move(22), Command::try_from(&"Move 22".to_string()).unwrap());
         assert_eq!(Err("Trouble parsing move command, it needs the index of the place. Got [\"Move\"]".to_string()), Command::try_from(&"Move".to_string()));
