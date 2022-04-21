@@ -8,7 +8,8 @@ use serde::{Deserialize, Serialize};
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
 pub struct ExecuteExpandElementsReport {
     new_element_type: AttackType,
-    cost: HashMap<TreasureType, u64>,
+    paid_cost: HashMap<TreasureType, u64>,
+    new_cost: HashMap<TreasureType, u64>,
     leftover_spending_treasure: HashMap<TreasureType, u64>,
 }
 
@@ -18,7 +19,7 @@ pub fn execute_expand_elements(game: &mut Game) -> Result<ExecuteExpandElementsR
     }
 
     //Crafting cost
-    let crafting_cost = (game.place_generator_input.max_resistance.len() * 10) as u64;
+    let crafting_cost = execute_expand_elements_calculate_cost(game);
     if *game.treasure.entry(Gold).or_insert(0) >= crafting_cost {
         *game.treasure.get_mut(&Gold).unwrap() -= crafting_cost;
     } else {
@@ -32,9 +33,14 @@ pub fn execute_expand_elements(game: &mut Game) -> Result<ExecuteExpandElementsR
 
     Ok(ExecuteExpandElementsReport {
         new_element_type: new_element.clone(),
-        cost: HashMap::from([(Gold, crafting_cost.clone())]),
+        paid_cost: HashMap::from([(Gold, crafting_cost.clone())]),
+        new_cost: HashMap::from([(Gold, execute_expand_elements_calculate_cost(game))]),
         leftover_spending_treasure: game.treasure.clone(),
     })
+}
+
+pub fn execute_expand_elements_calculate_cost(game: &mut Game) -> u64 {
+    (game.place_generator_input.max_resistance.len() * 10) as u64
 }
 
 #[cfg(test)]

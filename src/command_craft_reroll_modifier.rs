@@ -9,7 +9,8 @@ use serde::{Deserialize, Serialize};
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
 pub struct ExecuteCraftRerollModifierReport {
     new_item: Item,
-    cost: HashMap<TreasureType, u64>,
+    paid_cost: HashMap<TreasureType, u64>,
+    new_cost: HashMap<TreasureType, u64>,
     leftover_spending_treasure: HashMap<TreasureType, u64>,
 }
 
@@ -23,7 +24,7 @@ pub fn execute_craft_reroll_modifier(game: &mut Game, inventory_index: usize, mo
     }
 
     //Crafting cost
-    let crafting_cost = (game.inventory[inventory_index].modifiers.len() * (modifier_index + 1) * 5) as u64;
+    let crafting_cost = execute_craft_reroll_modifier_calculate_cost(game, inventory_index, modifier_index);
     if *game.treasure.entry(Gold).or_insert(0) >= crafting_cost {
         *game.treasure.get_mut(&Gold).unwrap() -= crafting_cost;
     } else {
@@ -36,9 +37,14 @@ pub fn execute_craft_reroll_modifier(game: &mut Game, inventory_index: usize, mo
 
     Ok(ExecuteCraftRerollModifierReport {
         new_item: game.inventory[inventory_index].clone(),
-        cost: HashMap::from([(Gold, crafting_cost.clone())]),
+        paid_cost: HashMap::from([(Gold, crafting_cost.clone())]),
+        new_cost: HashMap::from([(Gold, execute_craft_reroll_modifier_calculate_cost(game, inventory_index, modifier_index))]),
         leftover_spending_treasure: game.treasure.clone(),
     })
+}
+
+pub fn execute_craft_reroll_modifier_calculate_cost(game: &mut Game, inventory_index: usize, modifier_index: usize) -> u64 {
+    (game.inventory[inventory_index].modifiers.len() * (modifier_index + 1) * 5) as u64
 }
 
 
@@ -66,7 +72,7 @@ mod tests_int {
 
         assert!(result.is_ok());
         assert_ne!(old_item, result.clone().unwrap().new_item);
-        assert_eq!(HashMap::from([(Gold, 5)]), result.clone().unwrap().cost);
+        assert_eq!(HashMap::from([(Gold, 5)]), result.clone().unwrap().paid_cost);
         assert!(result.clone().unwrap().leftover_spending_treasure.get(&Gold).unwrap() > &0);
 
         let old_item = game.inventory[0].clone();

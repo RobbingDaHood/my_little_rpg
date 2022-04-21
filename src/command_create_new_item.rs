@@ -11,7 +11,8 @@ use crate::treasure_types::TreasureType::Gold;
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
 pub struct ExecuteCreateItemReport {
     pub(crate) new_item: Item,
-    cost: HashMap<TreasureType, u64>,
+    paid_cost: HashMap<TreasureType, u64>,
+    new_cost: HashMap<TreasureType, u64>,
     leftover_spending_treasure: HashMap<TreasureType, u64>,
 }
 
@@ -28,7 +29,12 @@ pub fn execute_create_item(game: &mut Game) -> ExecuteCreateItemReport {
 
     ExecuteCreateItemReport {
         new_item,
-        cost: HashMap::from([(Gold, 0)]),
+        paid_cost: HashMap::from([(Gold, 0)]),
+        new_cost: HashMap::from([(Gold, execute_create_item_calculate_cost())]),
         leftover_spending_treasure: game.treasure.clone(),
     }
+}
+
+pub fn execute_create_item_calculate_cost() -> u64 {
+    0
 }

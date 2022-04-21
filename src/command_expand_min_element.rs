@@ -11,13 +11,14 @@ use serde::{Deserialize, Serialize};
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
 pub struct ExecuteExpandMinElementReport {
     new_place_generator_input: PlaceGeneratorInput,
-    cost: HashMap<TreasureType, u64>,
+    paid_cost: HashMap<TreasureType, u64>,
+    new_cost: HashMap<TreasureType, u64>,
     leftover_spending_treasure: HashMap<TreasureType, u64>,
 }
 
 pub fn execute_expand_min_element(game: &mut Game) -> Result<ExecuteExpandMinElementReport, String> {
     //Crafting cost
-    let crafting_cost = game.place_generator_input.min_resistance.values().sum::<u64>() / game.place_generator_input.min_resistance.len() as u64;
+    let crafting_cost = execute_expand_min_element_calculate_cost(game);
 
     let max_possible_elements: Vec<AttackType> = game.place_generator_input.min_resistance.iter()
         .filter(|(attack_type, amount)| game.place_generator_input.max_resistance.get(attack_type).unwrap() > &(*amount + crafting_cost))
@@ -43,9 +44,14 @@ pub fn execute_expand_min_element(game: &mut Game) -> Result<ExecuteExpandMinEle
 
     Ok(ExecuteExpandMinElementReport {
         new_place_generator_input: game.place_generator_input.clone(),
-        cost: HashMap::from([(Gold, crafting_cost.clone())]),
+        paid_cost: HashMap::from([(Gold, crafting_cost.clone())]),
+        new_cost: HashMap::from([(Gold, execute_expand_min_element_calculate_cost(game))]),
         leftover_spending_treasure: game.treasure.clone(),
     })
+}
+
+pub fn execute_expand_min_element_calculate_cost(game: &mut Game) -> u64 {
+    game.place_generator_input.min_resistance.values().sum::<u64>() / game.place_generator_input.min_resistance.len() as u64
 }
 
 #[cfg(test)]

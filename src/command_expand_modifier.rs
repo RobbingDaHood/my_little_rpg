@@ -9,7 +9,8 @@ use crate::treasure_types::TreasureType;
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
 pub struct ExecuteExpandModifiersReport {
     new_item: Item,
-    cost: HashMap<TreasureType, u64>,
+    paid_cost: HashMap<TreasureType, u64>,
+    new_cost: HashMap<TreasureType, u64>,
     leftover_spending_treasure: HashMap<TreasureType, u64>,
 }
 
@@ -20,7 +21,7 @@ pub fn execute_expand_modifiers(game: &mut Game, inventory_index: usize) -> Resu
     }
 
     //Crafting cost
-    let crafting_cost = (game.inventory[inventory_index].modifiers.len().pow(5) + 10) as u64;
+    let crafting_cost = execute_expand_modifiers_calculate_cost(game, inventory_index);
     if *game.treasure.entry(Gold).or_insert(0) >= crafting_cost {
         *game.treasure.get_mut(&Gold).unwrap() -= crafting_cost;
     } else {
@@ -33,9 +34,14 @@ pub fn execute_expand_modifiers(game: &mut Game, inventory_index: usize) -> Resu
 
     Ok(ExecuteExpandModifiersReport {
         new_item: game.inventory[inventory_index].clone(),
-        cost: HashMap::from([(Gold, crafting_cost.clone())]),
+        paid_cost: HashMap::from([(Gold, crafting_cost.clone())]),
+        new_cost: HashMap::from([(Gold, execute_expand_modifiers_calculate_cost(game, inventory_index))]),
         leftover_spending_treasure: game.treasure.clone(),
     })
+}
+
+pub fn execute_expand_modifiers_calculate_cost(game: &mut Game, inventory_index: usize) -> u64 {
+    (game.inventory[inventory_index].modifiers.len().pow(5) + 10) as u64
 }
 
 

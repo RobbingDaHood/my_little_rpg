@@ -1,8 +1,5 @@
 use std::collections::HashMap;
-use rand::Rng;
-use crate::attack_types::AttackType;
 use crate::Game;
-use crate::place_generator::PlaceGeneratorInput;
 use crate::treasure_types::TreasureType;
 use crate::treasure_types::TreasureType::Gold;
 
@@ -11,7 +8,8 @@ use serde::{Deserialize, Serialize};
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
 pub struct ExecuteExpandMaxSimultaneousElementReport {
     new_min_simultaneous_resistances: u8,
-    cost: HashMap<TreasureType, u64>,
+    paid_cost: HashMap<TreasureType, u64>,
+    new_cost: HashMap<TreasureType, u64>,
     leftover_spending_treasure: HashMap<TreasureType, u64>,
 }
 
@@ -21,7 +19,7 @@ pub fn execute_expand_min_simultaneous_element(game: &mut Game) -> Result<Execut
     }
 
     //Crafting cost
-    let crafting_cost = game.place_generator_input.min_simultaneous_resistances as u64 * 10;
+    let crafting_cost = execute_expand_min_simultaneous_element_calculate_cost(game);
     if *game.treasure.entry(Gold).or_insert(0) >= crafting_cost {
         *game.treasure.get_mut(&Gold).unwrap() -= crafting_cost;
     } else {
@@ -33,18 +31,21 @@ pub fn execute_expand_min_simultaneous_element(game: &mut Game) -> Result<Execut
 
     Ok(ExecuteExpandMaxSimultaneousElementReport {
         new_min_simultaneous_resistances: game.place_generator_input.min_simultaneous_resistances,
-        cost: HashMap::from([(Gold, crafting_cost.clone())]),
+        paid_cost: HashMap::from([(Gold, crafting_cost.clone())]),
+        new_cost: HashMap::from([(Gold, execute_expand_min_simultaneous_element_calculate_cost(game))]),
         leftover_spending_treasure: game.treasure.clone(),
     })
+}
+
+pub fn execute_expand_min_simultaneous_element_calculate_cost(game: &mut Game) -> u64 {
+    game.place_generator_input.min_simultaneous_resistances as u64 * 10
 }
 
 #[cfg(test)]
 mod tests_int {
     use crate::command_expand_elements::execute_expand_elements;
-    use crate::command_expand_max_element::execute_expand_max_element;
     use crate::command_expand_max_simultaneous_element::execute_expand_max_simultaneous_element;
     use crate::command_expand_min_simultanius_element::execute_expand_min_simultaneous_element;
-    use crate::command_move::execute_move_command;
     use crate::game_generator::{generate_new_game};
     use crate::treasure_types::TreasureType::Gold;
 
@@ -63,7 +64,6 @@ mod tests_int {
 
         assert_eq!(Err("Cant pay the crafting cost for execute_expand_min_simultaneous_element, the cost is 10 and you only have Some(0)".to_string()), execute_expand_min_simultaneous_element(&mut game));
 
-
         *game.treasure.get_mut(&Gold).unwrap() += 1000;
         assert!(game.treasure.get(&Gold).unwrap() > &0);
         assert_eq!(2, game.place_generator_input.max_resistance.len());
@@ -74,7 +74,7 @@ mod tests_int {
         let result = execute_expand_min_simultaneous_element(&mut game);
         assert!(result.is_ok());
         assert_eq!(2, result.as_ref().unwrap().new_min_simultaneous_resistances);
-        assert_eq!(10, *result.as_ref().unwrap().cost.get(&Gold).unwrap());
+        assert_eq!(10, *result.as_ref().unwrap().paid_cost.get(&Gold).unwrap());
         assert_eq!(2, game.place_generator_input.max_resistance.len());
         assert_eq!(2, game.place_generator_input.max_simultaneous_resistances);
         assert_eq!(2, game.place_generator_input.min_simultaneous_resistances);
