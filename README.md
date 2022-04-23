@@ -9,18 +9,32 @@ So it is a Command line interface based Turn based role playing game: CLIT RPG :
 
 # Getting started 
 
-Download the executable: TBD
-Startup the server: TBD
+## Method one: Use our executable
+1. Download the executable: TBD 
+1. Startup the server: TBD
+5. Have some method of sending TCP packages from the command line. A popular choice is ncat/netcat.
+1. It is also recommended to have some method of parsing JSON. A popular choice is JQ: https://stedolan.github.io/jq/ 
 
-Have some method of sending TCP packages from the command line. A popular choice is ncat; It is on most linux distroes by default. 
+## Method Two: Build executable yourself
 
-It is also recommended to have some method of parsing JSON. A popular choice is JQ: https://stedolan.github.io/jq/ 
+1. Install rust: https://www.rust-lang.org/tools/install 
+2. Checkout this repo
+3. At the root of the repo: 'cargo build --release'
+4. Startup the server: 'cargo run --release'
+5. Have some method of sending TCP packages from the command line. A popular choice is ncat/netcat.
+6. It is also recommended to have some method of parsing JSON. A popular choice is JQ: https://stedolan.github.io/jq/ . 
 
 ## Some start commands: 
 
+### Using ncat and jq
 1. printf "State" | ncat -C localhost 1337 | jq .
-2. printf "Move 0" | ncat -C localhost 1337
-3. printf "Help" | ncat -C localhost 1337
+2. printf "Move 0" | ncat -C localhost 1337 | jq .
+3. printf "Help" | ncat -C localhost 1337 | jq .
+
+### Using netcat and jq
+1. printf "State" | netcat localhost 1337 | jq .
+2. printf "Move 0" | netcat localhost 1337 | jq .
+3. printf "Help" | netcat localhost 1337 | jq .
 
 # Some more about Command line interface games
 
