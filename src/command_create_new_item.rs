@@ -30,11 +30,11 @@ pub fn execute_create_item(game: &mut Game) -> ExecuteCreateItemReport {
     ExecuteCreateItemReport {
         new_item,
         paid_cost: HashMap::from([(Gold, 0)]),
-        new_cost: HashMap::from([(Gold, execute_create_item_calculate_cost())]),
+        new_cost: execute_create_item_calculate_cost(),
         leftover_spending_treasure: game.treasure.clone(),
     }
 }
 
-pub fn execute_create_item_calculate_cost() -> u64 {
-    0
+pub fn execute_create_item_calculate_cost() -> HashMap<TreasureType, u64> {
+    HashMap::from([(Gold, 0)])
 }

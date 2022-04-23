@@ -3,7 +3,7 @@ use crate::Game;
 use crate::item::Item;
 use crate::treasure_types::TreasureType::Gold;
 use crate::roll_modifier::execute_craft_roll_modifier;
-use crate::treasure_types::TreasureType;
+use crate::treasure_types::{pay_crafting_cost, TreasureType};
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
@@ -25,11 +25,9 @@ pub fn execute_craft_reroll_modifier(game: &mut Game, inventory_index: usize, mo
 
     //Crafting cost
     let crafting_cost = execute_craft_reroll_modifier_calculate_cost(game, inventory_index, modifier_index);
-    if *game.treasure.entry(Gold).or_insert(0) >= crafting_cost {
-        *game.treasure.get_mut(&Gold).unwrap() -= crafting_cost;
-    } else {
-        return Err(format!("Cant pay the crafting cost for reroll_modifier, the cost is {} and you only have {:?}", crafting_cost, game.treasure.get(&Gold)));
-    }
+    if let Err(error_message) = pay_crafting_cost(game, &crafting_cost) {
+        return Err(error_message)
+    };
 
     //Create item
     let new_item_modifier = execute_craft_roll_modifier(game);
@@ -37,16 +35,15 @@ pub fn execute_craft_reroll_modifier(game: &mut Game, inventory_index: usize, mo
 
     Ok(ExecuteCraftRerollModifierReport {
         new_item: game.inventory[inventory_index].clone(),
-        paid_cost: HashMap::from([(Gold, crafting_cost.clone())]),
-        new_cost: HashMap::from([(Gold, execute_craft_reroll_modifier_calculate_cost(game, inventory_index, modifier_index))]),
+        paid_cost: crafting_cost.clone(),
+        new_cost: execute_craft_reroll_modifier_calculate_cost(game, inventory_index, modifier_index),
         leftover_spending_treasure: game.treasure.clone(),
     })
 }
 
-pub fn execute_craft_reroll_modifier_calculate_cost(game: &Game, inventory_index: usize, modifier_index: usize) -> u64 {
-    (game.inventory[inventory_index].modifiers.len() * (modifier_index + 1) * 5) as u64
+pub fn execute_craft_reroll_modifier_calculate_cost(game: &Game, inventory_index: usize, modifier_index: usize) -> HashMap<TreasureType, u64> {
+    HashMap::from([(Gold, (game.inventory[inventory_index].modifiers.len() * (modifier_index + 1) * 5) as u64)])
 }
-
 
 #[cfg(test)]
 mod tests_int {
@@ -60,7 +57,7 @@ mod tests_int {
     fn test_execute_craft_item() {
         let mut game = generate_testing_game();
 
-        assert_eq!(Err("Cant pay the crafting cost for reroll_modifier, the cost is 5 and you only have Some(0)".to_string()), execute_craft_reroll_modifier(&mut game, 0, 0));
+        assert_eq!(Err("Cant pay the crafting cost, the cost is {Gold: 5} and you only have {}".to_string()), execute_craft_reroll_modifier(&mut game, 0, 0));
 
         assert!(execute_move_command(&mut game, 0).is_err());
         assert!(execute_move_command(&mut game, 0).is_ok());

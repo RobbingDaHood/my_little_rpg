@@ -3,6 +3,7 @@ use crate::place::Place;
 use crate::place_generator::{PlaceGeneratorInput};
 use serde::{Deserialize, Serialize};
 use crate::command_craft_reroll_modifier::execute_craft_reroll_modifier_calculate_cost;
+use crate::command_create_new_item::execute_create_item_calculate_cost;
 use crate::command_expand_elements::execute_expand_elements_calculate_cost;
 use crate::command_expand_equipment_slots::execute_expand_equipment_slots_calculate_cost;
 use crate::command_expand_max_element::execute_expand_max_element_calculate_cost;
@@ -29,13 +30,14 @@ pub struct PresentationGameState {
 
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
 pub struct PlaceCosts {
-    expand_places: u64,
-    expand_elements: u64,
-    expand_max_element: u64,
-    expand_min_element: u64,
-    expand_max_simultaneous_element: u64,
-    expand_min_simultaneous_element: u64,
-    expand_equipment_slots: u64,
+    expand_places: HashMap<TreasureType, u64>,
+    expand_elements: HashMap<TreasureType, u64>,
+    expand_max_element: HashMap<TreasureType, u64>,
+    expand_min_element: HashMap<TreasureType, u64>,
+    expand_max_simultaneous_element: HashMap<TreasureType, u64>,
+    expand_min_simultaneous_element: HashMap<TreasureType, u64>,
+    expand_equipment_slots: HashMap<TreasureType, u64>,
+    execute_create_item_calculate: HashMap<TreasureType, u64>,
 }
 
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
@@ -47,13 +49,13 @@ pub struct PresentationItem {
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
 pub struct ItemCosts {
     reroll_modifier: Vec<CostsInList>,
-    add_modifier: u64,
+    add_modifier: HashMap<TreasureType, u64>,
 }
 
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
 pub struct CostsInList {
     index: usize,
-    cost: u64,
+    cost: HashMap<TreasureType, u64>,
 }
 
 
@@ -84,6 +86,7 @@ pub fn execute_state(game: &mut Game) -> PresentationGameState {
         expand_max_simultaneous_element: execute_expand_max_simultaneous_element_calculate_cost(game),
         expand_min_simultaneous_element: execute_expand_min_simultaneous_element_calculate_cost(game),
         expand_equipment_slots: execute_expand_equipment_slots_calculate_cost(game),
+        execute_create_item_calculate: execute_create_item_calculate_cost(),
     };
 
     PresentationGameState {

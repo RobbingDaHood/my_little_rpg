@@ -4,7 +4,7 @@ use crate::Game;
 use crate::item::Item;
 use crate::treasure_types::TreasureType::Gold;
 use serde::{Deserialize, Serialize};
-use crate::treasure_types::TreasureType;
+use crate::treasure_types::{pay_crafting_cost, TreasureType};
 
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
 pub struct ExecuteExpandEquipmentSlotsReport {
@@ -17,11 +17,9 @@ pub struct ExecuteExpandEquipmentSlotsReport {
 pub fn execute_expand_equipment_slots(game: &mut Game) -> Result<ExecuteExpandEquipmentSlotsReport, String> {
     //Crafting cost
     let crafting_cost = execute_expand_equipment_slots_calculate_cost(game);
-    if *game.treasure.entry(Gold).or_insert(0) >= crafting_cost {
-        *game.treasure.get_mut(&Gold).unwrap() -= crafting_cost;
-    } else {
-        return Err(format!("Cant pay the crafting cost for execute_expand_equipment_slots, the cost is {} and you only have {:?}", crafting_cost, game.treasure.get(&Gold)));
-    }
+    if let Err(error_message) = pay_crafting_cost(game, &crafting_cost) {
+        return Err(error_message)
+    };
 
     //Pick first item in inventory or
     let item = if game.inventory.len() > 0 {
@@ -34,14 +32,14 @@ pub fn execute_expand_equipment_slots(game: &mut Game) -> Result<ExecuteExpandEq
 
     Ok(ExecuteExpandEquipmentSlotsReport {
         new_equipped_items: game.equipped_items.clone(),
-        paid_cost: HashMap::from([(Gold, crafting_cost.clone())]),
-        new_cost: HashMap::from([(Gold, execute_expand_equipment_slots_calculate_cost(game))]),
+        paid_cost: crafting_cost.clone(),
+        new_cost: execute_expand_equipment_slots_calculate_cost(game),
         leftover_spending_treasure: game.treasure.clone(),
     })
 }
 
-pub fn execute_expand_equipment_slots_calculate_cost(game: &mut Game) -> u64 {
-    (game.equipped_items.len() + 1).pow(5) as u64
+pub fn execute_expand_equipment_slots_calculate_cost(game: &mut Game) -> HashMap<TreasureType, u64> {
+    HashMap::from([(Gold, (game.equipped_items.len() + 1).pow(5) as u64)])
 }
 
 #[cfg(test)]
@@ -55,7 +53,7 @@ mod tests_int {
         let mut game = generate_new_game();
         assert_eq!(1, game.equipped_items.len());
 
-        assert_eq!(Err("Cant pay the crafting cost for execute_expand_equipment_slots, the cost is 32 and you only have Some(0)".to_string()), execute_expand_equipment_slots(&mut game));
+        assert_eq!(Err("Cant pay the crafting cost, the cost is {Gold: 32} and you only have {}".to_string()), execute_expand_equipment_slots(&mut game));
 
         for _i in 0..1000 {
             assert!(execute_move_command(&mut game, 0).is_ok());
@@ -73,6 +71,6 @@ mod tests_int {
         assert!(result.is_ok());
         assert_eq!(4, game.equipped_items.len());
 
-        assert_eq!(Err("Cant pay the crafting cost for execute_expand_equipment_slots, the cost is 3125 and you only have Some(1701)".to_string()), execute_expand_equipment_slots(&mut game));
+        assert_eq!(Err("Cant pay the crafting cost, the cost is {Gold: 3125} and you only have {Gold: 1701}".to_string()), execute_expand_equipment_slots(&mut game));
     }
 }

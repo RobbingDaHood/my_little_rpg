@@ -5,7 +5,7 @@ use crate::Game;
 use crate::treasure_types::TreasureType::Gold;
 use serde::{Deserialize, Serialize};
 use crate::place_generator::PlaceGeneratorInput;
-use crate::treasure_types::TreasureType;
+use crate::treasure_types::{pay_crafting_cost, TreasureType};
 
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
 pub struct ExecuteExpandMaxElementReport {
@@ -18,11 +18,9 @@ pub struct ExecuteExpandMaxElementReport {
 pub fn execute_expand_max_element(game: &mut Game) -> Result<ExecuteExpandMaxElementReport, String> {
     //Crafting cost
     let crafting_cost = execute_expand_max_element_calculate_cost(game);
-    if *game.treasure.entry(Gold).or_insert(0) >= crafting_cost {
-        *game.treasure.get_mut(&Gold).unwrap() -= crafting_cost;
-    } else {
-        return Err(format!("Cant pay the crafting cost for execute_expand_max_element, the cost is {} and you only have {:?}", crafting_cost, game.treasure.get(&Gold)));
-    }
+    if let Err(error_message) = pay_crafting_cost(game, &crafting_cost) {
+        return Err(error_message)
+    };
 
     //Increase max of existing element
     let min_possible_element = 0;
@@ -31,18 +29,18 @@ pub fn execute_expand_max_element(game: &mut Game) -> Result<ExecuteExpandMaxEle
     let picked_element = rng.gen_range(min_possible_element..max_possible_element);
     let picked_element = AttackType::get_all()[picked_element].clone();
 
-    *game.place_generator_input.max_resistance.get_mut(&picked_element).unwrap() += crafting_cost;
+    *game.place_generator_input.max_resistance.get_mut(&picked_element).unwrap() += crafting_cost.get(&Gold).unwrap();
 
     Ok(ExecuteExpandMaxElementReport {
         new_place_generator_input: game.place_generator_input.clone(),
-        paid_cost: HashMap::from([(Gold, crafting_cost.clone())]),
-        new_cost: HashMap::from([(Gold, execute_expand_max_element_calculate_cost(game))]),
+        paid_cost: crafting_cost.clone(),
+        new_cost: execute_expand_max_element_calculate_cost(game),
         leftover_spending_treasure: game.treasure.clone(),
     })
 }
 
-pub fn execute_expand_max_element_calculate_cost(game: &mut Game) -> u64 {
-    game.place_generator_input.max_resistance.values().sum::<u64>() / game.place_generator_input.max_resistance.len() as u64
+pub fn execute_expand_max_element_calculate_cost(game: &mut Game) -> HashMap<TreasureType, u64> {
+    HashMap::from([(Gold, game.place_generator_input.max_resistance.values().sum::<u64>() / game.place_generator_input.max_resistance.len() as u64)])
 }
 
 #[cfg(test)]
@@ -58,7 +56,7 @@ mod tests_int {
         assert_eq!(1, game.place_generator_input.max_resistance.len());
         assert_eq!(1, game.place_generator_input.min_resistance.len());
 
-        assert_eq!(Err("Cant pay the crafting cost for execute_expand_max_element, the cost is 2 and you only have Some(0)".to_string()), execute_expand_max_element(&mut game));
+        assert_eq!(Err("Cant pay the crafting cost, the cost is {Gold: 2} and you only have {}".to_string()), execute_expand_max_element(&mut game));
 
         for _i in 0..100 {
             assert!(execute_move_command(&mut game, 0).is_ok());
@@ -75,7 +73,7 @@ mod tests_int {
             assert_eq!(1, game.place_generator_input.min_resistance.len());
         }
 
-        assert_eq!(Err("Cant pay the crafting cost for execute_expand_max_element, the cost is 256 and you only have Some(46)".to_string()), execute_expand_max_element(&mut game));
+        assert_eq!(Err("Cant pay the crafting cost, the cost is {Gold: 256} and you only have {Gold: 46}".to_string()), execute_expand_max_element(&mut game));
         assert_eq!(1, game.place_generator_input.max_resistance.len());
         assert_eq!(1, game.place_generator_input.min_resistance.len());
     }

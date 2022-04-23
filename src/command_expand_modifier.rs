@@ -4,7 +4,7 @@ use crate::item::Item;
 use crate::roll_modifier::execute_craft_roll_modifier;
 use crate::treasure_types::TreasureType::Gold;
 use serde::{Deserialize, Serialize};
-use crate::treasure_types::TreasureType;
+use crate::treasure_types::{pay_crafting_cost, TreasureType};
 
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
 pub struct ExecuteExpandModifiersReport {
@@ -22,11 +22,9 @@ pub fn execute_expand_modifiers(game: &mut Game, inventory_index: usize) -> Resu
 
     //Crafting cost
     let crafting_cost = execute_expand_modifiers_calculate_cost(game, inventory_index);
-    if *game.treasure.entry(Gold).or_insert(0) >= crafting_cost {
-        *game.treasure.get_mut(&Gold).unwrap() -= crafting_cost;
-    } else {
-        return Err(format!("Cant pay the crafting cost for execute_expand_modifiers, the cost is {} and you only have {:?}", crafting_cost, game.treasure.get(&Gold)));
-    }
+    if let Err(error_message) = pay_crafting_cost(game, &crafting_cost) {
+        return Err(error_message)
+    };
 
     //Create item
     let new_item_modifier = execute_craft_roll_modifier(game);
@@ -34,14 +32,14 @@ pub fn execute_expand_modifiers(game: &mut Game, inventory_index: usize) -> Resu
 
     Ok(ExecuteExpandModifiersReport {
         new_item: game.inventory[inventory_index].clone(),
-        paid_cost: HashMap::from([(Gold, crafting_cost.clone())]),
-        new_cost: HashMap::from([(Gold, execute_expand_modifiers_calculate_cost(game, inventory_index))]),
+        paid_cost: crafting_cost.clone(),
+        new_cost: execute_expand_modifiers_calculate_cost(game, inventory_index),
         leftover_spending_treasure: game.treasure.clone(),
     })
 }
 
-pub fn execute_expand_modifiers_calculate_cost(game: &Game, inventory_index: usize) -> u64 {
-    (game.inventory[inventory_index].modifiers.len().pow(5) + 10) as u64
+pub fn execute_expand_modifiers_calculate_cost(game: &Game, inventory_index: usize) -> HashMap<TreasureType, u64> {
+    HashMap::from([(Gold, (game.inventory[inventory_index].modifiers.len().pow(5) + 10) as u64)])
 }
 
 
@@ -57,7 +55,7 @@ mod tests_int {
         let mut game = generate_testing_game();
         assert_eq!(1, game.inventory[0].modifiers.len());
 
-        assert_eq!(Err("Cant pay the crafting cost for execute_expand_modifiers, the cost is 11 and you only have Some(0)".to_string()), execute_expand_modifiers(&mut game, 0));
+        assert_eq!(Err("Cant pay the crafting cost, the cost is {Gold: 11} and you only have {}".to_string()), execute_expand_modifiers(&mut game, 0));
 
         assert!(execute_move_command(&mut game, 0).is_err());
         assert!(execute_move_command(&mut game, 0).is_ok());
