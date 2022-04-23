@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 use crate::place::Place;
-use crate::place_generator::{PlaceGeneratorInput};
+use crate::place_generator::{Difficulty};
 use serde::{Deserialize, Serialize};
 use crate::command_craft_reroll_modifier::execute_craft_reroll_modifier_calculate_cost;
 use crate::command_create_new_item::execute_create_item_calculate_cost;
@@ -19,13 +19,13 @@ use crate::treasure_types::TreasureType;
 
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
 pub struct PresentationGameState {
-    pub(crate) places: Vec<(usize, Place)>,
-    pub(crate) equipped_items: Vec<(usize, Item)>,
+    pub(crate) places: Vec<PresentationPlace>,
+    pub(crate) equipped_items: Vec<PresentationItem>,
     pub(crate) inventory: Vec<PresentationItem>,
-    pub(crate) place_generator_input: PlaceGeneratorInput,
+    pub(crate) difficulty: Difficulty,
     pub(crate) treasure: HashMap<TreasureType, u64>,
     pub(crate) item_resources: HashMap<ItemResourceType, u64>,
-    crafting_actions: PlaceCosts,
+    crafting_action_costs: PlaceCosts,
 }
 
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
@@ -37,15 +37,22 @@ pub struct PlaceCosts {
     expand_max_simultaneous_element: HashMap<TreasureType, u64>,
     expand_min_simultaneous_element: HashMap<TreasureType, u64>,
     expand_equipment_slots: HashMap<TreasureType, u64>,
-    execute_create_item_calculate: HashMap<TreasureType, u64>,
+    execute_create_item: HashMap<TreasureType, u64>,
+}
+
+#[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
+pub struct PresentationPlace {
+    index: usize,
+    place: Place,
 }
 
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
 pub struct PresentationItem {
     index: usize,
     item: Item,
-    crafting_actions: ItemCosts,
+    crafting_action_costs: ItemCosts,
 }
+
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
 pub struct ItemCosts {
     reroll_modifier: Vec<CostsInList>,
@@ -58,15 +65,23 @@ pub struct CostsInList {
     cost: HashMap<TreasureType, u64>,
 }
 
-
 pub fn execute_state(game: &mut Game) -> PresentationGameState {
-    let places: Vec<(usize, Place)> = game.places.iter()
+    let places: Vec<PresentationPlace> = game.places.iter()
         .map(|item| item.clone())
         .enumerate()
+        .map(|(index, place)| PresentationPlace {
+            index,
+            place: place.clone(),
+        })
         .collect();
-    let equipped_items: Vec<(usize, Item)> = game.equipped_items.iter()
+    let equipped_items: Vec<PresentationItem> = game.equipped_items.iter()
         .map(|item| item.clone())
         .enumerate()
+        .map(|(index, item)| PresentationItem {
+            index,
+            item: item.clone(),
+            crafting_action_costs: calculate_item_cost(game, &item, index),
+        })
         .collect();
     let inventory: Vec<PresentationItem> = game.inventory.iter()
         .map(|item| item.clone())
@@ -74,7 +89,7 @@ pub fn execute_state(game: &mut Game) -> PresentationGameState {
         .map(|(index, item)| PresentationItem {
             index,
             item: item.clone(),
-            crafting_actions: calculate_item_cost(game, &item, index)
+            crafting_action_costs: calculate_item_cost(game, &item, index),
         })
         .collect();
 
@@ -86,17 +101,17 @@ pub fn execute_state(game: &mut Game) -> PresentationGameState {
         expand_max_simultaneous_element: execute_expand_max_simultaneous_element_calculate_cost(game),
         expand_min_simultaneous_element: execute_expand_min_simultaneous_element_calculate_cost(game),
         expand_equipment_slots: execute_expand_equipment_slots_calculate_cost(game),
-        execute_create_item_calculate: execute_create_item_calculate_cost(),
+        execute_create_item: execute_create_item_calculate_cost(),
     };
 
     PresentationGameState {
         places,
         equipped_items,
         inventory,
-        place_generator_input: game.place_generator_input.clone(),
+        difficulty: game.difficulty.clone(),
         treasure: game.treasure.clone(),
         item_resources: game.item_resources.clone(),
-        crafting_actions,
+        crafting_action_costs: crafting_actions,
     }
 }
 

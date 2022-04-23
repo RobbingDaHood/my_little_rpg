@@ -2,7 +2,7 @@ use std::collections::HashMap;
 use rand::Rng;
 use crate::attack_types::AttackType;
 use crate::Game;
-use crate::place_generator::PlaceGeneratorInput;
+use crate::place_generator::Difficulty;
 use crate::treasure_types::{pay_crafting_cost, TreasureType};
 use crate::treasure_types::TreasureType::Gold;
 
@@ -10,7 +10,7 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
 pub struct ExecuteExpandMinElementReport {
-    new_place_generator_input: PlaceGeneratorInput,
+    new_place_generator_input: Difficulty,
     paid_cost: HashMap<TreasureType, u64>,
     new_cost: HashMap<TreasureType, u64>,
     leftover_spending_treasure: HashMap<TreasureType, u64>,
@@ -21,8 +21,8 @@ pub fn execute_expand_min_element(game: &mut Game) -> Result<ExecuteExpandMinEle
     let crafting_cost = execute_expand_min_element_calculate_cost(game);
     let crafting_gold_cost = crafting_cost.get(&Gold).unwrap();
 
-    let max_possible_elements: Vec<AttackType> = game.place_generator_input.min_resistance.iter()
-        .filter(|(attack_type, amount)| game.place_generator_input.max_resistance.get(attack_type).unwrap() > &(*amount + crafting_gold_cost))
+    let max_possible_elements: Vec<AttackType> = game.difficulty.min_resistance.iter()
+        .filter(|(attack_type, amount)| game.difficulty.max_resistance.get(attack_type).unwrap() > &(*amount + crafting_gold_cost))
         .map(|(attack_type, _)| attack_type.clone())
         .collect();
 
@@ -39,10 +39,10 @@ pub fn execute_expand_min_element(game: &mut Game) -> Result<ExecuteExpandMinEle
     let picked_element = rng.gen_range(0..max_possible_elements.len());
     let picked_element = max_possible_elements[picked_element].clone();
 
-    *game.place_generator_input.min_resistance.get_mut(&picked_element).unwrap() += crafting_gold_cost;
+    *game.difficulty.min_resistance.get_mut(&picked_element).unwrap() += crafting_gold_cost;
 
     Ok(ExecuteExpandMinElementReport {
-        new_place_generator_input: game.place_generator_input.clone(),
+        new_place_generator_input: game.difficulty.clone(),
         paid_cost: crafting_cost.clone(),
         new_cost: execute_expand_min_element_calculate_cost(game),
         leftover_spending_treasure: game.treasure.clone(),
@@ -50,7 +50,7 @@ pub fn execute_expand_min_element(game: &mut Game) -> Result<ExecuteExpandMinEle
 }
 
 pub fn execute_expand_min_element_calculate_cost(game: &mut Game) -> HashMap<TreasureType, u64> {
-    HashMap::from([(Gold, game.place_generator_input.min_resistance.values().sum::<u64>() / game.place_generator_input.min_resistance.len() as u64)])
+    HashMap::from([(Gold, game.difficulty.min_resistance.values().sum::<u64>() / game.difficulty.min_resistance.len() as u64)])
 }
 
 #[cfg(test)]
@@ -64,8 +64,8 @@ mod tests_int {
     #[test]
     fn test_execute_expand_min_element() {
         let mut game = generate_new_game();
-        assert_eq!(1, game.place_generator_input.min_resistance.len());
-        assert_eq!(1, game.place_generator_input.min_resistance.len());
+        assert_eq!(1, game.difficulty.min_resistance.len());
+        assert_eq!(1, game.difficulty.min_resistance.len());
 
         assert_eq!(Err("There are no element minimum values that can be upgraded, consider expanding a max element value.".to_string()), execute_expand_min_element(&mut game));
 
@@ -75,8 +75,8 @@ mod tests_int {
 
         assert_eq!(Err("There are no element minimum values that can be upgraded, consider expanding a max element value.".to_string()), execute_expand_min_element(&mut game));
         assert!(game.treasure.get(&Gold).unwrap() > &0);
-        assert_eq!(1, game.place_generator_input.min_resistance.len());
-        assert_eq!(1, game.place_generator_input.min_resistance.len());
+        assert_eq!(1, game.difficulty.min_resistance.len());
+        assert_eq!(1, game.difficulty.min_resistance.len());
 
         assert!(execute_expand_max_element(&mut game).is_ok());
 

@@ -13,8 +13,8 @@ pub struct ExecuteExpandMaxSimultaneousElementReport {
 }
 
 pub fn execute_expand_max_simultaneous_element(game: &mut Game) -> Result<ExecuteExpandMaxSimultaneousElementReport, String> {
-    if (game.place_generator_input.max_simultaneous_resistances as usize) >= game.place_generator_input.max_resistance.len() {
-        return Err(format!("max_simultaneous_resistances {} is already equal to number of active resistances {}. Consider calling ExpandElements.", game.place_generator_input.max_simultaneous_resistances, game.place_generator_input.max_resistance.len()));
+    if (game.difficulty.max_simultaneous_resistances as usize) >= game.difficulty.max_resistance.len() {
+        return Err(format!("max_simultaneous_resistances {} is already equal to number of active resistances {}. Consider calling ExpandElements.", game.difficulty.max_simultaneous_resistances, game.difficulty.max_resistance.len()));
     }
 
     //Crafting cost
@@ -24,10 +24,10 @@ pub fn execute_expand_max_simultaneous_element(game: &mut Game) -> Result<Execut
     };
 
     //Increase max of existing element
-    game.place_generator_input.max_simultaneous_resistances += 1;
+    game.difficulty.max_simultaneous_resistances += 1;
 
     Ok(ExecuteExpandMaxSimultaneousElementReport {
-        new_max_simultaneous_resistances: game.place_generator_input.max_simultaneous_resistances,
+        new_max_simultaneous_resistances: game.difficulty.max_simultaneous_resistances,
         paid_cost: crafting_cost.clone(),
         new_cost: execute_expand_max_simultaneous_element_calculate_cost(game),
         leftover_spending_treasure: game.treasure.clone(),
@@ -35,7 +35,7 @@ pub fn execute_expand_max_simultaneous_element(game: &mut Game) -> Result<Execut
 }
 
 pub fn execute_expand_max_simultaneous_element_calculate_cost(game: &mut Game) -> HashMap<TreasureType, u64> {
-    HashMap::from([(Gold, game.place_generator_input.max_simultaneous_resistances as u64 * 10)])
+    HashMap::from([(Gold, game.difficulty.max_simultaneous_resistances as u64 * 10)])
 }
 
 #[cfg(test)]
@@ -48,9 +48,9 @@ mod tests_int {
     #[test]
     fn test_execute_expand_max_simultaneous_element() {
         let mut game = generate_new_game();
-        assert_eq!(1, game.place_generator_input.max_resistance.len());
-        assert_eq!(1, game.place_generator_input.max_simultaneous_resistances);
-        assert_eq!(1, game.place_generator_input.min_resistance.len());
+        assert_eq!(1, game.difficulty.max_resistance.len());
+        assert_eq!(1, game.difficulty.max_simultaneous_resistances);
+        assert_eq!(1, game.difficulty.min_resistance.len());
         assert_eq!(Err("max_simultaneous_resistances 1 is already equal to number of active resistances 1. Consider calling ExpandElements.".to_string()), execute_expand_max_simultaneous_element(&mut game));
 
         game.treasure.insert(Gold, 10);
@@ -60,20 +60,20 @@ mod tests_int {
 
         *game.treasure.get_mut(&Gold).unwrap() += 1000;
         assert!(game.treasure.get(&Gold).unwrap() > &0);
-        assert_eq!(2, game.place_generator_input.max_resistance.len());
-        assert_eq!(1, game.place_generator_input.max_simultaneous_resistances);
-        assert_eq!(2, game.place_generator_input.min_resistance.len());
+        assert_eq!(2, game.difficulty.max_resistance.len());
+        assert_eq!(1, game.difficulty.max_simultaneous_resistances);
+        assert_eq!(2, game.difficulty.min_resistance.len());
 
         let result = execute_expand_max_simultaneous_element(&mut game);
         assert!(result.is_ok());
         assert_eq!(2, result.as_ref().unwrap().new_max_simultaneous_resistances);
         assert_eq!(10, *result.as_ref().unwrap().paid_cost.get(&Gold).unwrap());
-        assert_eq!(2, game.place_generator_input.max_resistance.len());
-        assert_eq!(2, game.place_generator_input.max_simultaneous_resistances);
-        assert_eq!(2, game.place_generator_input.min_resistance.len());
+        assert_eq!(2, game.difficulty.max_resistance.len());
+        assert_eq!(2, game.difficulty.max_simultaneous_resistances);
+        assert_eq!(2, game.difficulty.min_resistance.len());
 
         assert_eq!(Err("max_simultaneous_resistances 2 is already equal to number of active resistances 2. Consider calling ExpandElements.".to_string()), execute_expand_max_simultaneous_element(&mut game));
-        assert_eq!(2, game.place_generator_input.max_resistance.len());
-        assert_eq!(2, game.place_generator_input.min_resistance.len());
+        assert_eq!(2, game.difficulty.max_resistance.len());
+        assert_eq!(2, game.difficulty.min_resistance.len());
     }
 }

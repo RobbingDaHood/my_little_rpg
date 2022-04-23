@@ -4,12 +4,12 @@ use crate::attack_types::AttackType;
 use crate::Game;
 use crate::treasure_types::TreasureType::Gold;
 use serde::{Deserialize, Serialize};
-use crate::place_generator::PlaceGeneratorInput;
+use crate::place_generator::Difficulty;
 use crate::treasure_types::{pay_crafting_cost, TreasureType};
 
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
 pub struct ExecuteExpandMaxElementReport {
-    new_place_generator_input: PlaceGeneratorInput,
+    new_place_generator_input: Difficulty,
     paid_cost: HashMap<TreasureType, u64>,
     new_cost: HashMap<TreasureType, u64>,
     leftover_spending_treasure: HashMap<TreasureType, u64>,
@@ -24,15 +24,15 @@ pub fn execute_expand_max_element(game: &mut Game) -> Result<ExecuteExpandMaxEle
 
     //Increase max of existing element
     let min_possible_element = 0;
-    let max_possible_element = game.place_generator_input.max_resistance.len();
+    let max_possible_element = game.difficulty.max_resistance.len();
     let mut rng = rand::thread_rng();
     let picked_element = rng.gen_range(min_possible_element..max_possible_element);
     let picked_element = AttackType::get_all()[picked_element].clone();
 
-    *game.place_generator_input.max_resistance.get_mut(&picked_element).unwrap() += crafting_cost.get(&Gold).unwrap();
+    *game.difficulty.max_resistance.get_mut(&picked_element).unwrap() += crafting_cost.get(&Gold).unwrap();
 
     Ok(ExecuteExpandMaxElementReport {
-        new_place_generator_input: game.place_generator_input.clone(),
+        new_place_generator_input: game.difficulty.clone(),
         paid_cost: crafting_cost.clone(),
         new_cost: execute_expand_max_element_calculate_cost(game),
         leftover_spending_treasure: game.treasure.clone(),
@@ -40,7 +40,7 @@ pub fn execute_expand_max_element(game: &mut Game) -> Result<ExecuteExpandMaxEle
 }
 
 pub fn execute_expand_max_element_calculate_cost(game: &mut Game) -> HashMap<TreasureType, u64> {
-    HashMap::from([(Gold, game.place_generator_input.max_resistance.values().sum::<u64>() / game.place_generator_input.max_resistance.len() as u64)])
+    HashMap::from([(Gold, game.difficulty.max_resistance.values().sum::<u64>() / game.difficulty.max_resistance.len() as u64)])
 }
 
 #[cfg(test)]
@@ -53,8 +53,8 @@ mod tests_int {
     #[test]
     fn test_execute_expand_max_element() {
         let mut game = generate_new_game();
-        assert_eq!(1, game.place_generator_input.max_resistance.len());
-        assert_eq!(1, game.place_generator_input.min_resistance.len());
+        assert_eq!(1, game.difficulty.max_resistance.len());
+        assert_eq!(1, game.difficulty.min_resistance.len());
 
         assert_eq!(Err("Cant pay the crafting cost, the cost is {Gold: 2} and you only have {}".to_string()), execute_expand_max_element(&mut game));
 
@@ -62,19 +62,19 @@ mod tests_int {
             assert!(execute_move_command(&mut game, 0).is_ok());
         }
         assert!(game.treasure.get(&Gold).unwrap() > &0);
-        assert_eq!(1, game.place_generator_input.max_resistance.len());
-        assert_eq!(1, game.place_generator_input.min_resistance.len());
+        assert_eq!(1, game.difficulty.max_resistance.len());
+        assert_eq!(1, game.difficulty.min_resistance.len());
 
         for _i in 2..9 {
             let result = execute_expand_max_element(&mut game);
 
             assert!(result.is_ok());
-            assert_eq!(1, game.place_generator_input.max_resistance.len());
-            assert_eq!(1, game.place_generator_input.min_resistance.len());
+            assert_eq!(1, game.difficulty.max_resistance.len());
+            assert_eq!(1, game.difficulty.min_resistance.len());
         }
 
         assert_eq!(Err("Cant pay the crafting cost, the cost is {Gold: 256} and you only have {Gold: 46}".to_string()), execute_expand_max_element(&mut game));
-        assert_eq!(1, game.place_generator_input.max_resistance.len());
-        assert_eq!(1, game.place_generator_input.min_resistance.len());
+        assert_eq!(1, game.difficulty.max_resistance.len());
+        assert_eq!(1, game.difficulty.min_resistance.len());
     }
 }

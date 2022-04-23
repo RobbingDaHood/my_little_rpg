@@ -12,8 +12,8 @@ use crate::modifier_gain::ModifierGain;
 use crate::modifier_gain::ModifierGain::FlatDamage;
 
 pub fn execute_craft_roll_modifier(game: &mut Game) -> ItemModifier {
-    let minimum_elements = min(game.place_generator_input.min_resistance.len(), game.place_generator_input.min_simultaneous_resistances as usize);
-    let maximum_elements = min(game.place_generator_input.max_resistance.len(), game.place_generator_input.max_simultaneous_resistances as usize);
+    let minimum_elements = min(game.difficulty.min_resistance.len(), game.difficulty.min_simultaneous_resistances as usize);
+    let maximum_elements = min(game.difficulty.max_resistance.len(), game.difficulty.max_simultaneous_resistances as usize);
 
     let mut rng = rand::thread_rng();
 
@@ -36,7 +36,7 @@ fn execute_craft_roll_modifier_costs(game: &Game, rng: &mut ThreadRng, minimum_e
 
     for i in 1..=maximum_amount_of_costs {
         if rng.gen_range(0..i) != 0 {
-            let average_max = game.place_generator_input.max_resistance.values().sum::<u64>() / maximum_elements as u64;
+            let average_max = game.difficulty.max_resistance.values().sum::<u64>() / maximum_elements as u64;
             cost += rng.gen_range(1..average_max);
         }
     }
@@ -49,7 +49,7 @@ fn execute_craft_roll_modifier_costs(game: &Game, rng: &mut ThreadRng, minimum_e
 }
 
 fn execute_craft_roll_modifier_benefits(game: &mut Game, rng: &mut ThreadRng, cost: u64, minimum_elements: usize, maximum_elements: usize) -> Vec<ModifierGain> {
-    let attack_types = game.place_generator_input.min_resistance.iter()
+    let attack_types = game.difficulty.min_resistance.iter()
         .map(|(attack_type, _)| attack_type.clone())
         .collect::<Vec<AttackType>>();
 
@@ -68,8 +68,8 @@ fn execute_craft_roll_modifier_benefits(game: &mut Game, rng: &mut ThreadRng, co
         modifier_gain.push(
             match &all_modifier_gain_options[rng.gen_range(0..all_modifier_gain_options.len())] {
                 FlatDamage(attack_type, _) => {
-                    let min_damage = *game.place_generator_input.min_resistance.get(attack_type).unwrap_or(&0);
-                    let max_damage = *game.place_generator_input.max_resistance.get(attack_type).unwrap_or(&1);
+                    let min_damage = *game.difficulty.min_resistance.get(attack_type).unwrap_or(&0);
+                    let max_damage = *game.difficulty.max_resistance.get(attack_type).unwrap_or(&1);
                     let damage = rng.gen_range(min_damage..=max_damage);
                     let damage = damage / 2;
                     let damage = max(1, damage);

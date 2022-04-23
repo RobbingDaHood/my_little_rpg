@@ -8,7 +8,7 @@ use crate::treasure_types::TreasureType;
 use rand::Rng;
 
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
-pub struct PlaceGeneratorInput {
+pub struct Difficulty {
     pub(crate) max_resistance: HashMap<attack_types::AttackType, u64>,
     pub(crate) min_resistance: HashMap<attack_types::AttackType, u64>,
     pub(crate) max_simultaneous_resistances: u8,
@@ -21,21 +21,21 @@ pub fn generate_place(game: &Game) -> Place {
 
     let mut relevant_attack_types = HashSet::new();
 
-    for attack_type in game.place_generator_input.max_resistance.keys().chain(game.place_generator_input.min_resistance.keys()).collect::<Vec<&AttackType>>() {
+    for attack_type in game.difficulty.max_resistance.keys().chain(game.difficulty.min_resistance.keys()).collect::<Vec<&AttackType>>() {
         relevant_attack_types.insert(attack_type);
     }
 
     let mut rng = rand::thread_rng();
-    let minimum_elements = min(relevant_attack_types.len(), game.place_generator_input.min_simultaneous_resistances as usize);
-    let maximum_elements = min(relevant_attack_types.len(), game.place_generator_input.max_simultaneous_resistances as usize);
+    let minimum_elements = min(relevant_attack_types.len(), game.difficulty.min_simultaneous_resistances as usize);
+    let maximum_elements = min(relevant_attack_types.len(), game.difficulty.max_simultaneous_resistances as usize);
 
     let mut resistance_sum = 0;
     let mut count_elements = 0;
     while count_elements < minimum_elements {
         for attack_type in relevant_attack_types.clone() {
             if minimum_elements == relevant_attack_types.len() || rng.gen_range(0..2) != 0 {
-                let max_value = game.place_generator_input.max_resistance.get(attack_type);
-                let min_value = game.place_generator_input.min_resistance.get(attack_type);
+                let max_value = game.difficulty.max_resistance.get(attack_type);
+                let min_value = game.difficulty.min_resistance.get(attack_type);
 
                 if max_value.is_none() && min_value.is_none() {
                     println!("Error: generate_place: Could not find min nor max values for type {:?}. Will not add the attack_type to resistances.", attack_type);
@@ -64,7 +64,7 @@ pub fn generate_place(game: &Game) -> Place {
 
     let reward_from_resistance = (resistance_sum / AttackType::get_all().len() as u64) * count_elements as u64;
 
-    let possible_resistance_values_sum = game.place_generator_input.max_resistance.values().chain(game.place_generator_input.min_resistance.values()).sum::<u64>();
+    let possible_resistance_values_sum = game.difficulty.max_resistance.values().chain(game.difficulty.min_resistance.values()).sum::<u64>();
     let average_possible_resistance_values = possible_resistance_values_sum / relevant_attack_types.len() as u64;
     let reward_from_difficulty = average_possible_resistance_values / max(game.places.len(), 1) as u64;
 
