@@ -30,8 +30,16 @@ mod command_help;
 mod command_expand_max_simultaneous_element;
 mod command_expand_min_simultanius_element;
 mod command_state;
+use structopt::StructOpt;
+
+#[derive(Debug, StructOpt)]
+pub struct Settings {
+    #[structopt(default_value = "1337")]
+    pub(crate) port: u16
+}
 
 fn main() {
-    Listener::new().listen()
+    let opt = Settings::from_args();
+    Listener::new(opt.port).listen()
 }
 

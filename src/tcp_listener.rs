@@ -1,7 +1,7 @@
 use std::net::{TcpListener, TcpStream};
 use std::time::Duration;
 use serde_json::json;
-use crate::Game;
+use crate::{Game};
 use std::io::Read;
 use std::io::Write;
 use crate::command_craft_reroll_modifier::execute_craft_reroll_modifier;
@@ -26,13 +26,13 @@ pub struct Listener {
 }
 
 impl Listener {
-    pub fn new() -> Self {
-        Self { tcp_listener: TcpListener::bind("0.0.0.0:1337").unwrap() }
+    pub fn new(port: u16) -> Self {
+        Self { tcp_listener: TcpListener::bind(format!("0.0.0.0:{}", port)).unwrap() }
     }
 
     pub fn listen(&self) {
         let mut game = generate_new_game();
-        println!("Game is ready and listening on: 0.0.0.0:1337");
+        println!("Game is ready and listening on: 0.0.0.0:{}", self.tcp_listener.local_addr().unwrap().port());
 
         for stream in self.tcp_listener.incoming() {
             match stream {
