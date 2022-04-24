@@ -25,7 +25,7 @@ pub struct PresentationGameState {
     pub(crate) difficulty: Difficulty,
     pub(crate) treasure: HashMap<TreasureType, u64>,
     pub(crate) item_resources: HashMap<ItemResourceType, u64>,
-    crafting_action_costs: PlaceCosts,
+    pub(crate) crafting_action_costs: PlaceCosts,
 }
 
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
@@ -50,7 +50,7 @@ pub struct PresentationPlace {
 pub struct PresentationItem {
     index: usize,
     item: Item,
-    crafting_action_costs: ItemCosts,
+    crafting_action_costs: Result<ItemCosts, String>,
 }
 
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
@@ -80,7 +80,7 @@ pub fn execute_state(game: &mut Game) -> PresentationGameState {
         .map(|(index, item)| PresentationItem {
             index,
             item: item.clone(),
-            crafting_action_costs: calculate_item_cost(game, &item, index),
+            crafting_action_costs: Err("Equipped items cannot be crafted on.".to_string()),
         })
         .collect();
     let inventory: Vec<PresentationItem> = game.inventory.iter()
@@ -89,7 +89,7 @@ pub fn execute_state(game: &mut Game) -> PresentationGameState {
         .map(|(index, item)| PresentationItem {
             index,
             item: item.clone(),
-            crafting_action_costs: calculate_item_cost(game, &item, index),
+            crafting_action_costs: Ok(calculate_item_cost(game, &item, index)),
         })
         .collect();
 
