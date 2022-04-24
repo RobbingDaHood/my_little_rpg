@@ -30,8 +30,8 @@ impl Listener {
         Self { tcp_listener: TcpListener::bind(format!("0.0.0.0:{}", port)).unwrap() }
     }
 
-    pub fn listen(&self) {
-        let mut game = generate_new_game();
+    pub fn listen(&self, seed: Option<[u8; 16]>) {
+        let mut game = generate_new_game(seed);
         println!("Game is ready and listening on: 0.0.0.0:{}", self.tcp_listener.local_addr().unwrap().port());
 
         for stream in self.tcp_listener.incoming() {

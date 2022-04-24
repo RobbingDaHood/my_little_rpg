@@ -46,7 +46,7 @@ mod tests_int {
 
     #[test]
     fn test_execute_expand_places() {
-        let mut game = generate_testing_game();
+        let mut game = generate_testing_game(Some([1; 16]));
         assert_eq!(10, game.places.len());
 
         assert_eq!(Err("Cant pay the crafting cost, the cost is {Gold: 100} and you only have {}".to_string()), execute_expand_places(&mut game));

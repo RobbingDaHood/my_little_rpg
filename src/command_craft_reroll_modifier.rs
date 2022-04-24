@@ -55,7 +55,7 @@ mod tests_int {
 
     #[test]
     fn test_execute_craft_item() {
-        let mut game = generate_testing_game();
+        let mut game = generate_testing_game(Some([1; 16]));
 
         assert_eq!(Err("Cant pay the crafting cost, the cost is {Gold: 5} and you only have {}".to_string()), execute_craft_reroll_modifier(&mut game, 0, 0));
 

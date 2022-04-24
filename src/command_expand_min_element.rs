@@ -62,7 +62,7 @@ mod tests_int {
 
     #[test]
     fn test_execute_expand_min_element() {
-        let mut game = generate_new_game();
+        let mut game = generate_new_game(Some([1; 16]));
         assert_eq!(1, game.difficulty.min_resistance.len());
         assert_eq!(1, game.difficulty.min_resistance.len());
 

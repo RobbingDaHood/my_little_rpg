@@ -14,6 +14,7 @@ use crate::command_expand_min_simultanius_element::execute_expand_min_simultaneo
 use crate::command_expand_modifier::execute_expand_modifiers_calculate_cost;
 use crate::command_expand_places::execute_expand_places_calculate_cost;
 use crate::Game;
+use crate::hex_encoder::encode_hex;
 use crate::item::Item;
 use crate::item_resource::ItemResourceType;
 use crate::treasure_types::TreasureType;
@@ -106,6 +107,8 @@ pub fn execute_state(game: &mut Game) -> PresentationGameState {
         execute_create_item: execute_create_item_calculate_cost(),
     };
 
+
+
     PresentationGameState {
         places,
         equipped_items,
@@ -114,7 +117,7 @@ pub fn execute_state(game: &mut Game) -> PresentationGameState {
         treasure: game.treasure.clone(),
         item_resources: game.item_resources.clone(),
         crafting_action_costs: crafting_actions,
-        seed: game.seed.iter().map(|s| s.to_string()).collect::<Vec<String>>().join(","),
+        seed: encode_hex(&game.seed),
     }
 }
 

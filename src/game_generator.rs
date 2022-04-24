@@ -1,5 +1,5 @@
 use std::collections::HashMap;
-use rand_pcg::Pcg32;
+use rand_pcg::{Lcg64Xsh32, Pcg32};
 use crate::attack_types::AttackType;
 use crate::Game;
 use crate::item::Item;
@@ -10,8 +10,9 @@ use crate::modifier_gain::ModifierGain;
 use crate::place_generator::{generate_place, Difficulty};
 use rand::RngCore;
 use rand::SeedableRng;
+use crate::hex_encoder::encode_hex;
 
-pub fn generate_new_game() -> Game {
+pub fn generate_new_game(seed: Option<[u8; 16]>) -> Game {
     let mut min_resistance = HashMap::new();
     min_resistance.insert(AttackType::Physical, 1);
 
@@ -32,9 +33,7 @@ pub fn generate_new_game() -> Game {
         }
     ];
 
-    let mut seed : [u8; 16] = [1; 16];
-    Pcg32::from_entropy().fill_bytes(&mut seed);
-    let random_generator = Pcg32::from_seed(seed);
+    let (seed, random_generator) = create_random_generator(seed);
 
     let mut game = Game { places: Vec::new(), equipped_items, difficulty, treasure: HashMap::new(), item_resources: HashMap::new(), inventory: Vec::new(), seed, random_generator_state: random_generator };
 
@@ -44,7 +43,23 @@ pub fn generate_new_game() -> Game {
     game
 }
 
-pub fn generate_testing_game() -> Game {
+fn create_random_generator(seed: Option<[u8; 16]>) -> ([u8; 16], Lcg64Xsh32) {
+    let seed = match seed {
+        Some(seed) => seed,
+        None => {
+            let mut new_seed: [u8; 16] = [1; 16];
+            Pcg32::from_entropy().fill_bytes(&mut new_seed);
+            new_seed
+        }
+    };
+
+    println!("Using seed: {}", encode_hex(&seed));
+
+    let random_generator = Pcg32::from_seed(seed);
+    (seed, random_generator)
+}
+
+pub fn generate_testing_game(seed: Option<[u8; 16]>) -> Game {
     let mut min_resistance = HashMap::new();
     min_resistance.insert(AttackType::Fire, 2);
     min_resistance.insert(AttackType::Frost, 3);
@@ -103,9 +118,7 @@ pub fn generate_testing_game() -> Game {
         })
     }
 
-    let mut seed : [u8; 16] = [1; 16];
-    Pcg32::from_entropy().fill_bytes(&mut seed);
-    let random_generator = Pcg32::from_seed(seed);
+    let (seed, random_generator) = create_random_generator(seed);
 
     let mut game = Game { places: Vec::new(), equipped_items, difficulty, treasure: HashMap::new(), item_resources: HashMap::new(), inventory, seed, random_generator_state: random_generator };
 

@@ -82,7 +82,7 @@ mod tests_int {
 
     #[test]
     fn test_generate_place() {
-        let mut game = generate_testing_game();
+        let mut game = generate_testing_game(Some([1; 16]));
 
         let place = generate_place(&mut game);
 
@@ -92,7 +92,7 @@ mod tests_int {
 
     #[test]
     fn test_generate_place_one_element() {
-        let mut game = generate_new_game();
+        let mut game = generate_new_game(Some([1; 16]));
 
         let place = generate_place(&mut game);
 

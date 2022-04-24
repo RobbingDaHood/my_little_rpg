@@ -152,7 +152,7 @@ mod tests_int {
 
     #[test]
     fn test_execute_move_command() {
-        let mut game = generate_testing_game();
+        let mut game = generate_testing_game(Some([1; 16]));
         let place = game.places[0].clone();
         assert_eq!(None, game.treasure.get(&TreasureType::Gold));
         assert_eq!(None, game.item_resources.get(&ItemResourceType::Mana));
@@ -183,7 +183,7 @@ mod tests_int {
 
     #[test]
     fn test_execute_move_command_index_out_of_bounds() {
-        let mut game = generate_testing_game();
+        let mut game = generate_testing_game(Some([1; 16]));
 
         let result = execute_move_command(&mut game, 11);
 
@@ -198,7 +198,7 @@ mod tests_int {
 
     #[test]
     fn test_execute_not_enough_damage() {
-        let mut game = generate_testing_game();
+        let mut game = generate_testing_game(Some([1; 16]));
         game.equipped_items = Vec::new();
 
         let result = execute_move_command(&mut game, 0);
@@ -214,7 +214,7 @@ mod tests_int {
 
     #[test]
     fn test_execute_move_command_item_after_claim_does_not_activate() {
-        let mut game = generate_testing_game();
+        let mut game = generate_testing_game(Some([1; 16]));
         let place = game.places[0].clone();
         assert_eq!(None, game.treasure.get(&TreasureType::Gold));
         assert_eq!(None, game.item_resources.get(&ItemResourceType::Mana));

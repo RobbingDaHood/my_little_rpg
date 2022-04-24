@@ -50,7 +50,7 @@ mod tests_int {
 
     #[test]
     fn test_execute_expand_equipment_slots() {
-        let mut game = generate_new_game();
+        let mut game = generate_new_game(Some([1; 16]));
         assert_eq!(1, game.equipped_items.len());
 
         assert_eq!(Err("Cant pay the crafting cost, the cost is {Gold: 32} and you only have {}".to_string()), execute_expand_equipment_slots(&mut game));
