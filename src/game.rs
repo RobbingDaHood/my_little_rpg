@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use rand_pcg::Lcg64Xsh32;
 use crate::place::Place;
 
 use serde::{Deserialize, Serialize};
@@ -15,4 +16,6 @@ pub struct Game {
     pub(crate) difficulty: Difficulty,
     pub(crate) treasure: HashMap<TreasureType, u64>,
     pub(crate) item_resources: HashMap<ItemResourceType, u64>,
+    pub(crate) seed: [u8; 16],
+    pub(crate) random_generator_state: Lcg64Xsh32,
 }

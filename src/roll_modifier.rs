@@ -1,7 +1,6 @@
 use std::cmp::{max, min};
 use std::ops::Div;
 use rand::Rng;
-use rand::rngs::ThreadRng;
 use crate::attack_types::AttackType;
 use crate::Game;
 use crate::item_modifier::ItemModifier;
@@ -15,11 +14,9 @@ pub fn execute_craft_roll_modifier(game: &mut Game) -> ItemModifier {
     let minimum_elements = min(game.difficulty.min_resistance.len(), game.difficulty.min_simultaneous_resistances as usize);
     let maximum_elements = min(game.difficulty.max_resistance.len(), game.difficulty.max_simultaneous_resistances as usize);
 
-    let mut rng = rand::thread_rng();
+    let (modifier_costs, cost) = execute_craft_roll_modifier_costs(game, minimum_elements, maximum_elements);
 
-    let (modifier_costs, cost) = execute_craft_roll_modifier_costs(game, &mut rng, minimum_elements, maximum_elements);
-
-    let modifier_gain = execute_craft_roll_modifier_benefits(game, &mut rng, cost, minimum_elements, maximum_elements);
+    let modifier_gain = execute_craft_roll_modifier_benefits(game, cost, minimum_elements, maximum_elements);
 
     let new_item_modifier = ItemModifier {
         costs: modifier_costs,
@@ -28,16 +25,16 @@ pub fn execute_craft_roll_modifier(game: &mut Game) -> ItemModifier {
     new_item_modifier
 }
 
-fn execute_craft_roll_modifier_costs(game: &Game, rng: &mut ThreadRng, minimum_elements: usize, maximum_elements: usize) -> (Vec<ModifierCost>, u64) {
+fn execute_craft_roll_modifier_costs(game: &mut Game, minimum_elements: usize, maximum_elements: usize) -> (Vec<ModifierCost>, u64) {
     let mut modifier_costs = Vec::new();
     let mut cost = 0;
 
     let maximum_amount_of_costs = max(2, minimum_elements.div(2));
 
     for i in 1..=maximum_amount_of_costs {
-        if rng.gen_range(0..i) != 0 {
+        if game.random_generator_state.gen_range(0..i) != 0 {
             let average_max = game.difficulty.max_resistance.values().sum::<u64>() / maximum_elements as u64;
-            cost += rng.gen_range(1..average_max);
+            cost += game.random_generator_state.gen_range(1..average_max);
         }
     }
 
@@ -48,7 +45,7 @@ fn execute_craft_roll_modifier_costs(game: &Game, rng: &mut ThreadRng, minimum_e
     (modifier_costs, cost)
 }
 
-fn execute_craft_roll_modifier_benefits(game: &mut Game, rng: &mut ThreadRng, cost: u64, minimum_elements: usize, maximum_elements: usize) -> Vec<ModifierGain> {
+fn execute_craft_roll_modifier_benefits(game: &mut Game, cost: u64, minimum_elements: usize, maximum_elements: usize) -> Vec<ModifierGain> {
     let attack_types = game.difficulty.min_resistance.iter()
         .map(|(attack_type, _)| attack_type.clone())
         .collect::<Vec<AttackType>>();
@@ -61,16 +58,16 @@ fn execute_craft_roll_modifier_benefits(game: &mut Game, rng: &mut ThreadRng, co
         let cost_bonus = if i == maximum_elements {
             leftover_cost
         } else {
-            rng.gen_range(0..=leftover_cost)
+            game.random_generator_state.gen_range(0..=leftover_cost)
         };
         leftover_cost -= cost_bonus;
 
         modifier_gain.push(
-            match &all_modifier_gain_options[rng.gen_range(0..all_modifier_gain_options.len())] {
+            match &all_modifier_gain_options[game.random_generator_state.gen_range(0..all_modifier_gain_options.len())] {
                 FlatDamage(attack_type, _) => {
                     let min_damage = *game.difficulty.min_resistance.get(attack_type).unwrap_or(&0);
                     let max_damage = *game.difficulty.max_resistance.get(attack_type).unwrap_or(&1);
-                    let damage = rng.gen_range(min_damage..=max_damage);
+                    let damage = game.random_generator_state.gen_range(min_damage..=max_damage);
                     let damage = damage / 2;
                     let damage = max(1, damage);
                     let damage = damage + cost_bonus * 2;

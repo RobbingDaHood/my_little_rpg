@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use rand_pcg::Pcg32;
 use crate::attack_types::AttackType;
 use crate::Game;
 use crate::item::Item;
@@ -7,6 +8,8 @@ use crate::item_resource::ItemResourceType;
 use crate::modifier_cost::ModifierCost;
 use crate::modifier_gain::ModifierGain;
 use crate::place_generator::{generate_place, Difficulty};
+use rand::RngCore;
+use rand::SeedableRng;
 
 pub fn generate_new_game() -> Game {
     let mut min_resistance = HashMap::new();
@@ -29,9 +32,14 @@ pub fn generate_new_game() -> Game {
         }
     ];
 
-    let mut game = Game { places: Vec::new(), equipped_items, difficulty, treasure: HashMap::new(), item_resources: HashMap::new(), inventory: Vec::new() };
+    let mut seed : [u8; 16] = [1; 16];
+    Pcg32::from_entropy().fill_bytes(&mut seed);
+    let random_generator = Pcg32::from_seed(seed);
 
-    game.places.push(generate_place(&game));
+    let mut game = Game { places: Vec::new(), equipped_items, difficulty, treasure: HashMap::new(), item_resources: HashMap::new(), inventory: Vec::new(), seed, random_generator_state: random_generator };
+
+    let new_place = generate_place(&mut game);
+    game.places.push(new_place);
 
     game
 }
@@ -95,10 +103,15 @@ pub fn generate_testing_game() -> Game {
         })
     }
 
-    let mut game = Game { places: Vec::new(), equipped_items, difficulty, treasure: HashMap::new(), item_resources: HashMap::new(), inventory };
+    let mut seed : [u8; 16] = [1; 16];
+    Pcg32::from_entropy().fill_bytes(&mut seed);
+    let random_generator = Pcg32::from_seed(seed);
+
+    let mut game = Game { places: Vec::new(), equipped_items, difficulty, treasure: HashMap::new(), item_resources: HashMap::new(), inventory, seed, random_generator_state: random_generator };
 
     for _i in 0..10 {
-        game.places.push(generate_place(&game));
+        let new_place = generate_place(&mut game);
+        game.places.push(new_place);
     }
 
     game

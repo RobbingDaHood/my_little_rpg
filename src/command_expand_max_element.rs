@@ -25,8 +25,7 @@ pub fn execute_expand_max_element(game: &mut Game) -> Result<ExecuteExpandMaxEle
     //Increase max of existing element
     let min_possible_element = 0;
     let max_possible_element = game.difficulty.max_resistance.len();
-    let mut rng = rand::thread_rng();
-    let picked_element = rng.gen_range(min_possible_element..max_possible_element);
+    let picked_element = game.random_generator_state.gen_range(min_possible_element..max_possible_element);
     let picked_element = AttackType::get_all()[picked_element].clone();
 
     *game.difficulty.max_resistance.get_mut(&picked_element).unwrap() += crafting_cost.get(&Gold).unwrap();

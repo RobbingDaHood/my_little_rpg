@@ -15,7 +15,7 @@ pub struct Difficulty {
     pub(crate) min_simultaneous_resistances: u8,
 }
 
-pub fn generate_place(game: &Game) -> Place {
+pub fn generate_place(game: &mut Game) -> Place {
     let mut resistance: HashMap<AttackType, u64> = HashMap::new();
     let mut reward = HashMap::new();
 
@@ -25,7 +25,6 @@ pub fn generate_place(game: &Game) -> Place {
         relevant_attack_types.insert(attack_type);
     }
 
-    let mut rng = rand::thread_rng();
     let minimum_elements = min(relevant_attack_types.len(), game.difficulty.min_simultaneous_resistances as usize);
     let maximum_elements = min(relevant_attack_types.len(), game.difficulty.max_simultaneous_resistances as usize);
 
@@ -33,7 +32,7 @@ pub fn generate_place(game: &Game) -> Place {
     let mut count_elements = 0;
     while count_elements < minimum_elements {
         for attack_type in relevant_attack_types.clone() {
-            if minimum_elements == relevant_attack_types.len() || rng.gen_range(0..2) != 0 {
+            if minimum_elements == relevant_attack_types.len() || game.random_generator_state.gen_range(0..2) != 0 {
                 let max_value = game.difficulty.max_resistance.get(attack_type);
                 let min_value = game.difficulty.min_resistance.get(attack_type);
 
@@ -49,7 +48,7 @@ pub fn generate_place(game: &Game) -> Place {
                         println!("Error: generate_place: Min {} is above max {}, for {:?}. Will not add the attack_type to resistances.", min_value, max_value, attack_type);
                     }
 
-                    let resistance_value = rng.gen_range(*min_value..*max_value);
+                    let resistance_value = game.random_generator_state.gen_range(*min_value..*max_value);
                     resistance.insert(attack_type.clone(), resistance_value);
                     resistance_sum += resistance_value;
                 }
@@ -83,9 +82,9 @@ mod tests_int {
 
     #[test]
     fn test_generate_place() {
-        let game = generate_testing_game();
+        let mut game = generate_testing_game();
 
-        let place = generate_place(&game);
+        let place = generate_place(&mut game);
 
         println!("test_generate_place: {:?}", place);
         assert_eq!(place.resistance.len(), 8);
@@ -93,9 +92,9 @@ mod tests_int {
 
     #[test]
     fn test_generate_place_one_element() {
-        let game = generate_new_game();
+        let mut game = generate_new_game();
 
-        let place = generate_place(&game);
+        let place = generate_place(&mut game);
 
         assert_eq!(&1, place.resistance.get(&AttackType::Physical).unwrap());
         assert_eq!(&3, place.reward.get(&TreasureType::Gold).unwrap());

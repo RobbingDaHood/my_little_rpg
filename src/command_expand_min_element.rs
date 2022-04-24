@@ -35,8 +35,7 @@ pub fn execute_expand_min_element(game: &mut Game) -> Result<ExecuteExpandMinEle
     };
 
     //Increase min of existing element
-    let mut rng = rand::thread_rng();
-    let picked_element = rng.gen_range(0..max_possible_elements.len());
+    let picked_element = game.random_generator_state.gen_range(0..max_possible_elements.len());
     let picked_element = max_possible_elements[picked_element].clone();
 
     *game.difficulty.min_resistance.get_mut(&picked_element).unwrap() += crafting_gold_cost;
