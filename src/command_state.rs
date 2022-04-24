@@ -1,3 +1,4 @@
+
 use std::collections::HashMap;
 use crate::place::Place;
 use crate::place_generator::{Difficulty};
@@ -26,6 +27,7 @@ pub struct PresentationGameState {
     pub(crate) treasure: HashMap<TreasureType, u64>,
     pub(crate) item_resources: HashMap<ItemResourceType, u64>,
     pub(crate) crafting_action_costs: PlaceCosts,
+    pub(crate) seed: String,
 }
 
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
@@ -112,6 +114,7 @@ pub fn execute_state(game: &mut Game) -> PresentationGameState {
         treasure: game.treasure.clone(),
         item_resources: game.item_resources.clone(),
         crafting_action_costs: crafting_actions,
+        seed: game.seed.iter().map(|s| s.to_string()).collect::<Vec<String>>().join(","),
     }
 }
 
