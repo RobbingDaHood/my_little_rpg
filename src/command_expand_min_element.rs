@@ -82,4 +82,20 @@ mod tests_int {
         assert!(execute_expand_min_element(&mut game).is_ok());
         assert_eq!(Err("There are no element minimum values that can be upgraded, consider expanding a max element value.".to_string()), execute_expand_min_element(&mut game));
     }
+
+    #[test]
+    fn seeding_test() {
+        let mut game = generate_new_game(Some([1; 16]));
+        game.treasure.insert(Gold, 1000);
+        assert!(execute_expand_max_element(&mut game).is_ok());
+        let original_result = execute_expand_min_element(&mut game);
+
+        for _i in 1..1000 {
+            let mut game = generate_new_game(Some([1; 16]));
+            game.treasure.insert(Gold, 1000);
+            assert!(execute_expand_max_element(&mut game).is_ok());
+            let result = execute_expand_min_element(&mut game);
+            assert_eq!(original_result, result);
+        }
+    }
 }

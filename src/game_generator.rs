@@ -129,3 +129,28 @@ pub fn generate_testing_game(seed: Option<[u8; 16]>) -> Game {
 
     game
 }
+
+#[cfg(test)]
+mod tests_int {
+    use crate::game_generator::{generate_new_game, generate_testing_game};
+
+    #[test]
+    fn seeding_test_generate_testing_game() {
+        let original_result = generate_testing_game(Some([1; 16]));
+
+        for _i in 1..1000 {
+            let game = generate_testing_game(Some([1; 16]));
+            assert_eq!(original_result, game);
+        }
+    }
+
+    #[test]
+    fn seeding_test_generate_new_game() {
+        let original_result = generate_new_game(Some([1; 16]));
+
+        for _i in 1..1000 {
+            let game = generate_new_game(Some([1; 16]));
+            assert_eq!(original_result, game);
+        }
+    }
+}

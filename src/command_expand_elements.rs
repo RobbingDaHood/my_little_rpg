@@ -75,4 +75,18 @@ mod tests_int {
         assert_eq!(9, game.difficulty.max_resistance.len());
         assert_eq!(9, game.difficulty.min_resistance.len());
     }
+
+    #[test]
+    fn seeding_test() {
+        let mut game = generate_new_game(Some([1; 16]));
+        game.treasure.insert(Gold, 1000);
+        let original_result = execute_expand_elements(&mut game);
+
+        for _i in 1..1000 {
+            let mut game = generate_new_game(Some([1; 16]));
+            game.treasure.insert(Gold, 1000);
+            let result = execute_expand_elements(&mut game);
+            assert_eq!(original_result, result);
+        }
+    }
 }

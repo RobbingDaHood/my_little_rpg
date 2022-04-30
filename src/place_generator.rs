@@ -90,4 +90,14 @@ mod tests_int {
         assert_eq!(&3, place.reward.get(&TreasureType::Gold).unwrap());
         assert_eq!(place.resistance.len(), 1);
     }
+
+    #[test]
+    fn seeding_test() {
+        let original_game = generate_testing_game(Some([1; 16]));
+
+        for _i in 1..1000 {
+            let game = generate_testing_game(Some([1; 16]));
+            assert_eq!(original_game, game);
+        }
+    }
 }

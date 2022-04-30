@@ -90,16 +90,13 @@ fn execute_craft_roll_modifier_benefits(game: &mut Game, cost: u64, minimum_elem
 
 #[cfg(test)]
 mod tests_int {
-    use rand::Rng;
     use crate::game_generator::generate_testing_game;
     use crate::roll_modifier::execute_craft_roll_modifier;
 
     #[test]
-    fn test_execute_craft_roll_modifier() {
+    fn seeding_test() {
         let mut game = generate_testing_game(Some([1; 16]));
         let original_game = execute_craft_roll_modifier(&mut game);
-        println!("{:?}", original_game);
-        println!("1-1000: {}", game.random_generator_state.gen_range(0..1000));
 
         for _i in 1..1000 {
             let mut game = generate_testing_game(Some([1; 16]));

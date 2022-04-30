@@ -85,4 +85,18 @@ mod tests_int {
         assert_eq!(old_item, game.inventory[0]);
         assert_eq!(old_gold, *game.treasure.get(&Gold).unwrap());
     }
+
+    #[test]
+    fn seeding_test() {
+        let mut game = generate_testing_game(Some([1; 16]));
+        game.treasure.insert(Gold, 1000);
+        let original_result = execute_craft_reroll_modifier(&mut game, 0, 0);
+
+        for _i in 1..1000 {
+            let mut game = generate_testing_game(Some([1; 16]));
+            game.treasure.insert(Gold, 1000);
+            let result = execute_craft_reroll_modifier(&mut game, 0, 0);
+            assert_eq!(original_result, result);
+        }
+    }
 }

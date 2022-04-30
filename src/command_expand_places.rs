@@ -61,4 +61,18 @@ mod tests_int {
         assert!(result.is_ok());
         assert_eq!(11, game.places.len());
     }
+
+    #[test]
+    fn seeding_test() {
+        let mut game = generate_testing_game(Some([1; 16]));
+        game.treasure.insert(Gold, 1000);
+        let original_result = execute_expand_places(&mut game);
+
+        for _i in 1..1000 {
+            let mut game = generate_testing_game(Some([1; 16]));
+            game.treasure.insert(Gold, 1000);
+            let result = execute_expand_places(&mut game);
+            assert_eq!(original_result, result);
+        }
+    }
 }
