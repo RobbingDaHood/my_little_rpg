@@ -8,7 +8,7 @@ use crate::item_resource::ItemResourceType;
 use crate::modifier_cost::ModifierCost;
 use crate::modifier_gain::ModifierGain;
 use crate::place_generator::{generate_place, Difficulty};
-use rand::RngCore;
+use rand::{RngCore};
 use rand::SeedableRng;
 use crate::hex_encoder::encode_hex;
 

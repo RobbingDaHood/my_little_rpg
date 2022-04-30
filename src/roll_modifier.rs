@@ -33,6 +33,7 @@ fn execute_craft_roll_modifier_costs(game: &mut Game, minimum_elements: usize, m
 
     for i in 1..=maximum_amount_of_costs {
         if game.random_generator_state.gen_range(0..i) != 0 {
+            println!("MORE RANDOM, maximum_amount_of_costs {}", maximum_amount_of_costs);
             let average_max = game.difficulty.max_resistance.values().sum::<u64>() / maximum_elements as u64;
             cost += game.random_generator_state.gen_range(1..average_max);
         }
@@ -46,8 +47,9 @@ fn execute_craft_roll_modifier_costs(game: &mut Game, minimum_elements: usize, m
 }
 
 fn execute_craft_roll_modifier_benefits(game: &mut Game, cost: u64, minimum_elements: usize, maximum_elements: usize) -> Vec<ModifierGain> {
-    let attack_types = game.difficulty.min_resistance.iter()
-        .map(|(attack_type, _)| attack_type.clone())
+    let attack_types = AttackType::get_all().iter()
+        .filter(|attack_type| game.difficulty.min_resistance.contains_key(attack_type))
+        .map(|attack_type| attack_type.clone())
         .collect::<Vec<AttackType>>();
 
     let mut leftover_cost = cost;
@@ -62,8 +64,10 @@ fn execute_craft_roll_modifier_benefits(game: &mut Game, cost: u64, minimum_elem
         };
         leftover_cost -= cost_bonus;
 
+        let gain_seize = all_modifier_gain_options.len();
+        let modifier_index = game.random_generator_state.gen_range(0..gain_seize); //TODO this does not respect the seed. Could be because there is more rolls earlier
         modifier_gain.push(
-            match &all_modifier_gain_options[game.random_generator_state.gen_range(0..all_modifier_gain_options.len())] {
+            match &all_modifier_gain_options[modifier_index] {
                 FlatDamage(attack_type, _) => {
                     let min_damage = *game.difficulty.min_resistance.get(attack_type).unwrap_or(&0);
                     let max_damage = *game.difficulty.max_resistance.get(attack_type).unwrap_or(&1);
@@ -84,4 +88,23 @@ fn execute_craft_roll_modifier_benefits(game: &mut Game, cost: u64, minimum_elem
     modifier_gain
 }
 
-//TODO tests
+#[cfg(test)]
+mod tests_int {
+    use rand::Rng;
+    use crate::game_generator::generate_testing_game;
+    use crate::roll_modifier::execute_craft_roll_modifier;
+
+    #[test]
+    fn test_execute_craft_roll_modifier() {
+        let mut game = generate_testing_game(Some([1; 16]));
+        let original_game = execute_craft_roll_modifier(&mut game);
+        println!("{:?}", original_game);
+        println!("1-1000: {}", game.random_generator_state.gen_range(0..1000));
+
+        for _i in 1..1000 {
+            let mut game = generate_testing_game(Some([1; 16]));
+            let result = execute_craft_roll_modifier(&mut game);
+            assert_eq!(original_game, result);
+        }
+    }
+}
