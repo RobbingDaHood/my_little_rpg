@@ -81,6 +81,16 @@ mod tests_int {
     }
 
     #[test]
+    fn test_that_all_elements_can_be_hit() {
+        let mut game = generate_testing_game(Some([1; 16]));
+        game.treasure.insert(Gold, 999999);
+
+        for _i in 0..12 {
+            assert!(execute_expand_modifiers(&mut game, 0).is_ok());
+        }
+    }
+
+    #[test]
     fn seeding_test() {
         let mut game = generate_testing_game(Some([1; 16]));
         game.treasure.insert(Gold, 1000);

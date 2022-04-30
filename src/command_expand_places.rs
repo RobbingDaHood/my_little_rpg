@@ -75,4 +75,14 @@ mod tests_int {
             assert_eq!(original_result, result);
         }
     }
+
+    #[test]
+    fn many_runs_test() {
+        let mut game = generate_testing_game(Some([1; 16]));
+        game.treasure.insert(Gold, 999999);
+
+        for _i in 1..438 {
+            assert!(execute_expand_places(&mut game).is_ok())
+        }
+    }
 }

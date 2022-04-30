@@ -76,7 +76,6 @@ mod tests_int {
 
         let place = generate_place(&mut game);
 
-        println!("test_generate_place: {:?}", place);
         assert_eq!(place.resistance.len(), 5);
     }
 
@@ -98,6 +97,15 @@ mod tests_int {
         for _i in 1..1000 {
             let game = generate_testing_game(Some([1; 16]));
             assert_eq!(original_game, game);
+        }
+    }
+
+    #[test]
+    fn many_runs_test() {
+        let mut game = generate_testing_game(Some([1; 16]));
+
+        for _i in 1..438 {
+            generate_place(&mut game);
         }
     }
 }

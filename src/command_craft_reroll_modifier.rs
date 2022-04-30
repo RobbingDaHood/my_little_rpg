@@ -99,4 +99,14 @@ mod tests_int {
             assert_eq!(original_result, result);
         }
     }
+
+    #[test]
+    fn many_runs_test() {
+        let mut game = generate_testing_game(Some([1; 16]));
+        game.treasure.insert(Gold, 9999999);
+
+        for _i in 1..438 {
+            assert!(execute_craft_reroll_modifier(&mut game, 0, 0).is_ok());
+        }
+    }
 }

@@ -33,7 +33,6 @@ fn execute_craft_roll_modifier_costs(game: &mut Game, minimum_elements: usize, m
 
     for i in 1..=maximum_amount_of_costs {
         if game.random_generator_state.gen_range(0..i) != 0 {
-            println!("MORE RANDOM, maximum_amount_of_costs {}", maximum_amount_of_costs);
             let average_max = game.difficulty.max_resistance.values().sum::<u64>() / maximum_elements as u64;
             cost += game.random_generator_state.gen_range(1..average_max);
         }

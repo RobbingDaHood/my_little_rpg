@@ -57,7 +57,7 @@ mod tests_int {
     use crate::command_expand_max_element::execute_expand_max_element;
     use crate::command_expand_min_element::execute_expand_min_element;
     use crate::command_move::execute_move_command;
-    use crate::game_generator::{generate_new_game};
+    use crate::game_generator::{generate_new_game, generate_testing_game};
     use crate::treasure_types::TreasureType::Gold;
 
     #[test]
@@ -81,6 +81,24 @@ mod tests_int {
 
         assert!(execute_expand_min_element(&mut game).is_ok());
         assert_eq!(Err("There are no element minimum values that can be upgraded, consider expanding a max element value.".to_string()), execute_expand_min_element(&mut game));
+    }
+
+
+    #[test]
+    fn test_that_all_elements_can_be_hit() {
+        let mut game = generate_testing_game(Some([1; 16]));
+        let original_difficulty = game.difficulty.clone();
+        game.treasure.insert(Gold, 9999999);
+
+        for _i in 0..65 {
+            assert!(execute_expand_max_element(&mut game).is_ok());
+            assert!(execute_expand_min_element(&mut game).is_ok());
+        }
+
+        let number_of_unchanged_elements = original_difficulty.min_resistance.iter()
+            .filter(|(x, y)| game.difficulty.min_resistance.get(x).unwrap() == *y)
+            .count();
+        assert_eq!(0, number_of_unchanged_elements);
     }
 
     #[test]
