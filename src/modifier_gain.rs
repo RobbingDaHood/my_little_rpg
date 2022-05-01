@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 use crate::item_resource::ItemResourceType;
 use crate::modifier_gain::ModifierGain::{FlatDamage, FlatItemResource};
 
-#[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
+#[derive(Clone, PartialEq, Debug, Serialize, Deserialize, Eq, Hash)]
 pub enum ModifierGain {
     FlatDamage(AttackType, u64),
     FlatItemResource(ItemResourceType, u64),

@@ -1,5 +1,4 @@
 use std::cmp::{max, min};
-use std::ops::Div;
 use rand::Rng;
 use crate::attack_types::AttackType;
 use crate::Game;
@@ -10,6 +9,7 @@ use crate::modifier_cost::ModifierCost;
 use crate::modifier_gain::ModifierGain::FlatItemResource;
 use crate::modifier_gain::ModifierGain;
 use crate::modifier_gain::ModifierGain::FlatDamage;
+use rand::prelude::SliceRandom;
 
 pub fn execute_craft_roll_modifier(game: &mut Game, item_index: usize) -> ItemModifier {
     let crafting_info = &game.inventory[item_index].crafting_info.clone();
@@ -17,7 +17,7 @@ pub fn execute_craft_roll_modifier(game: &mut Game, item_index: usize) -> ItemMo
     let minimum_elements = min(crafting_info.possible_rolls.min_resistance.len(), crafting_info.possible_rolls.min_simultaneous_resistances as usize);
     let maximum_elements = min(crafting_info.possible_rolls.max_resistance.len(), crafting_info.possible_rolls.max_simultaneous_resistances as usize);
 
-    let (modifier_costs, cost) = execute_craft_roll_modifier_costs(game, crafting_info, minimum_elements, maximum_elements);
+    let (modifier_costs, cost) = execute_craft_roll_modifier_costs(game, crafting_info);
 
     let modifier_gain = execute_craft_roll_modifier_benefits(game, crafting_info, cost, minimum_elements, maximum_elements);
 
@@ -28,26 +28,46 @@ pub fn execute_craft_roll_modifier(game: &mut Game, item_index: usize) -> ItemMo
     new_item_modifier
 }
 
-fn execute_craft_roll_modifier_costs(game: &mut Game, crafting_info: &CraftingInfo, minimum_elements: usize, maximum_elements: usize) -> (Vec<ModifierCost>, u64) {
+fn execute_craft_roll_modifier_costs(game: &mut Game, crafting_info: &CraftingInfo) -> (Vec<ModifierCost>, u64) {
     let mut modifier_costs = Vec::new();
-    let mut cost = 0;
+    let mut accumulated_cost = 0;
+    let max_cost = crafting_info.possible_rolls.max_resistance.values().sum::<u64>() / crafting_info.possible_rolls.max_simultaneous_resistances as u64;
 
-    //TODO Add new costs. Also in a more safe way.
+    //TODO add reduce difficulty
+    //TODO add sell item command: Flat 10 gold each
+    //TODO store crafting option on place and get it from there.
 
-    let maximum_amount_of_costs = max(2, minimum_elements.div(2));
+    let minimum_elements = min(1, crafting_info.possible_rolls.min_simultaneous_resistances);
+    let maximum_elements = min(2, crafting_info.possible_rolls.max_simultaneous_resistances);
+    let number_of_costs = game.random_generator_state.gen_range(minimum_elements..maximum_elements);
 
-    for i in 1..=maximum_amount_of_costs {
-        if game.random_generator_state.gen_range(0..i) != 0 {
-            let average_max = crafting_info.possible_rolls.max_resistance.values().sum::<u64>() / maximum_elements as u64;
-            cost += game.random_generator_state.gen_range(1..average_max);
+    for _i in 0..number_of_costs {
+        match game.random_generator_state.gen_range(0..2) {
+            0 => {
+                let attack_type = AttackType::get_all().into_iter()
+                    .filter(|attack_type| game.difficulty.min_resistance.contains_key(attack_type))
+                    .map(|attack_type| attack_type.clone())
+                    .collect::<Vec<AttackType>>()
+                    .choose(&mut game.random_generator_state)
+                    .unwrap()
+                    .clone();
+
+                let minimum_value = *game.difficulty.min_resistance.get(&attack_type).unwrap();
+                let maximum_value = *game.difficulty.max_resistance.get(&attack_type).unwrap();
+                let value = min(max_cost - accumulated_cost, game.random_generator_state.gen_range(minimum_value..maximum_value));
+
+                modifier_costs.push(ModifierCost::FlatMinAttackRequirement(attack_type, value.clone()));
+                accumulated_cost += value;
+            }
+            _ => {
+                let cost = game.random_generator_state.gen_range(1..max_cost - accumulated_cost);
+                modifier_costs.push(ModifierCost::FlatItemResource(ItemResourceType::Mana, cost));
+                accumulated_cost += cost;
+            }
         }
     }
 
-    if cost != 0 {
-        modifier_costs.push(ModifierCost::FlatItemResource(ItemResourceType::Mana, cost));
-    }
-
-    (modifier_costs, cost)
+    (modifier_costs, accumulated_cost)
 }
 
 fn execute_craft_roll_modifier_benefits(game: &mut Game, crafting_info: &CraftingInfo, cost: u64, minimum_elements: usize, maximum_elements: usize) -> Vec<ModifierGain> {
@@ -94,7 +114,11 @@ fn execute_craft_roll_modifier_benefits(game: &mut Game, crafting_info: &Craftin
 
 #[cfg(test)]
 mod tests_int {
+    use std::collections::HashMap;
     use crate::game_generator::generate_testing_game;
+    use crate::item_resource::ItemResourceType;
+    use crate::modifier_cost::ModifierCost;
+    use crate::modifier_gain::ModifierGain;
     use crate::roll_modifier::execute_craft_roll_modifier;
 
     #[test]
@@ -112,9 +136,55 @@ mod tests_int {
     #[test]
     fn test_many_runs() {
         let mut game = generate_testing_game(Some([1; 16]));
+        let mut cost_modifiers: HashMap<ModifierCost, u32> = HashMap::new();
+        let mut gain_modifiers: HashMap<ModifierGain, u32> = HashMap::new();
 
         for _i in 1..1000 {
-            execute_craft_roll_modifier(&mut game, 0);
+            let result = execute_craft_roll_modifier(&mut game, 0);
+
+            for cost in result.costs {
+                match cost {
+                    ModifierCost::FlatItemResource(item_resource, _) => {
+                        let token = ModifierCost::FlatItemResource(item_resource, 0);
+                        *cost_modifiers.entry(token).or_insert(0) += 1;
+                    }
+                    ModifierCost::FlatMinAttackRequirement(attack_type, _) => {
+                        let token = ModifierCost::FlatMinAttackRequirement(attack_type, 0);
+                        *cost_modifiers.entry(token).or_insert(0) += 1;
+                    }
+                }
+            }
+
+            for gain in result.gains {
+                match gain {
+                    ModifierGain::FlatItemResource(item_resource, _) => {
+                        let token = ModifierGain::FlatItemResource(item_resource, 0);
+                        *gain_modifiers.entry(token).or_insert(0) += 1;
+                    }
+                    ModifierGain::FlatDamage(attack_type, _) => {
+                        let token = ModifierGain::FlatDamage(attack_type, 0);
+                        *gain_modifiers.entry(token).or_insert(0) += 1;
+                    }
+                }
+            }
         }
+
+        assert_eq!(0, game.difficulty.min_resistance.keys()
+            .map(|attack_type| attack_type.clone())
+            .filter(|attack_type| cost_modifiers.get(&ModifierCost::FlatMinAttackRequirement(attack_type.clone(), 0)).unwrap() == &0)
+            .count());
+
+        assert_eq!(0, ItemResourceType::get_all().into_iter()
+            .filter(|item_resource| cost_modifiers.get(&ModifierCost::FlatItemResource(item_resource.clone(), 0)).unwrap() == &0)
+            .count());
+
+        assert_eq!(0, game.difficulty.min_resistance.keys()
+            .map(|attack_type| attack_type.clone())
+            .filter(|attack_type| gain_modifiers.get(&ModifierGain::FlatDamage(attack_type.clone(), 0)).unwrap() == &0)
+            .count());
+
+        assert_eq!(0, ItemResourceType::get_all().into_iter()
+            .filter(|item_resource| gain_modifiers.get(&ModifierGain::FlatItemResource(item_resource.clone(), 0)).unwrap() == &0)
+            .count());
     }
 }
