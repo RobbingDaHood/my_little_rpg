@@ -30,7 +30,7 @@ pub fn execute_craft_reroll_modifier(game: &mut Game, inventory_index: usize, mo
     };
 
     //Create item
-    let new_item_modifier = execute_craft_roll_modifier(game);
+    let new_item_modifier = execute_craft_roll_modifier(game, inventory_index);
     game.inventory[inventory_index].modifiers[modifier_index] = new_item_modifier;
 
     Ok(ExecuteCraftRerollModifierReport {

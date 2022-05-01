@@ -27,7 +27,7 @@ pub fn execute_expand_modifiers(game: &mut Game, inventory_index: usize) -> Resu
     };
 
     //Create item
-    let new_item_modifier = execute_craft_roll_modifier(game);
+    let new_item_modifier = execute_craft_roll_modifier(game, inventory_index);
     game.inventory[inventory_index].modifiers.push(new_item_modifier);
 
     Ok(ExecuteExpandModifiersReport {
