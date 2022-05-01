@@ -15,7 +15,7 @@ pub struct ItemReport {
     item: Item,
     current_damage: HashMap<AttackType, u64>,
     effect_description: String,
-    item_resource_costs: HashMap<ItemResourceType, u64>,
+    item_resource_costs: Option<HashMap<ItemResourceType, u64>>,
     current_item_resources: HashMap<ItemResourceType, u64>,
 }
 
@@ -36,27 +36,26 @@ pub fn execute_move_command(game: &mut Game, index: usize) -> Result<ExecuteMove
     if game.places.len() <= index { return report_place_does_not_exist(game, index); }
 
     let mut current_damage = HashMap::new();
-    let mut current_item_resources = game.item_resources.clone();
     let mut item_report = Vec::new();
 
     for item in &game.equipped_items {
-        let item_resource_cost = calculate_item_resource_cost(&item);
-        let are_all_costs_payable = calculate_are_all_costs_payable(&mut current_item_resources, &item_resource_cost);
-        if !are_all_costs_payable {
-            update_item_report(&current_damage, &mut current_item_resources, &mut item_report, item, &item_resource_cost, "Were not able to pay all the costs");
-        } else {
-            update_cost_effect(&mut current_item_resources, &item_resource_cost);
-            update_gain_effect(&mut current_damage, &mut current_item_resources, &item);
-            update_item_report(&mut current_damage, &mut current_item_resources, &mut item_report, item, &item_resource_cost, "Costs paid and all gains executed.");
-
-            game.item_resources = current_item_resources.clone();
-
-            //If we can claim the reward.
-            if let Some(rewards) = game.places.get(index)
-                .expect("Error: execute_move_command: Could not find place even though it were within the index.")
-                .claim_rewards(&current_damage) {
-                return update_claim_place_effect(game, index, item_report, rewards);
+        let item_resource_cost = match evaluate_item_costs(&item, &current_damage, &game) {
+            Ok(costs) => costs,
+            Err((message, item_resource_cost)) => {
+                update_item_report(&current_damage, &game.item_resources, &mut item_report, item, &item_resource_cost, message.as_str());
+                continue;
             }
+        };
+
+        update_cost_effect(&mut game.item_resources, &item_resource_cost);
+        update_gain_effect(&mut current_damage, &mut game.item_resources, &item);
+        update_item_report(&current_damage, &game.item_resources, &mut item_report, item, &Some(item_resource_cost), "Costs paid and all gains executed.");
+
+        //If we can claim the reward.
+        if let Some(rewards) = game.places.get(index)
+            .expect("Error: execute_move_command: Could not find place even though it were within the index.")
+            .claim_rewards(&current_damage) {
+            return update_claim_place_effect(game, index, item_report, rewards);
         }
     }
 
@@ -104,7 +103,7 @@ fn update_cost_effect(current_item_resources: &mut HashMap<ItemResourceType, u64
     }
 }
 
-fn update_item_report(current_damage: &HashMap<AttackType, u64>, current_item_resources: &HashMap<ItemResourceType, u64>, item_report: &mut Vec<ItemReport>, item: &Item, item_resource_cost: &HashMap<ItemResourceType, u64>, effect_description: &str) {
+fn update_item_report(current_damage: &HashMap<AttackType, u64>, current_item_resources: &HashMap<ItemResourceType, u64>, item_report: &mut Vec<ItemReport>, item: &Item, item_resource_cost: &Option<HashMap<ItemResourceType, u64>>, effect_description: &str) {
     item_report.push(ItemReport {
         item: item.clone(),
         current_damage: current_damage.clone(),
@@ -127,16 +126,28 @@ fn calculate_are_all_costs_payable(current_item_resources: &HashMap<ItemResource
     are_all_costs_payable
 }
 
-fn calculate_item_resource_cost(item: &&Item) -> HashMap<ItemResourceType, u64> {
+fn evaluate_item_costs(item: &&Item, current_damage: &HashMap<AttackType, u64>, game: &Game) -> Result<HashMap<ItemResourceType, u64>, (String, Option<HashMap<ItemResourceType, u64>>)> {
     let mut item_resource_cost = HashMap::new();
     for modifier in &item.modifiers {
         for cost in &modifier.costs {
             match cost {
-                ModifierCost::FlatItemResource(item_resource_type, amount) => *item_resource_cost.entry(item_resource_type.clone()).or_insert(0) += amount
+                ModifierCost::FlatItemResource(item_resource_type, amount) => *item_resource_cost.entry(item_resource_type.clone()).or_insert(0) += amount,
+                ModifierCost::FlatMinAttackRequirement(attack_type, amount) => {
+                    if current_damage.get(attack_type).unwrap_or(&0) < amount {
+                        return Err((format!("Did not fulfill the FlatMinAttackRequirement of {} {:?} damage, only did {:?} damage.", amount, attack_type, current_damage), None));
+                    } else {
+
+                    }
+                }
             }
         }
     }
-    item_resource_cost
+
+    if !calculate_are_all_costs_payable(&game.item_resources, &item_resource_cost) {
+        return Err((format!("Were not able to pay all the costs. Had to pay {:?}, but only had {:?} available.", item_resource_cost, game.item_resources), None));
+    }
+
+    Ok(item_resource_cost)
 }
 
 #[cfg(test)]
@@ -147,6 +158,7 @@ mod tests_int {
     use crate::item::Item;
     use crate::item_modifier::ItemModifier;
     use crate::item_resource::ItemResourceType;
+    use crate::modifier_cost::ModifierCost;
     use crate::modifier_gain::ModifierGain;
     use crate::treasure_types::TreasureType;
 
@@ -257,5 +269,91 @@ mod tests_int {
         assert_ne!(place, game.places[0]);
         assert!(place.reward.get(&TreasureType::Gold).unwrap() < game.treasure.get(&TreasureType::Gold).unwrap());
         assert_eq!(Some(&5), game.item_resources.get(&ItemResourceType::Mana));
+    }
+
+    #[test]
+    fn test_flat_min_attack_requirement() {
+        let mut game = generate_testing_game(Some([1; 16]));
+        game.equipped_items = Vec::new();
+
+        let first_item_cannot_pay = Item {
+            modifiers: vec![
+                ItemModifier {
+                    costs: vec![
+                        ModifierCost::FlatMinAttackRequirement(AttackType::Physical, 20)
+                    ],
+                    gains: Vec::new(),
+                }
+            ]
+        };
+
+        let second_item_generates_needed_resource = Item {
+            modifiers: vec![
+                ItemModifier {
+                    costs: Vec::new(),
+                    gains: vec![
+                        ModifierGain::FlatDamage(AttackType::Physical, 20)
+                    ],
+                }
+            ]
+        };
+
+        game.equipped_items.push(first_item_cannot_pay.clone());
+        game.equipped_items.push(second_item_generates_needed_resource.clone());
+        game.equipped_items.push(first_item_cannot_pay.clone());
+
+
+        let result = execute_move_command(&mut game, 0);
+
+        assert!(result.is_err());
+
+        let result = result.unwrap_err();
+        assert_eq!("You did not deal enough damage to overcome the challenges in this place.".to_string(), result.result);
+        assert_eq!("Did not fulfill the FlatMinAttackRequirement of 20 Physical damage, only did {} damage.".to_string(), result.item_report[0].effect_description);
+        assert_eq!("Costs paid and all gains executed.".to_string(), result.item_report[1].effect_description);
+        assert_eq!("Costs paid and all gains executed.".to_string(), result.item_report[2].effect_description);
+    }
+
+    #[test]
+    fn test_flat_item_resource() {
+        let mut game = generate_testing_game(Some([1; 16]));
+        game.equipped_items = Vec::new();
+
+        let first_item_cannot_pay = Item {
+            modifiers: vec![
+                ItemModifier {
+                    costs: vec![
+                        ModifierCost::FlatItemResource(ItemResourceType::Mana, 20)
+                    ],
+                    gains: Vec::new(),
+                }
+            ]
+        };
+
+        let second_item_generates_needed_resource = Item {
+            modifiers: vec![
+                ItemModifier {
+                    costs: Vec::new(),
+                    gains: vec![
+                        ModifierGain::FlatItemResource(ItemResourceType::Mana, 20)
+                    ],
+                }
+            ]
+        };
+
+        game.equipped_items.push(first_item_cannot_pay.clone());
+        game.equipped_items.push(second_item_generates_needed_resource.clone());
+        game.equipped_items.push(first_item_cannot_pay.clone());
+
+
+        let result = execute_move_command(&mut game, 0);
+
+        assert!(result.is_err());
+
+        let result = result.unwrap_err();
+        assert_eq!("You did not deal enough damage to overcome the challenges in this place.".to_string(), result.result);
+        assert_eq!("Were not able to pay all the costs. Had to pay {Mana: 20}, but only had {} available.".to_string(), result.item_report[0].effect_description);
+        assert_eq!("Costs paid and all gains executed.".to_string(), result.item_report[1].effect_description);
+        assert_eq!("Costs paid and all gains executed.".to_string(), result.item_report[2].effect_description);
     }
 }
