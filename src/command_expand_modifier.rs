@@ -73,7 +73,7 @@ mod tests_int {
         let old_item = game.inventory[0].clone();
         let old_gold = game.treasure.get(&Gold).unwrap().clone();
 
-        assert_eq!(Err("inventory_index 99 is not within the range of the inventory 9".to_string()), execute_expand_modifiers(&mut game, 99));
+        assert_eq!(Err("inventory_index 99 is not within the range of the inventory 10".to_string()), execute_expand_modifiers(&mut game, 99));
 
         assert_eq!(old_item, game.inventory[0]);
         assert_eq!(old_gold, *game.treasure.get(&Gold).unwrap());

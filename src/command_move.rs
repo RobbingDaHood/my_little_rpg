@@ -1,10 +1,11 @@
 use std::collections::HashMap;
 use crate::attack_types::AttackType;
 use crate::Game;
-use crate::item::Item;
+use crate::item::{CraftingInfo, Item};
 use crate::modifier_gain::ModifierGain;
 use crate::place_generator::generate_place;
 use serde::{Deserialize, Serialize};
+use crate::item_modifier::ItemModifier;
 use crate::item_resource::ItemResourceType;
 use crate::modifier_cost::ModifierCost;
 use crate::place::Place;
@@ -79,6 +80,18 @@ fn update_claim_place_effect(game: &mut Game, index: usize, item_report: Vec<Ite
 
     game.places[index] = generate_place(game);
 
+    game.inventory.push(Item {
+        crafting_info: CraftingInfo {
+            possible_rolls: game.difficulty.clone(),
+        },
+        modifiers: vec![
+            ItemModifier {
+                costs: Vec::new(),
+                gains: Vec::new(),
+            }
+        ],
+    });
+
     return Ok(ExecuteMoveCommandReport {
         item_report,
         result: "You won".to_string(),
@@ -135,9 +148,7 @@ fn evaluate_item_costs(item: &&Item, current_damage: &HashMap<AttackType, u64>, 
                 ModifierCost::FlatMinAttackRequirement(attack_type, amount) => {
                     if current_damage.get(attack_type).unwrap_or(&0) < amount {
                         return Err((format!("Did not fulfill the FlatMinAttackRequirement of {} {:?} damage, only did {:?} damage.", amount, attack_type, current_damage), None));
-                    } else {
-
-                    }
+                    } else {}
                 }
             }
         }
@@ -168,6 +179,7 @@ mod tests_int {
         let place = game.places[0].clone();
         assert_eq!(None, game.treasure.get(&TreasureType::Gold));
         assert_eq!(None, game.item_resources.get(&ItemResourceType::Mana));
+        assert_eq!(9, game.inventory.len());
 
         let result = execute_move_command(&mut game, 0);
 
@@ -179,6 +191,7 @@ mod tests_int {
         assert_eq!(2, result.item_report.len());
         assert_eq!(None, game.treasure.get(&TreasureType::Gold));
         assert_eq!(Some(&5), game.item_resources.get(&ItemResourceType::Mana));
+        assert_eq!(9, game.inventory.len());
 
         let result = execute_move_command(&mut game, 0);
 
@@ -191,6 +204,7 @@ mod tests_int {
         assert_eq!(place.reward.get(&TreasureType::Gold), game.treasure.get(&TreasureType::Gold));
         assert_ne!(&0, game.treasure.get(&TreasureType::Gold).unwrap());
         assert_eq!(Some(&1), game.item_resources.get(&ItemResourceType::Mana));
+        assert_eq!(10, game.inventory.len());
     }
 
     #[test]
