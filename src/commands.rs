@@ -1,4 +1,4 @@
-use crate::commands::Command::{AddModifier, CreateItem, Equip, ExpandElements, ExpandEquipmentSlots, ExpandMaxElement, ExpandMinElement, ExpandPlaces, Help, Move, RerollModifier, State, SwapEquipment};
+use crate::commands::Command::{AddModifier, Equip, ExpandElements, ExpandEquipmentSlots, ExpandMaxElement, ExpandMinElement, ExpandPlaces, Help, Move, RerollModifier, State, SwapEquipment};
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize, Eq, Hash)]
@@ -7,7 +7,6 @@ pub enum Command {
     Move(usize),
     Equip(usize, usize),
     SwapEquipment(usize, usize),
-    CreateItem,
     RerollModifier(usize, usize),
     ExpandPlaces,
     ExpandElements,
@@ -27,7 +26,6 @@ impl Command {
             Move(0),
             Equip(0, 0),
             SwapEquipment(0, 0),
-            CreateItem,
             RerollModifier(0, 0),
             ExpandPlaces,
             ExpandElements,
@@ -52,7 +50,6 @@ impl TryFrom<&String> for Command {
 
         return match command_parts[0] {
             "State" => Ok(Command::State),
-            "CreateItem" => Ok(Command::CreateItem),
             "ExpandPlaces" => Ok(Command::ExpandPlaces),
             "ExpandElements" => Ok(Command::ExpandElements),
             "ExpandMaxElement" => Ok(Command::ExpandMaxElement),
@@ -140,7 +137,6 @@ mod tests_int {
     #[test]
     fn try_from() {
         assert_eq!(Command::State, Command::try_from(&"State".to_string()).unwrap());
-        assert_eq!(Command::CreateItem, Command::try_from(&"CreateItem".to_string()).unwrap());
         assert_eq!(Command::ExpandPlaces, Command::try_from(&"ExpandPlaces".to_string()).unwrap());
         assert_eq!(Command::ExpandElements, Command::try_from(&"ExpandElements".to_string()).unwrap());
         assert_eq!(Command::ExpandMaxElement, Command::try_from(&"ExpandMaxElement".to_string()).unwrap());

@@ -5,7 +5,6 @@ use crate::{Game};
 use std::io::Read;
 use std::io::Write;
 use crate::command_craft_reroll_modifier::execute_craft_reroll_modifier;
-use crate::command_create_new_item::execute_create_item;
 use crate::command_equip_swap::{execute_equip_item, execute_swap_equipped_item};
 use crate::command_expand_elements::execute_expand_elements;
 use crate::command_expand_equipment_slots::execute_expand_equipment_slots;
@@ -55,9 +54,6 @@ impl Listener {
                 panic!("{}", e);
             },
             Ok(Command::State) => if let Err(e) = stream.write(format!("{} \n", json!(execute_state(game))).as_bytes()) {
-                panic!("{}", e);
-            },
-            Ok(Command::CreateItem) => if let Err(e) = stream.write(format!("{} \n", json!(execute_create_item(game))).as_bytes()) {
                 panic!("{}", e);
             },
             Ok(Command::Move(place_index)) => if let Err(e) = stream.write(format!("{} \n", json!(execute_move_command(game, place_index))).as_bytes()) {

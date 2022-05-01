@@ -155,7 +155,7 @@ mod tests_int {
     use crate::attack_types::AttackType;
     use crate::command_move::execute_move_command;
     use crate::game_generator::generate_testing_game;
-    use crate::item::Item;
+    use crate::item::{CraftingInfo, Item};
     use crate::item_modifier::ItemModifier;
     use crate::item_resource::ItemResourceType;
     use crate::modifier_cost::ModifierCost;
@@ -239,7 +239,10 @@ mod tests_int {
                         .map(|attack_type| ModifierGain::FlatDamage(attack_type.clone(), 100))
                         .collect(),
                 }
-            ]
+            ],
+            crafting_info: CraftingInfo {
+                possible_rolls: game.difficulty.clone()
+            },
         };
         game.equipped_items.insert(0, power_item);
 
@@ -284,7 +287,10 @@ mod tests_int {
                     ],
                     gains: Vec::new(),
                 }
-            ]
+            ],
+            crafting_info: CraftingInfo {
+                possible_rolls: game.difficulty.clone()
+            },
         };
 
         let second_item_generates_needed_resource = Item {
@@ -295,7 +301,10 @@ mod tests_int {
                         ModifierGain::FlatDamage(AttackType::Physical, 20)
                     ],
                 }
-            ]
+            ],
+            crafting_info: CraftingInfo {
+                possible_rolls: game.difficulty.clone()
+            },
         };
 
         game.equipped_items.push(first_item_cannot_pay.clone());
@@ -327,7 +336,10 @@ mod tests_int {
                     ],
                     gains: Vec::new(),
                 }
-            ]
+            ],
+            crafting_info: CraftingInfo {
+                possible_rolls: game.difficulty.clone()
+            },
         };
 
         let second_item_generates_needed_resource = Item {
@@ -338,7 +350,10 @@ mod tests_int {
                         ModifierGain::FlatItemResource(ItemResourceType::Mana, 20)
                     ],
                 }
-            ]
+            ],
+            crafting_info: CraftingInfo {
+                possible_rolls: game.difficulty.clone()
+            },
         };
 
         game.equipped_items.push(first_item_cannot_pay.clone());

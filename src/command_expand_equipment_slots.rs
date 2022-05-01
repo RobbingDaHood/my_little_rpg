@@ -1,5 +1,4 @@
 use std::collections::HashMap;
-use crate::command_create_new_item::execute_create_item;
 use crate::Game;
 use crate::item::Item;
 use crate::treasure_types::TreasureType::Gold;
@@ -15,19 +14,18 @@ pub struct ExecuteExpandEquipmentSlotsReport {
 }
 
 pub fn execute_expand_equipment_slots(game: &mut Game) -> Result<ExecuteExpandEquipmentSlotsReport, String> {
+    if game.inventory.is_empty() {
+        return Err("No item in inventory to equip in new item slot.".to_string());
+    }
+
     //Crafting cost
     let crafting_cost = execute_expand_equipment_slots_calculate_cost(game);
     if let Err(error_message) = pay_crafting_cost(game, &crafting_cost) {
-        return Err(error_message)
+        return Err(error_message);
     };
 
     //Pick first item in inventory or
-    let item = if game.inventory.len() > 0 {
-        game.inventory.remove(game.inventory.len() - 1)
-    } else {
-        execute_create_item(game).new_item
-    };
-
+    let item = game.inventory.remove(game.inventory.len() - 1);
     game.equipped_items.push(item.clone());
 
     Ok(ExecuteExpandEquipmentSlotsReport {
@@ -47,11 +45,32 @@ mod tests_int {
     use crate::command_expand_equipment_slots::execute_expand_equipment_slots;
     use crate::command_move::execute_move_command;
     use crate::game_generator::generate_new_game;
+    use crate::item::{CraftingInfo, Item};
+    use crate::item_modifier::ItemModifier;
 
     #[test]
     fn test_execute_expand_equipment_slots() {
         let mut game = generate_new_game(Some([1; 16]));
         assert_eq!(1, game.equipped_items.len());
+
+        assert_eq!(Err("No item in inventory to equip in new item slot.".to_string()), execute_expand_equipment_slots(&mut game));
+        assert_eq!(1, game.equipped_items.len());
+
+        let item = Item {
+            modifiers: vec![
+                ItemModifier {
+                    costs: Vec::new(),
+                    gains: Vec::new(),
+                }
+            ],
+            crafting_info: CraftingInfo {
+                possible_rolls: game.difficulty.clone()
+            },
+        };
+        game.inventory.push( item.clone());
+        game.inventory.push( item.clone());
+        game.inventory.push( item.clone());
+        game.inventory.push( item.clone());
 
         assert_eq!(Err("Cant pay the crafting cost, the cost is {Gold: 32} and you only have {}".to_string()), execute_expand_equipment_slots(&mut game));
 
