@@ -29,6 +29,7 @@ mod command_expand_max_simultaneous_element;
 mod command_expand_min_simultanius_element;
 mod command_state;
 mod hex_encoder;
+mod command_reduce_difficulty;
 
 use structopt::StructOpt;
 use crate::hex_encoder::decode_hex;

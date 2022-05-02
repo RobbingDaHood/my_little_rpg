@@ -1,4 +1,4 @@
-use crate::commands::Command::{AddModifier, Equip, ExpandElements, ExpandEquipmentSlots, ExpandMaxElement, ExpandMinElement, ExpandPlaces, Help, Move, RerollModifier, State, SwapEquipment};
+use crate::commands::Command::{AddModifier, Equip, ExpandElements, ExpandEquipmentSlots, ExpandMaxElement, ExpandMinElement, ExpandPlaces, Help, Move, ReduceDifficulty, RerollModifier, State, SwapEquipment};
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize, Eq, Hash)]
@@ -15,6 +15,7 @@ pub enum Command {
     ExpandMaxSimultaneousElement,
     ExpandMinSimultaneousElement,
     ExpandEquipmentSlots,
+    ReduceDifficulty,
     AddModifier(usize),
     Help,
 }
@@ -32,6 +33,7 @@ impl Command {
             ExpandMaxElement,
             ExpandMinElement,
             ExpandEquipmentSlots,
+            ReduceDifficulty,
             AddModifier(0),
             Help,
         ]
@@ -55,6 +57,7 @@ impl TryFrom<&String> for Command {
             "ExpandMaxElement" => Ok(Command::ExpandMaxElement),
             "ExpandMinElement" => Ok(Command::ExpandMinElement),
             "ExpandEquipmentSlots" => Ok(Command::ExpandEquipmentSlots),
+            "ReduceDifficulty" => Ok(Command::ReduceDifficulty),
             "ExpandMaxSimultaneousElement" => Ok(Command::ExpandMaxSimultaneousElement),
             "ExpandMinSimultaneousElement" => Ok(Command::ExpandMinSimultaneousElement),
             "Help" => Ok(Command::Help),
@@ -142,6 +145,7 @@ mod tests_int {
         assert_eq!(Command::ExpandMaxElement, Command::try_from(&"ExpandMaxElement".to_string()).unwrap());
         assert_eq!(Command::ExpandMinElement, Command::try_from(&"ExpandMinElement".to_string()).unwrap());
         assert_eq!(Command::ExpandEquipmentSlots, Command::try_from(&"ExpandEquipmentSlots".to_string()).unwrap());
+        assert_eq!(Command::ReduceDifficulty, Command::try_from(&"ReduceDifficulty".to_string()).unwrap());
         assert_eq!(Command::ExpandMaxSimultaneousElement, Command::try_from(&"ExpandMaxSimultaneousElement".to_string()).unwrap());
         assert_eq!(Command::ExpandMinSimultaneousElement, Command::try_from(&"ExpandMinSimultaneousElement".to_string()).unwrap());
         assert_eq!(Command::Help, Command::try_from(&"Help".to_string()).unwrap());

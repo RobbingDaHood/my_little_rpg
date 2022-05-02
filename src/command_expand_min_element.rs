@@ -10,7 +10,7 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
 pub struct ExecuteExpandMinElementReport {
-    new_place_generator_input: Difficulty,
+    new_difficulty: Difficulty,
     paid_cost: HashMap<TreasureType, u64>,
     new_cost: HashMap<TreasureType, u64>,
     leftover_spending_treasure: HashMap<TreasureType, u64>,
@@ -41,7 +41,7 @@ pub fn execute_expand_min_element(game: &mut Game) -> Result<ExecuteExpandMinEle
     *game.difficulty.min_resistance.get_mut(&picked_element).unwrap() += crafting_gold_cost;
 
     Ok(ExecuteExpandMinElementReport {
-        new_place_generator_input: game.difficulty.clone(),
+        new_difficulty: game.difficulty.clone(),
         paid_cost: crafting_cost.clone(),
         new_cost: execute_expand_min_element_calculate_cost(game),
         leftover_spending_treasure: game.treasure.clone(),

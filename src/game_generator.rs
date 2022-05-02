@@ -71,6 +71,7 @@ pub fn generate_testing_game(seed: Option<[u8; 16]>) -> Game {
     min_resistance.insert(AttackType::Darkness, 6);
     min_resistance.insert(AttackType::Nature, 7);
     min_resistance.insert(AttackType::Corruption, 8);
+    min_resistance.insert(AttackType::Holy, 9);
 
     let mut max_resistance = HashMap::new();
     max_resistance.insert(AttackType::Fire, 20);

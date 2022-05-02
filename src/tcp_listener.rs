@@ -16,6 +16,7 @@ use crate::command_expand_modifier::execute_expand_modifiers;
 use crate::command_expand_places::execute_expand_places;
 use crate::command_help::execute_help;
 use crate::command_move::execute_move_command;
+use crate::command_reduce_difficulty::execute_reduce_difficulty;
 use crate::command_state::execute_state;
 use crate::commands::Command;
 use crate::game_generator::{generate_new_game};
@@ -54,6 +55,9 @@ impl Listener {
                 panic!("{}", e);
             },
             Ok(Command::State) => if let Err(e) = stream.write(format!("{} \n", json!(execute_state(game))).as_bytes()) {
+                panic!("{}", e);
+            },
+            Ok(Command::ReduceDifficulty) => if let Err(e) = stream.write(format!("{} \n", json!(execute_reduce_difficulty(game))).as_bytes()) {
                 panic!("{}", e);
             },
             Ok(Command::Move(place_index)) => if let Err(e) = stream.write(format!("{} \n", json!(execute_move_command(game, place_index))).as_bytes()) {

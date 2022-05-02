@@ -9,7 +9,7 @@ use rand::prelude::SliceRandom;
 
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
 pub struct ExecuteExpandMaxElementReport {
-    new_place_generator_input: Difficulty,
+    new_difficulty: Difficulty,
     paid_cost: HashMap<TreasureType, u64>,
     new_cost: HashMap<TreasureType, u64>,
     leftover_spending_treasure: HashMap<TreasureType, u64>,
@@ -33,7 +33,7 @@ pub fn execute_expand_max_element(game: &mut Game) -> Result<ExecuteExpandMaxEle
     *game.difficulty.max_resistance.get_mut(&picked_element).unwrap() += crafting_cost.get(&Gold).unwrap();
 
     Ok(ExecuteExpandMaxElementReport {
-        new_place_generator_input: game.difficulty.clone(),
+        new_difficulty: game.difficulty.clone(),
         paid_cost: crafting_cost.clone(),
         new_cost: execute_expand_max_element_calculate_cost(game),
         leftover_spending_treasure: game.treasure.clone(),

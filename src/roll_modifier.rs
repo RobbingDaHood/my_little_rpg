@@ -33,8 +33,7 @@ fn execute_craft_roll_modifier_costs(game: &mut Game, crafting_info: &CraftingIn
     let mut accumulated_cost = 0;
     let max_cost = crafting_info.possible_rolls.max_resistance.values().sum::<u64>() / crafting_info.possible_rolls.max_simultaneous_resistances as u64;
 
-    //TODO add reduce difficulty
-    //TODO add sell item command: Flat 10 gold each
+    //TODO Change costs of all crafting; Need X of the lower tier item. Example: 10 items with 2 modifiers to get one item with 3.
 
     let minimum_elements = min(1, crafting_info.possible_rolls.min_simultaneous_resistances);
     let maximum_elements = min(2, crafting_info.possible_rolls.max_simultaneous_resistances);

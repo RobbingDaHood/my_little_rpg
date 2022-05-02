@@ -35,6 +35,7 @@ fn execute_help_for_command(command: Command) -> &'static str {
         Command::ExpandMaxSimultaneousElement => "ExpandMaxSimultaneousElement: Expand the maximum possible simultaneous roll elements. This both affect newly rolled places and newly rolled modifiers.",
         Command::ExpandMinSimultaneousElement => "ExpandMinSimultaneousElement: Expand the minimum possible simultaneous roll elements. This both affect newly rolled places and newly rolled modifiers. Minimum cannot go above maximum.",
         Command::ExpandEquipmentSlots => "ExpandEquipmentSlots: Expand the amount of possible equipment slots. It will equip the last item in your inventory automatically. If there are no items in the inventory it will craft a new shiny item to be equipped.",
+        Command::ReduceDifficulty => "ReduceDifficulty: reduce a random attack types max value in game difficulty, if that goes lower than min value then min value is reduced. If the max value gets too low then the element will be removed. Simultaneous elements could also be affected.",
         Command::AddModifier(_) => "AddModifier X: Give item in inventory at index X a new random modifier.",
         Command::Help => "Help: Get the help text that you are reading right now."
     }

@@ -1,4 +1,3 @@
-
 use std::collections::HashMap;
 use crate::place::Place;
 use crate::place_generator::{Difficulty};
@@ -12,6 +11,7 @@ use crate::command_expand_min_element::execute_expand_min_element_calculate_cost
 use crate::command_expand_min_simultanius_element::execute_expand_min_simultaneous_element_calculate_cost;
 use crate::command_expand_modifier::execute_expand_modifiers_calculate_cost;
 use crate::command_expand_places::execute_expand_places_calculate_cost;
+use crate::command_reduce_difficulty::{execute_execute_reduce_difficulty_cost};
 use crate::Game;
 use crate::hex_encoder::encode_hex;
 use crate::item::Item;
@@ -39,6 +39,7 @@ pub struct PlaceCosts {
     expand_max_simultaneous_element: HashMap<TreasureType, u64>,
     expand_min_simultaneous_element: HashMap<TreasureType, u64>,
     expand_equipment_slots: HashMap<TreasureType, u64>,
+    execute_reduce_difficulty: HashMap<TreasureType, u64>,
 }
 
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
@@ -102,8 +103,8 @@ pub fn execute_state(game: &mut Game) -> PresentationGameState {
         expand_max_simultaneous_element: execute_expand_max_simultaneous_element_calculate_cost(game),
         expand_min_simultaneous_element: execute_expand_min_simultaneous_element_calculate_cost(game),
         expand_equipment_slots: execute_expand_equipment_slots_calculate_cost(game),
+        execute_reduce_difficulty: execute_execute_reduce_difficulty_cost(),
     };
-
 
 
     PresentationGameState {
