@@ -78,11 +78,9 @@ fn update_claim_place_effect(game: &mut Game, index: usize, item_report: Vec<Ite
         *game.treasure.entry(treasure_type).or_insert(0) += amount;
     }
 
-    game.places[index] = generate_place(game);
-
     game.inventory.push(Item {
         crafting_info: CraftingInfo {
-            possible_rolls: game.difficulty.clone(),
+            possible_rolls: game.places[index].item_reward_possible_rolls.clone(),
         },
         modifiers: vec![
             ItemModifier {
@@ -91,6 +89,8 @@ fn update_claim_place_effect(game: &mut Game, index: usize, item_report: Vec<Ite
             }
         ],
     });
+
+    game.places[index] = generate_place(game);
 
     return Ok(ExecuteMoveCommandReport {
         item_report,

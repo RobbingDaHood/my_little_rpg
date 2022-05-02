@@ -3,11 +3,13 @@ use crate::attack_types;
 use crate::treasure_types::TreasureType;
 
 use serde::{Deserialize, Serialize};
+use crate::place_generator::Difficulty;
 
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
 pub struct Place {
     pub(crate) resistance: HashMap<attack_types::AttackType, u64>,
     pub(crate) reward: HashMap<TreasureType, u64>,
+    pub(crate) item_reward_possible_rolls: Difficulty,
 }
 
 impl Place {
@@ -30,13 +32,22 @@ mod tests_int {
     use std::collections::HashMap;
     use crate::attack_types::AttackType;
     use crate::place::Place;
+    use crate::place_generator::Difficulty;
 
     #[test]
     fn claim_rewards_no_resistance() {
         let reward = HashMap::new();
+        let item_reward_possible_rolls = Difficulty {
+            max_resistance: HashMap::new(),
+            min_resistance: HashMap::new(),
+            max_simultaneous_resistances: 0,
+            min_simultaneous_resistances: 0,
+
+        };
         let place = Place {
             resistance: HashMap::new(),
             reward: reward.clone(),
+            item_reward_possible_rolls,
         };
 
         assert_eq!(Some(reward), place.claim_rewards(&HashMap::new()));
@@ -57,9 +68,18 @@ mod tests_int {
         resistance.insert(AttackType::Corruption, 8);
         resistance.insert(AttackType::Holy, 9);
 
+        let item_reward_possible_rolls = Difficulty {
+            max_resistance: HashMap::new(),
+            min_resistance: HashMap::new(),
+            max_simultaneous_resistances: 0,
+            min_simultaneous_resistances: 0,
+
+        };
+
         let place = Place {
             resistance: resistance.clone(),
             reward: reward.clone(),
+            item_reward_possible_rolls,
         };
 
         assert_eq!(Some(reward), place.claim_rewards(&resistance));
@@ -80,9 +100,18 @@ mod tests_int {
         resistance.insert(AttackType::Corruption, 8);
         resistance.insert(AttackType::Holy, 9);
 
+        let item_reward_possible_rolls = Difficulty {
+            max_resistance: HashMap::new(),
+            min_resistance: HashMap::new(),
+            max_simultaneous_resistances: 0,
+            min_simultaneous_resistances: 0,
+
+        };
+
         let place = Place {
             resistance: resistance.clone(),
             reward: reward.clone(),
+            item_reward_possible_rolls,
         };
 
         resistance.remove(&AttackType::Physical);

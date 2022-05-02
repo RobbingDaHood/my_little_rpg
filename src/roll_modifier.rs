@@ -35,7 +35,6 @@ fn execute_craft_roll_modifier_costs(game: &mut Game, crafting_info: &CraftingIn
 
     //TODO add reduce difficulty
     //TODO add sell item command: Flat 10 gold each
-    //TODO store crafting option on place and get it from there.
 
     let minimum_elements = min(1, crafting_info.possible_rolls.min_simultaneous_resistances);
     let maximum_elements = min(2, crafting_info.possible_rolls.max_simultaneous_resistances);

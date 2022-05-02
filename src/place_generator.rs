@@ -59,7 +59,7 @@ pub fn generate_place(game: &mut Game) -> Place {
 
     reward.insert(TreasureType::Gold, reward_from_resistance + reward_from_difficulty);
 
-    Place { resistance, reward }
+    Place { resistance, reward, item_reward_possible_rolls: game.difficulty.clone() }
 }
 
 
@@ -77,6 +77,7 @@ mod tests_int {
         let place = generate_place(&mut game);
 
         assert_eq!(place.resistance.len(), 5);
+        assert_eq!(game.difficulty, place.item_reward_possible_rolls);
     }
 
     #[test]
@@ -88,6 +89,7 @@ mod tests_int {
         assert_eq!(&1, place.resistance.get(&AttackType::Physical).unwrap());
         assert_eq!(&3, place.reward.get(&TreasureType::Gold).unwrap());
         assert_eq!(place.resistance.len(), 1);
+        assert_eq!(game.difficulty, place.item_reward_possible_rolls);
     }
 
     #[test]
