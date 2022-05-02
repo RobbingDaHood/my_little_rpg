@@ -7,7 +7,7 @@ pub enum Command {
     Move(usize),
     Equip(usize, usize),
     SwapEquipment(usize, usize),
-    RerollModifier(usize, usize),
+    RerollModifier(usize, usize, Vec<usize>),
     ExpandPlaces,
     ExpandElements,
     ExpandMaxElement,
@@ -27,7 +27,7 @@ impl Command {
             Move(0),
             Equip(0, 0),
             SwapEquipment(0, 0),
-            RerollModifier(0, 0),
+            RerollModifier(0, 0, Vec::new()),
             ExpandPlaces,
             ExpandElements,
             ExpandMaxElement,
@@ -114,18 +114,27 @@ impl TryFrom<&String> for Command {
                 };
             }
             "RerollModifier" => {
+                let error_message = format!("Trouble parsing RerollModifier command, it needs index of inventory, index of modifier and a list comma seperated list of items to sacrifice. Got {:?}", command_parts);
                 if command_parts.len() < 3 {
-                    return Err(format!("Trouble parsing RerollModifier command, it needs index of inventory and index of modifier. Got {:?}", command_parts));
+                    return Err(error_message.clone())
                 }
 
                 return if let Ok(inventory_index) = command_parts[1].parse::<usize>() {
                     if let Ok(modifier_index) = command_parts[2].parse::<usize>() {
-                        Ok(RerollModifier(inventory_index, modifier_index))
+                        let sacrifice_item_indexes = command_parts[3].split(",").into_iter()
+                            .map(|s| s.parse::<usize>())
+                            .collect();
+
+                        if let Ok(sacrifice_item_indexes) = sacrifice_item_indexes {
+                            Ok(RerollModifier(inventory_index, modifier_index, sacrifice_item_indexes))
+                        } else {
+                            Err(error_message.clone())
+                        }
                     } else {
-                        Err(format!("Trouble parsing RerollModifier command, it needs index of inventory and index of modifier. Got {:?}", command_parts))
+                        Err(error_message.clone())
                     }
                 } else {
-                    Err(format!("Trouble parsing RerollModifier command, it needs index of inventory and index of modifier. Got {:?}", command_parts))
+                    Err(error_message.clone())
                 };
             }
             _ => Err(format!("Command not known. Got {:?}", command_parts))
@@ -174,12 +183,15 @@ mod tests_int {
         assert_eq!(Err("Trouble parsing SwapEquipment command, it needs index of inventory and index of equipment slot. Got [\"SwapEquipment\", \"B\", \"22\"]".to_string()), Command::try_from(&"SwapEquipment B 22".to_string()));
         assert_eq!(Err("Trouble parsing SwapEquipment command, it needs index of inventory and index of equipment slot. Got [\"SwapEquipment\", \"21\", \"B\"]".to_string()), Command::try_from(&"SwapEquipment 21 B".to_string()));
 
-        assert_eq!(Command::RerollModifier(21, 22), Command::try_from(&"RerollModifier 21 22".to_string()).unwrap());
-        assert_eq!(Err("Trouble parsing RerollModifier command, it needs index of inventory and index of modifier. Got [\"RerollModifier\"]".to_string()), Command::try_from(&"RerollModifier".to_string()));
-        assert_eq!(Err("Trouble parsing RerollModifier command, it needs index of inventory and index of modifier. Got [\"RerollModifier\", \"-1\", \"22\"]".to_string()), Command::try_from(&"RerollModifier -1 22".to_string()));
-        assert_eq!(Err("Trouble parsing RerollModifier command, it needs index of inventory and index of modifier. Got [\"RerollModifier\", \"21\", \"-1\"]".to_string()), Command::try_from(&"RerollModifier 21 -1".to_string()));
-        assert_eq!(Err("Trouble parsing RerollModifier command, it needs index of inventory and index of modifier. Got [\"RerollModifier\", \"B\", \"22\"]".to_string()), Command::try_from(&"RerollModifier B 22".to_string()));
-        assert_eq!(Err("Trouble parsing RerollModifier command, it needs index of inventory and index of modifier. Got [\"RerollModifier\", \"21\", \"B\"]".to_string()), Command::try_from(&"RerollModifier 21 B".to_string()));
+        assert_eq!(Command::RerollModifier(21, 22, vec![1,2,3]), Command::try_from(&"RerollModifier 21 22 1,2,3".to_string()).unwrap());
+        assert_eq!(Err("Trouble parsing RerollModifier command, it needs index of inventory, index of modifier and a list comma seperated list of items to sacrifice. Got [\"RerollModifier\"]".to_string()), Command::try_from(&"RerollModifier".to_string()));
+        assert_eq!(Err("Trouble parsing RerollModifier command, it needs index of inventory, index of modifier and a list comma seperated list of items to sacrifice. Got [\"RerollModifier\", \"-1\"]".to_string()), Command::try_from(&"RerollModifier -1".to_string()));
+        assert_eq!(Err("Trouble parsing RerollModifier command, it needs index of inventory, index of modifier and a list comma seperated list of items to sacrifice. Got [\"RerollModifier\", \"-1\", \"22\"]".to_string()), Command::try_from(&"RerollModifier -1 22".to_string()));
+        assert_eq!(Err("Trouble parsing RerollModifier command, it needs index of inventory, index of modifier and a list comma seperated list of items to sacrifice. Got [\"RerollModifier\", \"-1\", \"22\", \"1,2,3\"]".to_string()), Command::try_from(&"RerollModifier -1 22 1,2,3".to_string()));
+        assert_eq!(Err("Trouble parsing RerollModifier command, it needs index of inventory, index of modifier and a list comma seperated list of items to sacrifice. Got [\"RerollModifier\", \"21\", \"-1\", \"1,2,3\"]".to_string()), Command::try_from(&"RerollModifier 21 -1 1,2,3".to_string()));
+        assert_eq!(Err("Trouble parsing RerollModifier command, it needs index of inventory, index of modifier and a list comma seperated list of items to sacrifice. Got [\"RerollModifier\", \"B\", \"22\", \"1,2,3\"]".to_string()), Command::try_from(&"RerollModifier B 22 1,2,3".to_string()));
+        assert_eq!(Err("Trouble parsing RerollModifier command, it needs index of inventory, index of modifier and a list comma seperated list of items to sacrifice. Got [\"RerollModifier\", \"21\", \"B\", \"1,2,3\"]".to_string()), Command::try_from(&"RerollModifier 21 B 1,2,3".to_string()));
+        assert_eq!(Err("Trouble parsing RerollModifier command, it needs index of inventory, index of modifier and a list comma seperated list of items to sacrifice. Got [\"RerollModifier\", \"21\", \"B\", \"a\"]".to_string()), Command::try_from(&"RerollModifier 21 B a".to_string()));
 
         assert_eq!(Err("Command not known. Got [\"InvalidCommand\"]".to_string()), Command::try_from(&"InvalidCommand".to_string()));
     }

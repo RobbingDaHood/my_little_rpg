@@ -57,14 +57,8 @@ pub struct PresentationItem {
 
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
 pub struct ItemCosts {
-    reroll_modifier: Vec<CostsInList>,
+    reroll_modifier: u16,
     add_modifier: HashMap<TreasureType, u64>,
-}
-
-#[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
-pub struct CostsInList {
-    index: usize,
-    cost: HashMap<TreasureType, u64>,
 }
 
 pub fn execute_state(game: &mut Game) -> PresentationGameState {
@@ -91,7 +85,7 @@ pub fn execute_state(game: &mut Game) -> PresentationGameState {
         .map(|(index, item)| PresentationItem {
             index,
             item: item.clone(),
-            crafting_action_costs: Ok(calculate_item_cost(game, &item, index)),
+            crafting_action_costs: Ok(calculate_item_cost(game, index)),
         })
         .collect();
 
@@ -119,16 +113,8 @@ pub fn execute_state(game: &mut Game) -> PresentationGameState {
     }
 }
 
-fn calculate_item_cost(game: &Game, item: &Item, item_index: usize) -> ItemCosts {
-    let reroll_modifier = item.modifiers.iter()
-        .enumerate()
-        .map(|(modifier_index, _)| CostsInList {
-            index: modifier_index,
-            cost: execute_craft_reroll_modifier_calculate_cost(game, item_index, modifier_index),
-        })
-        .collect();
-
+fn calculate_item_cost(game: &Game, item_index: usize) -> ItemCosts {
     let add_modifier = execute_expand_modifiers_calculate_cost(game, item_index);
-
+    let reroll_modifier = execute_craft_reroll_modifier_calculate_cost(game, item_index);
     ItemCosts { reroll_modifier, add_modifier }
 }

@@ -69,7 +69,7 @@ impl Listener {
             Ok(Command::SwapEquipment(equipped_item_position_1, equipped_item_position_2)) => if let Err(e) = stream.write(format!("{} \n", json!(execute_swap_equipped_item(game, equipped_item_position_1, equipped_item_position_2))).as_bytes()) {
                 panic!("{}", e);
             },
-            Ok(Command::RerollModifier(inventory_index, modifier_index)) => if let Err(e) = stream.write(format!("{} \n", json!(execute_craft_reroll_modifier(game, inventory_index, modifier_index))).as_bytes()) {
+            Ok(Command::RerollModifier(inventory_index, modifier_index, sacrifice_item_indexes)) => if let Err(e) = stream.write(format!("{} \n", json!(execute_craft_reroll_modifier(game, inventory_index, modifier_index, sacrifice_item_indexes))).as_bytes()) {
                 panic!("{}", e);
             },
             Ok(Command::ExpandPlaces) => if let Err(e) = stream.write(format!("{} \n", json!(execute_expand_places(game))).as_bytes()) {
