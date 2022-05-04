@@ -55,7 +55,7 @@ pub fn generate_place(game: &mut Game) -> Place {
 
     let possible_resistance_values_sum = game.difficulty.max_resistance.values().chain(game.difficulty.min_resistance.values()).sum::<u64>();
     let average_possible_resistance_values = possible_resistance_values_sum / relevant_attack_types.len() as u64;
-    let reward_from_difficulty = average_possible_resistance_values / max(game.places.len(), 1) as u64;
+    let reward_from_difficulty = max( 1, average_possible_resistance_values / max(game.places.len(), 1) as u64);
 
     reward.insert(TreasureType::Gold, reward_from_resistance + reward_from_difficulty);
 

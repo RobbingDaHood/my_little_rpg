@@ -94,7 +94,7 @@ fn update_claim_place_effect(game: &mut Game, index: usize, item_report: Vec<Ite
 
     return Ok(ExecuteMoveCommandReport {
         item_report,
-        result: "You won".to_string(),
+        result: "You won and got a new item in the inventory.".to_string(),
         new_place: game.places[index].clone(),
     });
 }
@@ -198,7 +198,7 @@ mod tests_int {
         assert!(result.is_ok());
 
         let result = result.unwrap();
-        assert_eq!("You won".to_string(), result.result);
+        assert_eq!("You won and got a new item in the inventory.".to_string(), result.result);
         assert_eq!(2, result.item_report.len());
         assert_ne!(place, game.places[0]);
         assert_eq!(place.reward.get(&TreasureType::Gold), game.treasure.get(&TreasureType::Gold));
@@ -265,7 +265,7 @@ mod tests_int {
         assert!(result.is_ok());
 
         let result = result.unwrap();
-        assert_eq!("You won".to_string(), result.result);
+        assert_eq!("You won and got a new item in the inventory.".to_string(), result.result);
         assert_eq!(1, result.item_report.len()); //Only the first item got activated, because that were enough.
         assert_ne!(place, game.places[0]);
         assert_eq!(place.reward.get(&TreasureType::Gold), game.treasure.get(&TreasureType::Gold));
@@ -281,7 +281,7 @@ mod tests_int {
         assert!(result.is_ok());
 
         let result = result.unwrap();
-        assert_eq!("You won".to_string(), result.result);
+        assert_eq!("You won and got a new item in the inventory.".to_string(), result.result);
         assert_eq!(3, result.item_report.len()); //Now all three have a report.
         assert_ne!(place, game.places[0]);
         assert!(place.reward.get(&TreasureType::Gold).unwrap() < game.treasure.get(&TreasureType::Gold).unwrap());

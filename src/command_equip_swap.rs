@@ -15,6 +15,7 @@ pub fn execute_equip_item(game: &mut Game, inventory_position: usize, equipped_i
         return Err(format!("inventory_position {} is not within the range of the inventory {}", inventory_position, game.inventory.len()));
     }
 
+    // TODO make items optional, then only add None when removing (and other places destroying; because then swapping around is easy. It also making working with indexes a bit easier? Hmmm... it is hard to keep repeating commands.
     game.inventory.push(game.equipped_items.remove(equipped_item_position));
     game.equipped_items.insert(equipped_item_position, game.inventory.remove(inventory_position));
 

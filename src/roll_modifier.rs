@@ -1,4 +1,5 @@
 use std::cmp::{max, min};
+use std::ops::Add;
 use rand::Rng;
 use crate::attack_types::AttackType;
 use crate::Game;
@@ -35,32 +36,32 @@ fn execute_craft_roll_modifier_costs(game: &mut Game, crafting_info: &CraftingIn
 
     //TODO unblocked damage will applay unique effect
 
-    let minimum_elements = min(1, crafting_info.possible_rolls.min_simultaneous_resistances);
-    let maximum_elements = min(2, crafting_info.possible_rolls.max_simultaneous_resistances);
-    let number_of_costs = game.random_generator_state.gen_range(minimum_elements..maximum_elements);
+    let number_of_costs = game.random_generator_state.gen_range(0..crafting_info.possible_rolls.max_simultaneous_resistances.add(1));
 
     for _i in 0..number_of_costs {
-        match game.random_generator_state.gen_range(0..2) {
-            0 => {
-                let attack_type = AttackType::get_all().into_iter()
-                    .filter(|attack_type| game.difficulty.min_resistance.contains_key(attack_type))
-                    .map(|attack_type| attack_type.clone())
-                    .collect::<Vec<AttackType>>()
-                    .choose(&mut game.random_generator_state)
-                    .unwrap()
-                    .clone();
+        if accumulated_cost < max_cost {
+            match game.random_generator_state.gen_range(0..2) {
+                0 => {
+                    let attack_type = AttackType::get_all().into_iter()
+                        .filter(|attack_type| game.difficulty.min_resistance.contains_key(attack_type))
+                        .map(|attack_type| attack_type.clone())
+                        .collect::<Vec<AttackType>>()
+                        .choose(&mut game.random_generator_state)
+                        .unwrap()
+                        .clone();
 
-                let minimum_value = *game.difficulty.min_resistance.get(&attack_type).unwrap();
-                let maximum_value = *game.difficulty.max_resistance.get(&attack_type).unwrap();
-                let value = min(max_cost - accumulated_cost, game.random_generator_state.gen_range(minimum_value..maximum_value));
+                    let minimum_value = *game.difficulty.min_resistance.get(&attack_type).unwrap();
+                    let maximum_value = *game.difficulty.max_resistance.get(&attack_type).unwrap();
+                    let value = min(max_cost - accumulated_cost, game.random_generator_state.gen_range(minimum_value..maximum_value));
 
-                modifier_costs.push(ModifierCost::FlatMinAttackRequirement(attack_type, value.clone()));
-                accumulated_cost += value;
-            }
-            _ => {
-                let cost = game.random_generator_state.gen_range(1..max_cost - accumulated_cost);
-                modifier_costs.push(ModifierCost::FlatItemResource(ItemResourceType::Mana, cost));
-                accumulated_cost += cost;
+                    modifier_costs.push(ModifierCost::FlatMinAttackRequirement(attack_type, value.clone()));
+                    accumulated_cost += value;
+                }
+                _ => {
+                    let cost = game.random_generator_state.gen_range(1..max(2, max_cost - accumulated_cost));
+                    modifier_costs.push(ModifierCost::FlatItemResource(ItemResourceType::Mana, cost));
+                    accumulated_cost += cost;
+                }
             }
         }
     }
@@ -113,11 +114,19 @@ fn execute_craft_roll_modifier_benefits(game: &mut Game, crafting_info: &Craftin
 #[cfg(test)]
 mod tests_int {
     use std::collections::HashMap;
-    use crate::game_generator::generate_testing_game;
+    use crate::game_generator::{generate_new_game, generate_testing_game};
     use crate::item_resource::ItemResourceType;
     use crate::modifier_cost::ModifierCost;
     use crate::modifier_gain::ModifierGain;
     use crate::roll_modifier::execute_craft_roll_modifier;
+
+
+    #[test]
+    fn basic_test() {
+        let mut game = generate_new_game(Some([1; 16]));
+        game.inventory.push(game.equipped_items[0].clone());
+        let original_game = execute_craft_roll_modifier(&mut game, 0);
+    }
 
     #[test]
     fn seeding_test() {
