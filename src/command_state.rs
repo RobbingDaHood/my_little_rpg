@@ -9,7 +9,7 @@ use crate::command_expand_max_element::execute_expand_max_element_calculate_cost
 use crate::command_expand_max_simultaneous_element::execute_expand_max_simultaneous_element_calculate_cost;
 use crate::command_expand_min_element::execute_expand_min_element_calculate_cost;
 use crate::command_expand_min_simultanius_element::execute_expand_min_simultaneous_element_calculate_cost;
-use crate::command_expand_modifier::execute_expand_modifiers_calculate_cost;
+use crate::command_craft_expand_modifier::execute_craft_expand_modifiers_calculate_cost;
 use crate::command_expand_places::execute_expand_places_calculate_cost;
 use crate::command_reduce_difficulty::{execute_execute_reduce_difficulty_cost};
 use crate::Game;
@@ -58,7 +58,7 @@ pub struct PresentationItem {
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
 pub struct ItemCosts {
     reroll_modifier: u16,
-    add_modifier: HashMap<TreasureType, u64>,
+    add_modifier: usize,
 }
 
 pub fn execute_state(game: &mut Game) -> PresentationGameState {
@@ -114,7 +114,7 @@ pub fn execute_state(game: &mut Game) -> PresentationGameState {
 }
 
 fn calculate_item_cost(game: &Game, item_index: usize) -> ItemCosts {
-    let add_modifier = execute_expand_modifiers_calculate_cost(game, item_index);
+    let add_modifier = execute_craft_expand_modifiers_calculate_cost(game, item_index);
     let reroll_modifier = execute_craft_reroll_modifier_calculate_cost(game, item_index);
     ItemCosts { reroll_modifier, add_modifier }
 }

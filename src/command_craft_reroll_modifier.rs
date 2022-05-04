@@ -63,7 +63,6 @@ mod tests_int {
     use crate::game_generator::generate_testing_game;
     use crate::item::{CraftingInfo, Item};
     use crate::item_modifier::ItemModifier;
-    use crate::treasure_types::TreasureType::Gold;
 
     #[test]
     fn test_execute_craft_item() {

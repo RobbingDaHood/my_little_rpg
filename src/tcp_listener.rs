@@ -12,7 +12,7 @@ use crate::command_expand_max_element::execute_expand_max_element;
 use crate::command_expand_max_simultaneous_element::execute_expand_max_simultaneous_element;
 use crate::command_expand_min_element::execute_expand_min_element;
 use crate::command_expand_min_simultanius_element::execute_expand_min_simultaneous_element;
-use crate::command_expand_modifier::execute_expand_modifiers;
+use crate::command_craft_expand_modifier::execute_craft_expand_modifiers;
 use crate::command_expand_places::execute_expand_places;
 use crate::command_help::execute_help;
 use crate::command_move::execute_move_command;
@@ -93,7 +93,7 @@ impl Listener {
             Ok(Command::ExpandEquipmentSlots) => if let Err(e) = stream.write(format!("{} \n", json!(execute_expand_equipment_slots(game))).as_bytes()) {
                 panic!("{}", e);
             },
-            Ok(Command::AddModifier(place_index)) => if let Err(e) = stream.write(format!("{} \n", json!(execute_expand_modifiers(game, place_index))).as_bytes()) {
+            Ok(Command::AddModifier(place_index, sacrifice_item_indexes)) => if let Err(e) = stream.write(format!("{} \n", json!(execute_craft_expand_modifiers(game, place_index, sacrifice_item_indexes))).as_bytes()) {
                 panic!("{}", e);
             },
             Ok(Command::Help) => if let Err(e) = stream.write(format!("{} \n", json!(execute_help())).as_bytes()) {

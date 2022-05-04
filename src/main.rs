@@ -23,7 +23,7 @@ mod command_expand_max_element;
 mod command_expand_min_element;
 mod command_expand_equipment_slots;
 mod roll_modifier;
-mod command_expand_modifier;
+mod command_craft_expand_modifier;
 mod command_help;
 mod command_expand_max_simultaneous_element;
 mod command_expand_min_simultanius_element;

@@ -16,7 +16,7 @@ pub enum Command {
     ExpandMinSimultaneousElement,
     ExpandEquipmentSlots,
     ReduceDifficulty,
-    AddModifier(usize),
+    AddModifier(usize, Vec<usize>),
     Help,
 }
 
@@ -34,7 +34,7 @@ impl Command {
             ExpandMinElement,
             ExpandEquipmentSlots,
             ReduceDifficulty,
-            AddModifier(0),
+            AddModifier(0, Vec::new()),
             Help,
         ]
     }
@@ -73,14 +73,23 @@ impl TryFrom<&String> for Command {
                 };
             }
             "AddModifier" => {
+                let error_message = format!("Trouble parsing AddModifier command, it needs the index of the item and a list comma seperated list of items to sacrifice. Got {:?}", command_parts);
                 if command_parts.len() < 2 {
-                    return Err(format!("Trouble parsing AddModifier command, it needs the index of the item. Got {:?}", command_parts));
+                    return Err(error_message.clone())
                 }
 
                 return if let Ok(inventory_position) = command_parts[1].parse::<usize>() {
-                    Ok(AddModifier(inventory_position))
+                    let sacrifice_item_indexes = command_parts[2].split(",").into_iter()
+                        .map(|s| s.parse::<usize>())
+                        .collect();
+
+                    if let Ok(sacrifice_item_indexes) = sacrifice_item_indexes {
+                        Ok(AddModifier(inventory_position,sacrifice_item_indexes))
+                    } else {
+                        Err(error_message.clone())
+                    }
                 } else {
-                    return Err(format!("Trouble parsing AddModifier command, it needs the index of the item. Got {:?}", command_parts));
+                    Err(error_message.clone())
                 };
             }
             "Equip" => {
@@ -164,10 +173,12 @@ mod tests_int {
         assert_eq!(Err("Trouble parsing move command, it needs the index of the place. Got [\"Move\", \"-1\"]".to_string()), Command::try_from(&"Move -1".to_string()));
         assert_eq!(Err("Trouble parsing move command, it needs the index of the place. Got [\"Move\", \"B\"]".to_string()), Command::try_from(&"Move B".to_string()));
 
-        assert_eq!(Command::AddModifier(22), Command::try_from(&"AddModifier 22".to_string()).unwrap());
-        assert_eq!(Err("Trouble parsing AddModifier command, it needs the index of the item. Got [\"AddModifier\"]".to_string()), Command::try_from(&"AddModifier".to_string()));
-        assert_eq!(Err("Trouble parsing AddModifier command, it needs the index of the item. Got [\"AddModifier\", \"-1\"]".to_string()), Command::try_from(&"AddModifier -1".to_string()));
-        assert_eq!(Err("Trouble parsing AddModifier command, it needs the index of the item. Got [\"AddModifier\", \"B\"]".to_string()), Command::try_from(&"AddModifier B".to_string()));
+        assert_eq!(Command::AddModifier(22, vec![1,2,3]), Command::try_from(&"AddModifier 22 1,2,3".to_string()).unwrap());
+        assert_eq!(Err("Trouble parsing AddModifier command, it needs the index of the item and a list comma seperated list of items to sacrifice. Got [\"AddModifier\"]".to_string()), Command::try_from(&"AddModifier".to_string()));
+        assert_eq!(Err("Trouble parsing AddModifier command, it needs the index of the item and a list comma seperated list of items to sacrifice. Got [\"AddModifier\", \"-1\"]".to_string()), Command::try_from(&"AddModifier -1".to_string()));
+        assert_eq!(Err("Trouble parsing AddModifier command, it needs the index of the item and a list comma seperated list of items to sacrifice. Got [\"AddModifier\", \"-1\", \"\", \"1,2,3\"]".to_string()), Command::try_from(&"AddModifier -1  1,2,3".to_string()));
+        assert_eq!(Err("Trouble parsing AddModifier command, it needs the index of the item and a list comma seperated list of items to sacrifice. Got [\"AddModifier\", \"B\", \"1,2,3\"]".to_string()), Command::try_from(&"AddModifier B 1,2,3".to_string()));
+        assert_eq!(Err("Trouble parsing AddModifier command, it needs the index of the item and a list comma seperated list of items to sacrifice. Got [\"AddModifier\", \"1\", \"b\"]".to_string()), Command::try_from(&"AddModifier 1 b".to_string()));
 
         assert_eq!(Command::Equip(21, 22), Command::try_from(&"Equip 21 22".to_string()).unwrap());
         assert_eq!(Err("Trouble parsing Equip command, it needs index of inventory and index of equipment slot. Got [\"Equip\"]".to_string()), Command::try_from(&"Equip".to_string()));
