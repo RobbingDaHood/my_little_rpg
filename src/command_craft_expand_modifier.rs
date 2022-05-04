@@ -18,6 +18,12 @@ pub fn execute_craft_expand_modifiers(game: &mut Game, inventory_index: usize, m
     if game.inventory.len() <= inventory_index {
         return Err(format!("inventory_index {} is not within the range of the inventory {}", inventory_index, game.inventory.len()));
     }
+    if usize::from(game.inventory[inventory_index].crafting_info.possible_rolls.min_simultaneous_resistances) <= game.inventory[inventory_index].modifiers.len() {
+        return Err(format!("inventory_index.possible_rolls.min_simultaneous_resistances {} need to be bigger than inventory_index current number of modifiers {} for it to be expanded.",
+                           game.inventory[inventory_index].crafting_info.possible_rolls.min_simultaneous_resistances,
+                           game.inventory[inventory_index].modifiers.len())
+        );
+    }
 
     for sacrifice_item_index in sacrifice_item_indexes.clone() {
         if game.inventory.len() <= sacrifice_item_index {
@@ -58,7 +64,6 @@ pub fn execute_craft_expand_modifiers_calculate_cost(game: &Game, inventory_inde
     game.inventory[inventory_index].modifiers.len() * 2
 }
 
-//TODO: do not delete items, just insert optionals and fill them out again. Performance.
 #[cfg(test)]
 mod tests_int {
     use crate::command_craft_expand_modifier::execute_craft_expand_modifiers;
@@ -86,12 +91,15 @@ mod tests_int {
 
         let old_item = game.inventory[0].clone();
 
-        assert_eq!(Err("inventory_index 99 is not within the range of the inventory 7".to_string()), execute_craft_expand_modifiers(&mut game, 99, vec![1,2]));
+        assert_eq!(Err("inventory_index 99 is not within the range of the inventory 7".to_string()), execute_craft_expand_modifiers(&mut game, 99, vec![1, 2]));
         assert_eq!(Err("sacrifice_item_index 99 is not within the range of the inventory 7".to_string()), execute_craft_expand_modifiers(&mut game, 0, vec![99]));
-        assert_eq!(Err("sacrifice_item_index 1 need to have at least 2 modifiers but it only had 1".to_string()), execute_craft_expand_modifiers(&mut game, 0, vec![1,2]));
+        assert_eq!(Err("sacrifice_item_index 1 need to have at least 2 modifiers but it only had 1".to_string()), execute_craft_expand_modifiers(&mut game, 0, vec![1, 2]));
 
         assert_eq!(old_item, game.inventory[0]);
         assert_eq!(2, game.inventory[0].modifiers.len());
+
+        game.inventory[0].crafting_info.possible_rolls.min_simultaneous_resistances = 0;
+        assert_eq!(Err("inventory_index.possible_rolls.min_simultaneous_resistances 0 need to be bigger than inventory_index current number of modifiers 2 for it to be expanded.".to_string()), execute_craft_expand_modifiers(&mut game, 0, vec![1, 2]));
     }
 
     #[test]
