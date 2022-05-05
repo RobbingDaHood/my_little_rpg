@@ -15,9 +15,15 @@ pub fn execute_craft_reroll_modifier(game: &mut Game, inventory_index: usize, mo
     if game.inventory.len() <= inventory_index {
         return Err(format!("inventory_index {} is not within the range of the inventory {}", inventory_index, game.inventory.len()));
     }
-    if game.inventory[inventory_index].modifiers.len() <= modifier_index {
-        return Err(format!("modifier_index {} is not within the range of the item modifiers {}", modifier_index, game.inventory[inventory_index].modifiers.len()));
+    if game.inventory[inventory_index].is_none() {
+        return Err(format!("inventory_index {} is empty.", modifier_index));
     }
+    let inventory_item = game.inventory[inventory_index].as_ref().unwrap();
+    if inventory_item.modifiers.len() <= modifier_index {
+        return Err(format!("modifier_index {} is not within the range of the item modifiers {}", modifier_index, inventory_item.modifiers.len()));
+    }
+
+    //TODO list of sacrificed items cannot be the same.
 
     for sacrifice_item_index in sacrifice_item_indexes.clone() {
         if game.inventory.len() <= sacrifice_item_index {
@@ -26,8 +32,12 @@ pub fn execute_craft_reroll_modifier(game: &mut Game, inventory_index: usize, mo
         if inventory_index == sacrifice_item_index {
             return Err(format!("inventory_index {} and sacrifice_item_index {} cannot be the same", inventory_index, sacrifice_item_index));
         }
-        if game.inventory[sacrifice_item_index].modifiers.len() <= modifier_index {
-            return Err(format!("sacrifice_item_index {} need to have at least {} modifiers but it only had {}", sacrifice_item_index, modifier_index + 1, game.inventory[sacrifice_item_index].modifiers.len()));
+        if game.inventory[sacrifice_item_index].is_none() {
+            return Err(format!("sacrifice_item_index {} is empty.", sacrifice_item_index));
+        }
+        let sacrificed_item = game.inventory[sacrifice_item_index].as_ref().unwrap();
+        if sacrificed_item.modifiers.len() <= modifier_index {
+            return Err(format!("sacrifice_item_index {} need to have at least {} modifiers but it only had {}", sacrifice_item_index, modifier_index + 1, sacrificed_item.modifiers.len()));
         }
     }
 
@@ -48,17 +58,20 @@ pub fn execute_craft_reroll_modifier(game: &mut Game, inventory_index: usize, mo
     //TODO Add fixed indexes for item, so they need to be optional.
     //TODO Add "Pack inventory"-command; Maybe it will improve performance, but the user can decide when they do this. (THen we do not need to change the add item logic, it can still just add at the end).
     let new_item_modifier = execute_craft_roll_modifier(game, inventory_index);
-    game.inventory[inventory_index].modifiers[modifier_index] = new_item_modifier;
+    game.inventory[inventory_index].as_mut().unwrap().modifiers[modifier_index] = new_item_modifier;
 
     Ok(ExecuteCraftRerollModifierReport {
-        new_item: game.inventory[inventory_index].clone(),
+        new_item: game.inventory[inventory_index].as_ref().unwrap().clone(),
         new_cost: execute_craft_reroll_modifier_calculate_cost(game, inventory_index),
         paid_cost: cost,
     })
 }
 
 pub fn execute_craft_reroll_modifier_calculate_cost(game: &Game, inventory_index: usize) -> u16 {
-    game.inventory[inventory_index].modifiers.len() as u16
+    return match game.inventory[inventory_index].clone() {
+        Some(item) => item.modifiers.len() as u16,
+        None => 0
+    };
 }
 
 #[cfg(test)]
@@ -72,7 +85,7 @@ mod tests_int {
     fn test_execute_craft_item() {
         let mut game = generate_testing_game(Some([1; 16]));
 
-        game.inventory.insert(0, Item {
+        game.inventory.insert(0, Some(Item {
             modifiers: vec![
                 ItemModifier {
                     costs: Vec::new(),
@@ -86,7 +99,7 @@ mod tests_int {
             crafting_info: CraftingInfo {
                 possible_rolls: game.difficulty.clone()
             },
-        });
+        }));
 
         let old_item = game.inventory[0].clone();
         assert_eq!(10, game.inventory.len());
@@ -106,7 +119,7 @@ mod tests_int {
 
         let result = execute_craft_reroll_modifier(&mut game, 0, 0, vec![1, 2]);
         assert!(result.is_ok());
-        assert_ne!(old_item, result.clone().unwrap().new_item);
+        assert_ne!(old_item.unwrap(), result.clone().unwrap().new_item);
         let old_item = game.inventory[0].clone();
         assert_eq!(8, game.inventory.len());
 
@@ -140,7 +153,7 @@ mod tests_int {
         let mut game = generate_testing_game(Some([1; 16]));
 
         for _i in 1..438 {
-            game.inventory.push(Item {
+            game.inventory.push(Some(Item {
                 modifiers: vec![
                     ItemModifier {
                         costs: Vec::new(),
@@ -150,7 +163,7 @@ mod tests_int {
                 crafting_info: CraftingInfo {
                     possible_rolls: game.difficulty.clone()
                 },
-            });
+            }));
             assert!(execute_craft_reroll_modifier(&mut game, 0, 0, vec![1]).is_ok());
         }
     }

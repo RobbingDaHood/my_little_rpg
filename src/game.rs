@@ -12,7 +12,7 @@ use crate::place_generator::Difficulty;
 pub struct Game {
     pub(crate) places: Vec<Place>,
     pub(crate) equipped_items: Vec<Item>,
-    pub(crate) inventory: Vec<Item>,
+    pub(crate) inventory: Vec<Option<Item>>,
     pub(crate) difficulty: Difficulty,
     pub(crate) treasure: HashMap<TreasureType, u64>,
     pub(crate) item_resources: HashMap<ItemResourceType, u64>,

@@ -13,7 +13,7 @@ use crate::modifier_gain::ModifierGain::FlatDamage;
 use rand::prelude::SliceRandom;
 
 pub fn execute_craft_roll_modifier(game: &mut Game, item_index: usize) -> ItemModifier {
-    let crafting_info = &game.inventory[item_index].crafting_info.clone();
+    let crafting_info = &game.inventory[item_index].as_ref().unwrap().crafting_info.clone();
 
     let minimum_elements = min(crafting_info.possible_rolls.min_resistance.len(), crafting_info.possible_rolls.min_simultaneous_resistances as usize);
     let maximum_elements = min(crafting_info.possible_rolls.max_resistance.len(), crafting_info.possible_rolls.max_simultaneous_resistances as usize);
@@ -124,8 +124,8 @@ mod tests_int {
     #[test]
     fn basic_test() {
         let mut game = generate_new_game(Some([1; 16]));
-        game.inventory.push(game.equipped_items[0].clone());
-        let original_game = execute_craft_roll_modifier(&mut game, 0);
+        game.inventory.push(Some(game.equipped_items[0].clone()));
+        execute_craft_roll_modifier(&mut game, 0);
     }
 
     #[test]

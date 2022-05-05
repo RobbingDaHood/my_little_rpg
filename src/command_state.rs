@@ -80,11 +80,12 @@ pub fn execute_state(game: &mut Game) -> PresentationGameState {
         })
         .collect();
     let inventory: Vec<PresentationItem> = game.inventory.iter()
+        .filter(|item| item.is_some())
         .map(|item| item.clone())
         .enumerate()
         .map(|(index, item)| PresentationItem {
             index,
-            item: item.clone(),
+            item: item.unwrap().clone(),
             crafting_action_costs: Ok(calculate_item_cost(game, index)),
         })
         .collect();

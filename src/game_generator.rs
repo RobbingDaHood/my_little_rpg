@@ -122,7 +122,7 @@ pub fn generate_testing_game(seed: Option<[u8; 16]>) -> Game {
     //fill inventory with basic items
     let mut inventory = Vec::new();
     for attack_type in AttackType::get_all() {
-        inventory.push(Item {
+        inventory.push(Some(Item {
             modifiers: vec![
                 ItemModifier {
                     costs: Vec::new(),
@@ -132,7 +132,7 @@ pub fn generate_testing_game(seed: Option<[u8; 16]>) -> Game {
             crafting_info: CraftingInfo {
                 possible_rolls: difficulty.clone()
             },
-        })
+        }))
     }
 
     let (seed, random_generator) = create_random_generator(seed);

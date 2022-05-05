@@ -1,3 +1,4 @@
+use std::mem;
 use crate::Game;
 use serde::{Deserialize, Serialize};
 use crate::item::Item;
@@ -14,10 +15,13 @@ pub fn execute_equip_item(game: &mut Game, inventory_position: usize, equipped_i
     if game.inventory.len() < inventory_position {
         return Err(format!("inventory_position {} is not within the range of the inventory {}", inventory_position, game.inventory.len()));
     }
+    if game.inventory[inventory_position].is_none() {
+        return Err(format!("inventory_position {} is empty.", inventory_position));
+    }
 
     // TODO make items optional, then only add None when removing (and other places destroying; because then swapping around is easy. It also making working with indexes a bit easier? Hmmm... it is hard to keep repeating commands.
-    game.inventory.push(game.equipped_items.remove(equipped_item_position));
-    game.equipped_items.insert(equipped_item_position, game.inventory.remove(inventory_position));
+    let inventory_item = mem::replace(&mut game.inventory[inventory_position], Some(game.equipped_items[equipped_item_position].clone()));
+    game.equipped_items[equipped_item_position] = inventory_item.unwrap();
 
     Ok(ExecuteEquipOrSwapReport { new_equipped_items: game.equipped_items.clone() })
 }
@@ -53,8 +57,8 @@ mod tests_int {
 
         assert!(execute_equip_item(&mut game, 0, 0).is_ok());
 
-        assert_eq!(&equipped_item, game.inventory.last().unwrap());
-        assert_eq!(inventory_item, game.equipped_items[0]);
+        assert_eq!(Some(equipped_item), game.inventory[0]);
+        assert_eq!(inventory_item, Some(game.equipped_items[0].clone()));
     }
 
     #[test]

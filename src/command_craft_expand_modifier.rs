@@ -18,12 +18,25 @@ pub fn execute_craft_expand_modifiers(game: &mut Game, inventory_index: usize, m
     if game.inventory.len() <= inventory_index {
         return Err(format!("inventory_index {} is not within the range of the inventory {}", inventory_index, game.inventory.len()));
     }
-    if usize::from(game.inventory[inventory_index].crafting_info.possible_rolls.min_simultaneous_resistances) <= game.inventory[inventory_index].modifiers.len() {
+    if game.inventory[inventory_index].is_none() {
+        return Err(format!("inventory_index {} is empty.", inventory_index));
+    }
+    let inventory_item = game.inventory[inventory_index].as_ref().unwrap();
+    if usize::from(inventory_item.crafting_info.possible_rolls.min_simultaneous_resistances) <= inventory_item.modifiers.len() {
         return Err(format!("inventory_index.possible_rolls.min_simultaneous_resistances {} need to be bigger than inventory_index current number of modifiers {} for it to be expanded.",
-                           game.inventory[inventory_index].crafting_info.possible_rolls.min_simultaneous_resistances,
-                           game.inventory[inventory_index].modifiers.len())
+                           inventory_item.crafting_info.possible_rolls.min_simultaneous_resistances,
+                           inventory_item.modifiers.len())
         );
     }
+
+    //TODO list of sacrificed items cannot be the same.
+    let cost = execute_craft_expand_modifiers_calculate_cost(game, inventory_index);
+    if sacrifice_item_indexes.len() < cost.into() {
+        return Err(format!("craft_reroll_modifier needs {} items to be sacrificed but you only provided {}", cost, sacrifice_item_indexes.len()));
+    }
+
+    //Only need to cost amount of items
+    sacrifice_item_indexes.truncate(cost);
 
     for sacrifice_item_index in sacrifice_item_indexes.clone() {
         if game.inventory.len() <= sacrifice_item_index {
@@ -32,28 +45,27 @@ pub fn execute_craft_expand_modifiers(game: &mut Game, inventory_index: usize, m
         if inventory_index == sacrifice_item_index {
             return Err(format!("inventory_index {} and sacrifice_item_index {} cannot be the same", inventory_index, sacrifice_item_index));
         }
-        if game.inventory[sacrifice_item_index].modifiers.len() < game.inventory[inventory_index].modifiers.len() {
-            return Err(format!("sacrifice_item_index {} need to have at least {} modifiers but it only had {}", sacrifice_item_index, game.inventory[inventory_index].modifiers.len(), game.inventory[sacrifice_item_index].modifiers.len()));
+        if game.inventory[sacrifice_item_index].is_none() {
+            return Err(format!("sacrifice_item_index {} is empty.", sacrifice_item_index));
+        }
+        let sacrificed_item = game.inventory[sacrifice_item_index].as_ref().unwrap();
+        if sacrificed_item.modifiers.len() < inventory_item.modifiers.len() {
+            return Err(format!("sacrifice_item_index {} need to have at least {} modifiers but it only had {}", sacrifice_item_index, inventory_item.modifiers.len(), sacrificed_item.modifiers.len()));
         }
     }
 
     //Crafting cost
-    let cost = execute_craft_expand_modifiers_calculate_cost(game, inventory_index);
-    if sacrifice_item_indexes.len() < cost.into() {
-        return Err(format!("craft_reroll_modifier needs {} items to be sacrificed but you only provided {}", cost, sacrifice_item_indexes.len()));
-    }
 
-    sacrifice_item_indexes.sort_by(|a, b| b.cmp(a));
-    for sacrifice_item_index in sacrifice_item_indexes.clone() {
-        game.inventory.remove(sacrifice_item_index);
+    for sacrifice_item_index in sacrifice_item_indexes {
+        game.inventory[sacrifice_item_index] = None;
     }
 
     //Create item
     let new_item_modifier = execute_craft_roll_modifier(game, inventory_index);
-    game.inventory[inventory_index].modifiers.push(new_item_modifier);
+    game.inventory[inventory_index].as_mut().unwrap().modifiers.push(new_item_modifier);
 
     Ok(ExecuteExpandModifiersReport {
-        new_item: game.inventory[inventory_index].clone(),
+        new_item: game.inventory[inventory_index].as_ref().unwrap().clone(),
         paid_cost: cost.clone(),
         new_cost: execute_craft_expand_modifiers_calculate_cost(game, inventory_index),
         leftover_spending_treasure: game.treasure.clone(),
@@ -61,7 +73,7 @@ pub fn execute_craft_expand_modifiers(game: &mut Game, inventory_index: usize, m
 }
 
 pub fn execute_craft_expand_modifiers_calculate_cost(game: &Game, inventory_index: usize) -> usize {
-    game.inventory[inventory_index].modifiers.len() * 2
+    game.inventory[inventory_index].as_ref().unwrap().modifiers.len() * 2
 }
 
 #[cfg(test)]
@@ -73,32 +85,36 @@ mod tests_int {
     #[test]
     fn test_execute_expand_modifiers() {
         let mut game = generate_testing_game(Some([1; 16]));
-        assert_eq!(1, game.inventory[0].modifiers.len());
+        assert_eq!(1, game.inventory[0].as_ref().unwrap().modifiers.len());
 
-        assert_eq!(Err("inventory_index 0 and sacrifice_item_index 0 cannot be the same".to_string()), execute_craft_expand_modifiers(&mut game, 0, vec![0]));
-        assert_eq!(1, game.inventory[0].modifiers.len());
+        assert_eq!(Err("craft_reroll_modifier needs 2 items to be sacrificed but you only provided 1".to_string()), execute_craft_expand_modifiers(&mut game, 0, vec![0]));
+        assert_eq!(1, game.inventory[0].as_ref().unwrap().modifiers.len());
+
+
+        assert_eq!(Err("inventory_index 0 and sacrifice_item_index 0 cannot be the same".to_string()), execute_craft_expand_modifiers(&mut game, 0, vec![0, 1]));
+        assert_eq!(1, game.inventory[0].as_ref().unwrap().modifiers.len());
 
         let old_item = game.inventory[0].clone();
-
-        assert_eq!(Err("craft_reroll_modifier needs 2 items to be sacrificed but you only provided 1".to_string()), execute_craft_expand_modifiers(&mut game, 0, vec![1]));
-        assert_eq!(1, game.inventory[0].modifiers.len());
 
         let result = execute_craft_expand_modifiers(&mut game, 0, vec![1, 2]);
 
         assert!(result.is_ok());
-        assert_ne!(old_item, result.unwrap().new_item);
-        assert_eq!(2, game.inventory[0].modifiers.len());
+        assert_ne!(old_item.unwrap(), result.unwrap().new_item);
+        assert_eq!(2, game.inventory[0].as_ref().unwrap().modifiers.len());
 
         let old_item = game.inventory[0].clone();
 
-        assert_eq!(Err("inventory_index 99 is not within the range of the inventory 7".to_string()), execute_craft_expand_modifiers(&mut game, 99, vec![1, 2]));
-        assert_eq!(Err("sacrifice_item_index 99 is not within the range of the inventory 7".to_string()), execute_craft_expand_modifiers(&mut game, 0, vec![99]));
-        assert_eq!(Err("sacrifice_item_index 1 need to have at least 2 modifiers but it only had 1".to_string()), execute_craft_expand_modifiers(&mut game, 0, vec![1, 2]));
+        assert_eq!(Err("inventory_index 99 is not within the range of the inventory 9".to_string()), execute_craft_expand_modifiers(&mut game, 99, vec![1, 2]));
+        assert_eq!(Err("sacrifice_item_index 99 is not within the range of the inventory 9".to_string()), execute_craft_expand_modifiers(&mut game, 0, vec![99, 1,2,3]));
+        assert_eq!(Err("sacrifice_item_index 1 is empty.".to_string()), execute_craft_expand_modifiers(&mut game, 0, vec![1, 2,3,4]));
+        assert_eq!(Err("sacrifice_item_index 3 need to have at least 2 modifiers but it only had 1".to_string()), execute_craft_expand_modifiers(&mut game, 0, vec![3,4, 5, 6]));
+
+        //TODO More tests.
 
         assert_eq!(old_item, game.inventory[0]);
-        assert_eq!(2, game.inventory[0].modifiers.len());
+        assert_eq!(2, game.inventory[0].as_ref().unwrap().modifiers.len());
 
-        game.inventory[0].crafting_info.possible_rolls.min_simultaneous_resistances = 0;
+        game.inventory[0].as_mut().unwrap().crafting_info.possible_rolls.min_simultaneous_resistances = 0;
         assert_eq!(Err("inventory_index.possible_rolls.min_simultaneous_resistances 0 need to be bigger than inventory_index current number of modifiers 2 for it to be expanded.".to_string()), execute_craft_expand_modifiers(&mut game, 0, vec![1, 2]));
     }
 

@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use std::mem;
 use crate::Game;
 use crate::item::Item;
 use crate::treasure_types::TreasureType::Gold;
@@ -18,6 +19,12 @@ pub fn execute_expand_equipment_slots(game: &mut Game) -> Result<ExecuteExpandEq
         return Err("No item in inventory to equip in new item slot.".to_string());
     }
 
+    let first_item_index = match game.inventory.iter()
+        .position(|item| item.is_some()) {
+        Some(index) => index,
+        None => return Err("No item in inventory to equip in new item slot. Whole inventory is empty.".to_string())
+    };
+
     //Crafting cost
     let crafting_cost = execute_expand_equipment_slots_calculate_cost(game);
     if let Err(error_message) = pay_crafting_cost(game, &crafting_cost) {
@@ -25,8 +32,8 @@ pub fn execute_expand_equipment_slots(game: &mut Game) -> Result<ExecuteExpandEq
     };
 
     //Pick first item in inventory or
-    let item = game.inventory.remove(game.inventory.len() - 1);
-    game.equipped_items.push(item.clone());
+    let item = mem::replace(&mut game.inventory[first_item_index], None);
+    game.equipped_items.push(item.unwrap().clone());
 
     Ok(ExecuteExpandEquipmentSlotsReport {
         new_equipped_items: game.equipped_items.clone(),
@@ -67,10 +74,10 @@ mod tests_int {
                 possible_rolls: game.difficulty.clone()
             },
         };
-        game.inventory.push( item.clone());
-        game.inventory.push( item.clone());
-        game.inventory.push( item.clone());
-        game.inventory.push( item.clone());
+        game.inventory.push( Some(item.clone()));
+        game.inventory.push( Some(item.clone()));
+        game.inventory.push( Some(item.clone()));
+        game.inventory.push( Some(item.clone()));
 
         assert_eq!(Err("Cant pay the crafting cost, the cost is {Gold: 32} and you only have {}".to_string()), execute_expand_equipment_slots(&mut game));
 
