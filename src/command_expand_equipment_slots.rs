@@ -50,10 +50,10 @@ pub fn execute_expand_equipment_slots_calculate_cost(game: &mut Game) -> HashMap
 #[cfg(test)]
 mod tests_int {
     use crate::command_expand_equipment_slots::execute_expand_equipment_slots;
-    use crate::command_move::execute_move_command;
     use crate::game_generator::generate_new_game;
     use crate::item::{CraftingInfo, Item};
     use crate::item_modifier::ItemModifier;
+    use crate::treasure_types::TreasureType::Gold;
 
     #[test]
     fn test_execute_expand_equipment_slots() {
@@ -77,14 +77,10 @@ mod tests_int {
         game.inventory.push( Some(item.clone()));
         game.inventory.push( Some(item.clone()));
         game.inventory.push( Some(item.clone()));
-        game.inventory.push( Some(item.clone()));
 
         assert_eq!(Err("Cant pay the crafting cost, the cost is {Gold: 32} and you only have {}".to_string()), execute_expand_equipment_slots(&mut game));
 
-        for _i in 0..1000 {
-            assert!(execute_move_command(&mut game, 0).is_ok());
-        }
-
+        game.treasure.insert(Gold, 1300);
         let result = execute_expand_equipment_slots(&mut game);
         assert!(result.is_ok());
         assert_eq!(2, game.equipped_items.len());
@@ -97,8 +93,8 @@ mod tests_int {
         assert!(result.is_ok());
         assert_eq!(4, game.equipped_items.len());
 
-        //TODO more tests.
-
-        assert_eq!(Err("Cant pay the crafting cost, the cost is {Gold: 3125} and you only have {Gold: 1701}".to_string()), execute_expand_equipment_slots(&mut game));
+        assert_eq!(Err("No item in inventory to equip in new item slot. Whole inventory is empty.".to_string()), execute_expand_equipment_slots(&mut game));
+        game.inventory.push( Some(item.clone()));
+        assert_eq!(Err("Cant pay the crafting cost, the cost is {Gold: 3125} and you only have {Gold: 1}".to_string()), execute_expand_equipment_slots(&mut game));
     }
 }

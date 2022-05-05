@@ -19,7 +19,6 @@ pub fn execute_equip_item(game: &mut Game, inventory_position: usize, equipped_i
         return Err(format!("inventory_position {} is empty.", inventory_position));
     }
 
-    // TODO make items optional, then only add None when removing (and other places destroying; because then swapping around is easy. It also making working with indexes a bit easier? Hmmm... it is hard to keep repeating commands.
     let inventory_item = mem::replace(&mut game.inventory[inventory_position], Some(game.equipped_items[equipped_item_position].clone()));
     game.equipped_items[equipped_item_position] = inventory_item.unwrap();
 
