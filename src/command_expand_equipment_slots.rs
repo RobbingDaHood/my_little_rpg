@@ -97,6 +97,8 @@ mod tests_int {
         assert!(result.is_ok());
         assert_eq!(4, game.equipped_items.len());
 
+        //TODO more tests.
+
         assert_eq!(Err("Cant pay the crafting cost, the cost is {Gold: 3125} and you only have {Gold: 1701}".to_string()), execute_expand_equipment_slots(&mut game));
     }
 }

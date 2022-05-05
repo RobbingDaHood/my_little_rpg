@@ -59,7 +59,6 @@ pub fn execute_craft_reroll_modifier(game: &mut Game, inventory_index: usize, mo
     }
 
     //Create item
-    //TODO Add "Pack inventory"-command; Maybe it will improve performance, but the user can decide when they do this. (THen we do not need to change the add item logic, it can still just add at the end).
     let new_item_modifier = execute_craft_roll_modifier(game, inventory_index);
     game.inventory[inventory_index].as_mut().unwrap().modifiers[modifier_index] = new_item_modifier;
 

@@ -18,6 +18,7 @@ pub enum Command {
     ReduceDifficulty,
     AddModifier(usize, Vec<usize>),
     Help,
+    ReorderInventory,
 }
 
 impl Command {
@@ -87,6 +88,7 @@ impl TryFrom<&String> for Command {
             "ExpandMaxSimultaneousElement" => Ok(Command::ExpandMaxSimultaneousElement),
             "ExpandMinSimultaneousElement" => Ok(Command::ExpandMinSimultaneousElement),
             "Help" => Ok(Command::Help),
+            "ReorderInventory" => Ok(Command::ReorderInventory),
             "Move" => {
                 if command_parts.len() < 2 {
                     return Err(format!("Trouble parsing move command, it needs the index of the place. Got {:?}", command_parts));
@@ -183,6 +185,7 @@ mod tests_int {
         assert_eq!(Command::ExpandMaxSimultaneousElement, Command::try_from(&"ExpandMaxSimultaneousElement".to_string()).unwrap());
         assert_eq!(Command::ExpandMinSimultaneousElement, Command::try_from(&"ExpandMinSimultaneousElement".to_string()).unwrap());
         assert_eq!(Command::Help, Command::try_from(&"Help".to_string()).unwrap());
+        assert_eq!(Command::ReorderInventory, Command::try_from(&"ReorderInventory".to_string()).unwrap());
 
         assert_eq!(Command::Move(22), Command::try_from(&"Move 22".to_string()).unwrap());
         assert_eq!(Err("Trouble parsing move command, it needs the index of the place. Got [\"Move\"]".to_string()), Command::try_from(&"Move".to_string()));

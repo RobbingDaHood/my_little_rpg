@@ -17,6 +17,7 @@ use crate::command_expand_places::execute_expand_places;
 use crate::command_help::execute_help;
 use crate::command_move::execute_move_command;
 use crate::command_reduce_difficulty::execute_reduce_difficulty;
+use crate::command_reorder_inventory::execute_reorder_inventory;
 use crate::command_state::execute_state;
 use crate::commands::Command;
 use crate::game_generator::{generate_new_game};
@@ -97,6 +98,9 @@ impl Listener {
                 panic!("{}", e);
             },
             Ok(Command::Help) => if let Err(e) = stream.write(format!("{} \n", json!(execute_help())).as_bytes()) {
+                panic!("{}", e);
+            },
+            Ok(Command::ReorderInventory) => if let Err(e) = stream.write(format!("{} \n", json!(execute_reorder_inventory(game))).as_bytes()) {
                 panic!("{}", e);
             },
         }

@@ -1,3 +1,5 @@
+extern crate core;
+
 use crate::game::Game;
 use crate::tcp_listener::Listener;
 
@@ -30,6 +32,7 @@ mod command_expand_min_simultanius_element;
 mod command_state;
 mod hex_encoder;
 mod command_reduce_difficulty;
+mod command_reorder_inventory;
 
 use structopt::StructOpt;
 use crate::hex_encoder::decode_hex;

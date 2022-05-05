@@ -37,6 +37,7 @@ fn execute_help_for_command(command: Command) -> &'static str {
         Command::ExpandEquipmentSlots => "ExpandEquipmentSlots: Expand the amount of possible equipment slots. It will equip the last item in your inventory automatically. If there are no items in the inventory it will craft a new shiny item to be equipped.",
         Command::ReduceDifficulty => "ReduceDifficulty: reduce a random attack types max value in game difficulty, if that goes lower than min value then min value is reduced. If the max value gets too low then the element will be removed. Simultaneous elements could also be affected.",
         Command::AddModifier(_, _) => "AddModifier X Y: Give item in inventory at index X a new random modifier. Y is a comma seperated list of indexes for items in the inventory to sacrifice to pay the cost of the command, they each need to have at least the same amount of modifiers as the item being upgraded. Z can contain relative indexes prefixed with + or -, they are relative to X.",
-        Command::Help => "Help: Get the help text that you are reading right now."
+        Command::Help => "Help: Get the help text that you are reading right now.",
+        Command::ReorderInventory => "ReorderInventory: Arranges all items in the inventory so there are no more gaps in indexes between items.",
     }
 }

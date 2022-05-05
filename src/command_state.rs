@@ -101,7 +101,6 @@ pub fn execute_state(game: &mut Game) -> PresentationGameState {
         execute_reduce_difficulty: execute_execute_reduce_difficulty_cost(),
     };
 
-
     PresentationGameState {
         places,
         equipped_items,
