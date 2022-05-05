@@ -38,6 +38,32 @@ impl Command {
             Help,
         ]
     }
+
+    fn parse_possible_relative_indexes(command_parts: &str, relative_too: usize) -> Result<Vec<usize>, ()> {
+        command_parts.split(",").into_iter()
+            .map(|s| {
+                if s.starts_with("+") {
+                    match s[1..s.len()].parse::<usize>() {
+                        Ok(relative_index) => Ok(relative_too + relative_index),
+                        Err(_) => Err(())
+                    }
+                } else if s.starts_with("-") {
+                    match s[1..s.len()].parse::<usize>() {
+                        Ok(relative_index) => match relative_too.checked_sub(relative_index) {
+                            Some(new_value) => Ok(new_value),
+                            None => Err(())
+                        },
+                        Err(_) => Err(())
+                    }
+                } else {
+                    match s.parse::<usize>() {
+                        Ok(index) => Ok(index),
+                        Err(_) => Err(())
+                    }
+                }
+            })
+            .collect()
+    }
 }
 
 impl TryFrom<&String> for Command {
@@ -75,18 +101,13 @@ impl TryFrom<&String> for Command {
             "AddModifier" => {
                 let error_message = format!("Trouble parsing AddModifier command, it needs the index of the item and a list comma seperated list of items to sacrifice. Got {:?}", command_parts);
                 if command_parts.len() < 2 {
-                    return Err(error_message.clone())
+                    return Err(error_message.clone());
                 }
 
                 return if let Ok(inventory_position) = command_parts[1].parse::<usize>() {
-                    let sacrifice_item_indexes = command_parts[2].split(",").into_iter()
-                        .map(|s| s.parse::<usize>())
-                        .collect();
-
-                    if let Ok(sacrifice_item_indexes) = sacrifice_item_indexes {
-                        Ok(AddModifier(inventory_position,sacrifice_item_indexes))
-                    } else {
-                        Err(error_message.clone())
+                    match Self::parse_possible_relative_indexes(&command_parts[2], inventory_position) {
+                        Ok(parsed_sacrifice_item_indexes) => Ok(AddModifier(inventory_position, parsed_sacrifice_item_indexes)),
+                        Err(_) => Err(error_message.clone())
                     }
                 } else {
                     Err(error_message.clone())
@@ -125,19 +146,14 @@ impl TryFrom<&String> for Command {
             "RerollModifier" => {
                 let error_message = format!("Trouble parsing RerollModifier command, it needs index of inventory, index of modifier and a list comma seperated list of items to sacrifice. Got {:?}", command_parts);
                 if command_parts.len() < 4 {
-                    return Err(error_message.clone())
+                    return Err(error_message.clone());
                 }
 
                 return if let Ok(inventory_index) = command_parts[1].parse::<usize>() {
                     if let Ok(modifier_index) = command_parts[2].parse::<usize>() {
-                        let sacrifice_item_indexes = command_parts[3].split(",").into_iter()
-                            .map(|s| s.parse::<usize>())
-                            .collect();
-
-                        if let Ok(sacrifice_item_indexes) = sacrifice_item_indexes {
-                            Ok(RerollModifier(inventory_index, modifier_index, sacrifice_item_indexes))
-                        } else {
-                            Err(error_message.clone())
+                        match Self::parse_possible_relative_indexes(&command_parts[3], inventory_index) {
+                            Ok(parsed_sacrifice_item_indexes) => Ok(RerollModifier(inventory_index, modifier_index, parsed_sacrifice_item_indexes)),
+                            Err(_) => Err(error_message.clone())
                         }
                     } else {
                         Err(error_message.clone())
@@ -173,12 +189,16 @@ mod tests_int {
         assert_eq!(Err("Trouble parsing move command, it needs the index of the place. Got [\"Move\", \"-1\"]".to_string()), Command::try_from(&"Move -1".to_string()));
         assert_eq!(Err("Trouble parsing move command, it needs the index of the place. Got [\"Move\", \"B\"]".to_string()), Command::try_from(&"Move B".to_string()));
 
-        assert_eq!(Command::AddModifier(22, vec![1,2,3]), Command::try_from(&"AddModifier 22 1,2,3".to_string()).unwrap());
+        assert_eq!(Command::AddModifier(22, vec![1, 2, 3]), Command::try_from(&"AddModifier 22 1,2,3".to_string()).unwrap());
+        assert_eq!(Command::AddModifier(22, vec![23, 20, 3]), Command::try_from(&"AddModifier 22 +1,-2,3".to_string()).unwrap());
         assert_eq!(Err("Trouble parsing AddModifier command, it needs the index of the item and a list comma seperated list of items to sacrifice. Got [\"AddModifier\"]".to_string()), Command::try_from(&"AddModifier".to_string()));
         assert_eq!(Err("Trouble parsing AddModifier command, it needs the index of the item and a list comma seperated list of items to sacrifice. Got [\"AddModifier\", \"-1\"]".to_string()), Command::try_from(&"AddModifier -1".to_string()));
         assert_eq!(Err("Trouble parsing AddModifier command, it needs the index of the item and a list comma seperated list of items to sacrifice. Got [\"AddModifier\", \"-1\", \"\", \"1,2,3\"]".to_string()), Command::try_from(&"AddModifier -1  1,2,3".to_string()));
         assert_eq!(Err("Trouble parsing AddModifier command, it needs the index of the item and a list comma seperated list of items to sacrifice. Got [\"AddModifier\", \"B\", \"1,2,3\"]".to_string()), Command::try_from(&"AddModifier B 1,2,3".to_string()));
         assert_eq!(Err("Trouble parsing AddModifier command, it needs the index of the item and a list comma seperated list of items to sacrifice. Got [\"AddModifier\", \"1\", \"b\"]".to_string()), Command::try_from(&"AddModifier 1 b".to_string()));
+        assert_eq!(Err("Trouble parsing AddModifier command, it needs the index of the item and a list comma seperated list of items to sacrifice. Got [\"AddModifier\", \"1\", \"+b\"]".to_string()), Command::try_from(&"AddModifier 1 +b".to_string()));
+        assert_eq!(Err("Trouble parsing AddModifier command, it needs the index of the item and a list comma seperated list of items to sacrifice. Got [\"AddModifier\", \"1\", \"-b\"]".to_string()), Command::try_from(&"AddModifier 1 -b".to_string()));
+        assert_eq!(Err("Trouble parsing AddModifier command, it needs the index of the item and a list comma seperated list of items to sacrifice. Got [\"AddModifier\", \"1\", \"-22\"]".to_string()), Command::try_from(&"AddModifier 1 -22".to_string()));
 
         assert_eq!(Command::Equip(21, 22), Command::try_from(&"Equip 21 22".to_string()).unwrap());
         assert_eq!(Err("Trouble parsing Equip command, it needs index of inventory and index of equipment slot. Got [\"Equip\"]".to_string()), Command::try_from(&"Equip".to_string()));
@@ -194,7 +214,8 @@ mod tests_int {
         assert_eq!(Err("Trouble parsing SwapEquipment command, it needs index of inventory and index of equipment slot. Got [\"SwapEquipment\", \"B\", \"22\"]".to_string()), Command::try_from(&"SwapEquipment B 22".to_string()));
         assert_eq!(Err("Trouble parsing SwapEquipment command, it needs index of inventory and index of equipment slot. Got [\"SwapEquipment\", \"21\", \"B\"]".to_string()), Command::try_from(&"SwapEquipment 21 B".to_string()));
 
-        assert_eq!(Command::RerollModifier(21, 22, vec![1,2,3]), Command::try_from(&"RerollModifier 21 22 1,2,3".to_string()).unwrap());
+        assert_eq!(Command::RerollModifier(21, 22, vec![1, 2, 3]), Command::try_from(&"RerollModifier 21 22 1,2,3".to_string()).unwrap());
+        assert_eq!(Command::RerollModifier(21, 22, vec![22, 19, 3]), Command::try_from(&"RerollModifier 21 22 +1,-2,3".to_string()).unwrap());
         assert_eq!(Err("Trouble parsing RerollModifier command, it needs index of inventory, index of modifier and a list comma seperated list of items to sacrifice. Got [\"RerollModifier\"]".to_string()), Command::try_from(&"RerollModifier".to_string()));
         assert_eq!(Err("Trouble parsing RerollModifier command, it needs index of inventory, index of modifier and a list comma seperated list of items to sacrifice. Got [\"RerollModifier\", \"1\"]".to_string()), Command::try_from(&"RerollModifier 1".to_string()));
         assert_eq!(Err("Trouble parsing RerollModifier command, it needs index of inventory, index of modifier and a list comma seperated list of items to sacrifice. Got [\"RerollModifier\", \"1\", \"1\"]".to_string()), Command::try_from(&"RerollModifier 1 1".to_string()));
@@ -202,7 +223,10 @@ mod tests_int {
         assert_eq!(Err("Trouble parsing RerollModifier command, it needs index of inventory, index of modifier and a list comma seperated list of items to sacrifice. Got [\"RerollModifier\", \"21\", \"-1\", \"1,2,3\"]".to_string()), Command::try_from(&"RerollModifier 21 -1 1,2,3".to_string()));
         assert_eq!(Err("Trouble parsing RerollModifier command, it needs index of inventory, index of modifier and a list comma seperated list of items to sacrifice. Got [\"RerollModifier\", \"B\", \"22\", \"1,2,3\"]".to_string()), Command::try_from(&"RerollModifier B 22 1,2,3".to_string()));
         assert_eq!(Err("Trouble parsing RerollModifier command, it needs index of inventory, index of modifier and a list comma seperated list of items to sacrifice. Got [\"RerollModifier\", \"21\", \"B\", \"1,2,3\"]".to_string()), Command::try_from(&"RerollModifier 21 B 1,2,3".to_string()));
-        assert_eq!(Err("Trouble parsing RerollModifier command, it needs index of inventory, index of modifier and a list comma seperated list of items to sacrifice. Got [\"RerollModifier\", \"21\", \"B\", \"a\"]".to_string()), Command::try_from(&"RerollModifier 21 B a".to_string()));
+        assert_eq!(Err("Trouble parsing RerollModifier command, it needs index of inventory, index of modifier and a list comma seperated list of items to sacrifice. Got [\"RerollModifier\", \"21\", \"22\", \"a\"]".to_string()), Command::try_from(&"RerollModifier 21 22 a".to_string()));
+        assert_eq!(Err("Trouble parsing RerollModifier command, it needs index of inventory, index of modifier and a list comma seperated list of items to sacrifice. Got [\"RerollModifier\", \"21\", \"22\", \"-a\"]".to_string()), Command::try_from(&"RerollModifier 21 22 -a".to_string()));
+        assert_eq!(Err("Trouble parsing RerollModifier command, it needs index of inventory, index of modifier and a list comma seperated list of items to sacrifice. Got [\"RerollModifier\", \"21\", \"22\", \"+a\"]".to_string()), Command::try_from(&"RerollModifier 21 22 +a".to_string()));
+        assert_eq!(Err("Trouble parsing RerollModifier command, it needs index of inventory, index of modifier and a list comma seperated list of items to sacrifice. Got [\"RerollModifier\", \"21\", \"22\", \"-23\"]".to_string()), Command::try_from(&"RerollModifier 21 22 -23".to_string()));
 
         assert_eq!(Err("Command not known. Got [\"InvalidCommand\"]".to_string()), Command::try_from(&"InvalidCommand".to_string()));
     }

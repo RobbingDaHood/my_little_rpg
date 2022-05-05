@@ -28,7 +28,7 @@ pub fn execute_craft_expand_modifiers(game: &mut Game, inventory_index: usize, m
                            inventory_item.modifiers.len())
         );
     }
-    
+
     let cost = execute_craft_expand_modifiers_calculate_cost(game, inventory_index);
     if sacrifice_item_indexes.len() < cost.into() {
         return Err(format!("craft_reroll_modifier needs {} items to be sacrificed but you only provided {}", cost, sacrifice_item_indexes.len()));
@@ -104,6 +104,8 @@ mod tests_int {
         assert!(result.is_ok());
         assert_ne!(old_item.unwrap(), result.unwrap().new_item);
         assert_eq!(2, game.inventory[0].as_ref().unwrap().modifiers.len());
+        assert!(game.inventory[1].is_none());
+        assert!(game.inventory[2].is_none());
 
         let old_item = game.inventory[0].clone();
 

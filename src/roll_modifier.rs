@@ -88,7 +88,7 @@ fn execute_craft_roll_modifier_benefits(game: &mut Game, crafting_info: &Craftin
         leftover_cost -= cost_bonus;
 
         let gain_seize = all_modifier_gain_options.len();
-        let modifier_index = game.random_generator_state.gen_range(0..gain_seize); //TODO this does not respect the seed. Could be because there is more rolls earlier
+        let modifier_index = game.random_generator_state.gen_range(0..gain_seize);
         modifier_gain.push(
             match &all_modifier_gain_options[modifier_index] {
                 FlatDamage(attack_type, _) => {
