@@ -1,3 +1,4 @@
+use std::collections::HashSet;
 use crate::Game;
 use crate::item::Item;
 use crate::roll_modifier::execute_craft_roll_modifier;
@@ -16,14 +17,26 @@ pub fn execute_craft_reroll_modifier(game: &mut Game, inventory_index: usize, mo
         return Err(format!("inventory_index {} is not within the range of the inventory {}", inventory_index, game.inventory.len()));
     }
     if game.inventory[inventory_index].is_none() {
-        return Err(format!("inventory_index {} is empty.", modifier_index));
+        return Err(format!("inventory_index {} is empty.", inventory_index));
     }
     let inventory_item = game.inventory[inventory_index].as_ref().unwrap();
     if inventory_item.modifiers.len() <= modifier_index {
         return Err(format!("modifier_index {} is not within the range of the item modifiers {}", modifier_index, inventory_item.modifiers.len()));
     }
 
-    //TODO list of sacrificed items cannot be the same.
+    //Crafting cost
+    let cost = execute_craft_reroll_modifier_calculate_cost(game, inventory_index);
+    if sacrifice_item_indexes.len() < cost.into() {
+        return Err(format!("craft_reroll_modifier needs {} items to be sacrificed but you only provided {}", cost, sacrifice_item_indexes.len()));
+    }
+
+    let unique_sacrificed_indexes = sacrifice_item_indexes.clone().into_iter().collect::<HashSet<usize>>().len();
+    if unique_sacrificed_indexes != sacrifice_item_indexes.len() {
+        return Err(format!("sacrifice_item_indexes cannot contain duplicates {:?}", sacrifice_item_indexes));
+    }
+
+    //Only need to cost amount of items
+    sacrifice_item_indexes.truncate(usize::from(cost));
 
     for sacrifice_item_index in sacrifice_item_indexes.clone() {
         if game.inventory.len() <= sacrifice_item_index {
@@ -41,15 +54,8 @@ pub fn execute_craft_reroll_modifier(game: &mut Game, inventory_index: usize, mo
         }
     }
 
-    //Crafting cost
-    let cost = execute_craft_reroll_modifier_calculate_cost(game, inventory_index);
-    if sacrifice_item_indexes.len() < cost.into() {
-        return Err(format!("craft_reroll_modifier needs {} items to be sacrificed but you only provided {}", cost, sacrifice_item_indexes.len()));
-    }
-
-    sacrifice_item_indexes.sort_by(|a, b| b.cmp(a));
-    for sacrifice_item_index in sacrifice_item_indexes.clone() {
-        game.inventory.remove(sacrifice_item_index);
+    for sacrifice_item_index in sacrifice_item_indexes {
+        game.inventory[sacrifice_item_index] = None;
     }
 
     //Create item
@@ -101,11 +107,11 @@ mod tests_int {
         let old_item = game.inventory[0].clone();
         assert_eq!(10, game.inventory.len());
 
-        assert_eq!(Err("inventory_index 0 and sacrifice_item_index 0 cannot be the same".to_string()), execute_craft_reroll_modifier(&mut game, 0, 0, vec![0]));
+        assert_eq!(Err("inventory_index 0 and sacrifice_item_index 0 cannot be the same".to_string()), execute_craft_reroll_modifier(&mut game, 0, 0, vec![0, 1]));
         assert_eq!(old_item, game.inventory[0]);
         assert_eq!(10, game.inventory.len());
 
-        assert_eq!(Err("sacrifice_item_index 1 need to have at least 2 modifiers but it only had 1".to_string()), execute_craft_reroll_modifier(&mut game, 0, 1, vec![1]));
+        assert_eq!(Err("sacrifice_item_index 1 need to have at least 2 modifiers but it only had 1".to_string()), execute_craft_reroll_modifier(&mut game, 0, 1, vec![1, 2]));
         assert_eq!(old_item, game.inventory[0]);
         assert_eq!(10, game.inventory.len());
 
@@ -118,19 +124,16 @@ mod tests_int {
         assert!(result.is_ok());
         assert_ne!(old_item.unwrap(), result.clone().unwrap().new_item);
         let old_item = game.inventory[0].clone();
-        assert_eq!(8, game.inventory.len());
+        assert_eq!(8, game.inventory.iter().filter(|i|i.is_some()).count());
 
-        assert_eq!(Err("inventory_index 99 is not within the range of the inventory 8".to_string()), execute_craft_reroll_modifier(&mut game, 99, 0, vec![0]));
-        assert_eq!(old_item, game.inventory[0]);
-        assert_eq!(8, game.inventory.len());
-
+        assert_eq!(Err("inventory_index 99 is not within the range of the inventory 10".to_string()), execute_craft_reroll_modifier(&mut game, 99, 0, vec![0]));
         assert_eq!(Err("modifier_index 99 is not within the range of the item modifiers 2".to_string()), execute_craft_reroll_modifier(&mut game, 0, 99, vec![0]));
+        assert_eq!(Err("sacrifice_item_index 99 is not within the range of the inventory 10".to_string()), execute_craft_reroll_modifier(&mut game, 0, 0, vec![99, 1]));
+        assert_eq!(Err("inventory_index 1 is empty.".to_string()), execute_craft_reroll_modifier(&mut game, 1, 0, vec![4,5]));
+        assert_eq!(Err("sacrifice_item_index 1 is empty.".to_string()), execute_craft_reroll_modifier(&mut game, 0, 0, vec![1,2]));
+        assert_eq!(Err("sacrifice_item_indexes cannot contain duplicates [1, 1]".to_string()), execute_craft_reroll_modifier(&mut game, 0, 0, vec![1,1]));
         assert_eq!(old_item, game.inventory[0]);
-        assert_eq!(8, game.inventory.len());
-
-        assert_eq!(Err("sacrifice_item_index 99 is not within the range of the inventory 8".to_string()), execute_craft_reroll_modifier(&mut game, 0, 0, vec![99]));
-        assert_eq!(old_item, game.inventory[0]);
-        assert_eq!(8, game.inventory.len());
+        assert_eq!(8, game.inventory.iter().filter(|i|i.is_some()).count());
     }
 
     #[test]
@@ -149,7 +152,7 @@ mod tests_int {
     fn many_runs_test() {
         let mut game = generate_testing_game(Some([1; 16]));
 
-        for _i in 1..438 {
+        for i in 1..438 {
             game.inventory.push(Some(Item {
                 modifiers: vec![
                     ItemModifier {
@@ -161,7 +164,7 @@ mod tests_int {
                     possible_rolls: game.difficulty.clone()
                 },
             }));
-            assert!(execute_craft_reroll_modifier(&mut game, 0, 0, vec![1]).is_ok());
+            assert!(execute_craft_reroll_modifier(&mut game, 0, 0, vec![i]).is_ok());
         }
     }
 }

@@ -36,7 +36,7 @@ pub fn execute_craft_expand_modifiers(game: &mut Game, inventory_index: usize, m
 
     let unique_sacrificed_indexes = sacrifice_item_indexes.clone().into_iter().collect::<HashSet<usize>>().len();
     if unique_sacrificed_indexes != sacrifice_item_indexes.len() {
-        return Err(format!("unique_sacrificed_indexes cannot contain duplicates {:?}", sacrifice_item_indexes));
+        return Err(format!("sacrifice_item_indexes cannot contain duplicates {:?}", sacrifice_item_indexes));
     }
 
     //Only need to cost amount of items
@@ -113,7 +113,7 @@ mod tests_int {
         assert_eq!(Err("sacrifice_item_index 99 is not within the range of the inventory 9".to_string()), execute_craft_expand_modifiers(&mut game, 0, vec![99, 1,2,3]));
         assert_eq!(Err("inventory_index 1 is empty.".to_string()), execute_craft_expand_modifiers(&mut game, 1, vec![1, 2,3,4]));
         assert_eq!(Err("sacrifice_item_index 1 is empty.".to_string()), execute_craft_expand_modifiers(&mut game, 0, vec![1, 2,3,4]));
-        assert_eq!(Err("unique_sacrificed_indexes cannot contain duplicates [1, 1, 3, 4]".to_string()), execute_craft_expand_modifiers(&mut game, 0, vec![1, 1,3,4]));
+        assert_eq!(Err("sacrifice_item_indexes cannot contain duplicates [1, 1, 3, 4]".to_string()), execute_craft_expand_modifiers(&mut game, 0, vec![1, 1,3,4]));
         assert_eq!(Err("sacrifice_item_index 3 need to have at least 2 modifiers but it only had 1".to_string()), execute_craft_expand_modifiers(&mut game, 0, vec![3,4, 5, 6]));
 
         assert_eq!(old_item, game.inventory[0]);
