@@ -1,5 +1,6 @@
-use crate::commands::Command::{AddModifier, Equip, ExpandElements, ExpandEquipmentSlots, ExpandMaxElement, ExpandMinElement, ExpandPlaces, Help, Move, ReduceDifficulty, RerollModifier, State, SwapEquipment};
+use crate::commands::Command::{AddModifier, Equip, ExpandElements, ExpandEquipmentSlots, ExpandMaxElement, ExpandMaxSimultaneousElement, ExpandMinElement, ExpandMinSimultaneousElement, ExpandPlaces, Help, Move, ReduceDifficulty, ReorderInventory, RerollModifier, State, SwapEquipment};
 use serde::{Deserialize, Serialize};
+use crate::index_specifier::IndexSpecifier;
 
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize, Eq, Hash)]
 pub enum Command {
@@ -7,7 +8,7 @@ pub enum Command {
     Move(usize),
     Equip(usize, usize),
     SwapEquipment(usize, usize),
-    RerollModifier(usize, usize, Vec<usize>),
+    RerollModifier(usize, usize, Vec<IndexSpecifier>),
     ExpandPlaces,
     ExpandElements,
     ExpandMaxElement,
@@ -16,7 +17,7 @@ pub enum Command {
     ExpandMinSimultaneousElement,
     ExpandEquipmentSlots,
     ReduceDifficulty,
-    AddModifier(usize, Vec<usize>),
+    AddModifier(usize, Vec<IndexSpecifier>),
     Help,
     ReorderInventory,
 }
@@ -33,32 +34,38 @@ impl Command {
             ExpandElements,
             ExpandMaxElement,
             ExpandMinElement,
+            ExpandMaxSimultaneousElement,
+            ExpandMinSimultaneousElement,
             ExpandEquipmentSlots,
             ReduceDifficulty,
             AddModifier(0, Vec::new()),
             Help,
+            ReorderInventory,
         ]
     }
 
-    fn parse_possible_relative_indexes(command_parts: &str, relative_too: usize) -> Result<Vec<usize>, ()> {
+    fn parse_possible_relative_indexes(command_parts: &str, relative_too: usize) -> Result<Vec<IndexSpecifier>, ()> {
         command_parts.split(",").into_iter()
             .map(|s| {
                 if s.starts_with("+") {
                     match s[1..s.len()].parse::<usize>() {
-                        Ok(relative_index) => Ok(relative_too + relative_index),
+                        Ok(relative_index) => match relative_too.checked_add(relative_index) {
+                            Some(_) => Ok(IndexSpecifier::RelativePositive(relative_index)),
+                            None => Err(())
+                        },
                         Err(_) => Err(())
                     }
                 } else if s.starts_with("-") {
                     match s[1..s.len()].parse::<usize>() {
                         Ok(relative_index) => match relative_too.checked_sub(relative_index) {
-                            Some(new_value) => Ok(new_value),
+                            Some(_) => Ok(IndexSpecifier::RelativeNegative(relative_index)),
                             None => Err(())
                         },
                         Err(_) => Err(())
                     }
                 } else {
                     match s.parse::<usize>() {
-                        Ok(index) => Ok(index),
+                        Ok(index) => Ok(IndexSpecifier::Absolute(index)),
                         Err(_) => Err(())
                     }
                 }
@@ -172,6 +179,7 @@ impl TryFrom<&String> for Command {
 #[cfg(test)]
 mod tests_int {
     use crate::commands::Command;
+    use crate::index_specifier::IndexSpecifier;
 
     #[test]
     fn try_from() {
@@ -192,8 +200,8 @@ mod tests_int {
         assert_eq!(Err("Trouble parsing move command, it needs the index of the place. Got [\"Move\", \"-1\"]".to_string()), Command::try_from(&"Move -1".to_string()));
         assert_eq!(Err("Trouble parsing move command, it needs the index of the place. Got [\"Move\", \"B\"]".to_string()), Command::try_from(&"Move B".to_string()));
 
-        assert_eq!(Command::AddModifier(22, vec![1, 2, 3]), Command::try_from(&"AddModifier 22 1,2,3".to_string()).unwrap());
-        assert_eq!(Command::AddModifier(22, vec![23, 20, 3]), Command::try_from(&"AddModifier 22 +1,-2,3".to_string()).unwrap());
+        assert_eq!(Command::AddModifier(22, vec![IndexSpecifier::Absolute(1), IndexSpecifier::Absolute(2), IndexSpecifier::Absolute(3)]), Command::try_from(&"AddModifier 22 1,2,3".to_string()).unwrap());
+        assert_eq!(Command::AddModifier(22, vec![IndexSpecifier::RelativePositive(1), IndexSpecifier::RelativeNegative(2), IndexSpecifier::Absolute(3)]), Command::try_from(&"AddModifier 22 +1,-2,3".to_string()).unwrap());
         assert_eq!(Err("Trouble parsing AddModifier command, it needs the index of the item and a list comma seperated list of items to sacrifice. Got [\"AddModifier\"]".to_string()), Command::try_from(&"AddModifier".to_string()));
         assert_eq!(Err("Trouble parsing AddModifier command, it needs the index of the item and a list comma seperated list of items to sacrifice. Got [\"AddModifier\", \"-1\"]".to_string()), Command::try_from(&"AddModifier -1".to_string()));
         assert_eq!(Err("Trouble parsing AddModifier command, it needs the index of the item and a list comma seperated list of items to sacrifice. Got [\"AddModifier\", \"-1\", \"\", \"1,2,3\"]".to_string()), Command::try_from(&"AddModifier -1  1,2,3".to_string()));
@@ -217,8 +225,8 @@ mod tests_int {
         assert_eq!(Err("Trouble parsing SwapEquipment command, it needs index of inventory and index of equipment slot. Got [\"SwapEquipment\", \"B\", \"22\"]".to_string()), Command::try_from(&"SwapEquipment B 22".to_string()));
         assert_eq!(Err("Trouble parsing SwapEquipment command, it needs index of inventory and index of equipment slot. Got [\"SwapEquipment\", \"21\", \"B\"]".to_string()), Command::try_from(&"SwapEquipment 21 B".to_string()));
 
-        assert_eq!(Command::RerollModifier(21, 22, vec![1, 2, 3]), Command::try_from(&"RerollModifier 21 22 1,2,3".to_string()).unwrap());
-        assert_eq!(Command::RerollModifier(21, 22, vec![22, 19, 3]), Command::try_from(&"RerollModifier 21 22 +1,-2,3".to_string()).unwrap());
+        assert_eq!(Command::RerollModifier(21, 22, vec![IndexSpecifier::Absolute(1), IndexSpecifier::Absolute(2), IndexSpecifier::Absolute(3)]), Command::try_from(&"RerollModifier 21 22 1,2,3".to_string()).unwrap());
+        assert_eq!(Command::RerollModifier(21, 22, vec![IndexSpecifier::RelativePositive(1), IndexSpecifier::RelativeNegative(2), IndexSpecifier::Absolute(3)]), Command::try_from(&"RerollModifier 21 22 +1,-2,3".to_string()).unwrap());
         assert_eq!(Err("Trouble parsing RerollModifier command, it needs index of inventory, index of modifier and a list comma seperated list of items to sacrifice. Got [\"RerollModifier\"]".to_string()), Command::try_from(&"RerollModifier".to_string()));
         assert_eq!(Err("Trouble parsing RerollModifier command, it needs index of inventory, index of modifier and a list comma seperated list of items to sacrifice. Got [\"RerollModifier\", \"1\"]".to_string()), Command::try_from(&"RerollModifier 1".to_string()));
         assert_eq!(Err("Trouble parsing RerollModifier command, it needs index of inventory, index of modifier and a list comma seperated list of items to sacrifice. Got [\"RerollModifier\", \"1\", \"1\"]".to_string()), Command::try_from(&"RerollModifier 1 1".to_string()));

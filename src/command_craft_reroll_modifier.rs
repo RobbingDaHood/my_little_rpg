@@ -1,8 +1,8 @@
-use std::collections::HashSet;
 use crate::Game;
 use crate::item::Item;
 use crate::roll_modifier::execute_craft_roll_modifier;
 use serde::{Deserialize, Serialize};
+use crate::index_specifier::{calculate_absolute_item_indexes, IndexSpecifier};
 
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
 pub struct ExecuteCraftRerollModifierReport {
@@ -11,7 +11,7 @@ pub struct ExecuteCraftRerollModifierReport {
     new_cost: u16,
 }
 
-pub fn execute_craft_reroll_modifier(game: &mut Game, inventory_index: usize, modifier_index: usize, mut sacrifice_item_indexes: Vec<usize>) -> Result<ExecuteCraftRerollModifierReport, String> {
+pub fn execute_craft_reroll_modifier(game: &mut Game, inventory_index: usize, modifier_index: usize, mut sacrifice_item_indexes: Vec<IndexSpecifier>) -> Result<ExecuteCraftRerollModifierReport, String> {
     //validation
     if game.inventory.len() <= inventory_index {
         return Err(format!("inventory_index {} is not within the range of the inventory {}", inventory_index, game.inventory.len()));
@@ -30,31 +30,23 @@ pub fn execute_craft_reroll_modifier(game: &mut Game, inventory_index: usize, mo
         return Err(format!("craft_reroll_modifier needs {} items to be sacrificed but you only provided {}", cost, sacrifice_item_indexes.len()));
     }
 
-    let unique_sacrificed_indexes = sacrifice_item_indexes.clone().into_iter().collect::<HashSet<usize>>().len();
-    if unique_sacrificed_indexes != sacrifice_item_indexes.len() {
-        return Err(format!("sacrifice_item_indexes cannot contain duplicates {:?}", sacrifice_item_indexes));
-    }
-
     //Only need to cost amount of items
     sacrifice_item_indexes.truncate(usize::from(cost));
 
-    for sacrifice_item_index in sacrifice_item_indexes.clone() {
-        if game.inventory.len() <= sacrifice_item_index {
-            return Err(format!("sacrifice_item_index {} is not within the range of the inventory {}", sacrifice_item_index, game.inventory.len()));
-        }
-        if inventory_index == sacrifice_item_index {
-            return Err(format!("inventory_index {} and sacrifice_item_index {} cannot be the same", inventory_index, sacrifice_item_index));
-        }
-        if game.inventory[sacrifice_item_index].is_none() {
-            return Err(format!("sacrifice_item_index {} is empty.", sacrifice_item_index));
-        }
+    let calculated_sacrifice_item_indexes = match calculate_absolute_item_indexes(game, &inventory_index, &sacrifice_item_indexes) {
+        Err(error_message) => return Err(error_message),
+        Ok(indexes) => indexes
+    };
+
+    for sacrifice_item_index in calculated_sacrifice_item_indexes.clone() {
         let sacrificed_item = game.inventory[sacrifice_item_index].as_ref().unwrap();
         if sacrificed_item.modifiers.len() <= modifier_index {
             return Err(format!("sacrifice_item_index {} need to have at least {} modifiers but it only had {}", sacrifice_item_index, modifier_index + 1, sacrificed_item.modifiers.len()));
         }
     }
 
-    for sacrifice_item_index in sacrifice_item_indexes {
+    //Crafting cost
+    for sacrifice_item_index in calculated_sacrifice_item_indexes {
         game.inventory[sacrifice_item_index] = None;
     }
 
@@ -70,16 +62,17 @@ pub fn execute_craft_reroll_modifier(game: &mut Game, inventory_index: usize, mo
 }
 
 pub fn execute_craft_reroll_modifier_calculate_cost(game: &Game, inventory_index: usize) -> u16 {
-    return match game.inventory[inventory_index].clone() {
+    match game.inventory[inventory_index].clone() {
         Some(item) => item.modifiers.len() as u16,
         None => 0
-    };
+    }
 }
 
 #[cfg(test)]
 mod tests_int {
     use crate::command_craft_reroll_modifier::{execute_craft_reroll_modifier, execute_craft_reroll_modifier_calculate_cost};
     use crate::game_generator::generate_testing_game;
+    use crate::index_specifier;
     use crate::item::{CraftingInfo, Item};
     use crate::item_modifier::ItemModifier;
 
@@ -106,43 +99,167 @@ mod tests_int {
         let old_item = game.inventory[0].clone();
         assert_eq!(10, game.inventory.len());
 
-        assert_eq!(Err("inventory_index 0 and sacrifice_item_index 0 cannot be the same".to_string()), execute_craft_reroll_modifier(&mut game, 0, 0, vec![0, 1]));
+        assert_eq!(Err("inventory_index 0 and index_specifier Absolute(0) cannot be the same".to_string()), execute_craft_reroll_modifier(&mut game, 0, 0, vec![index_specifier::IndexSpecifier::Absolute(0), index_specifier::IndexSpecifier::Absolute(1)]));
         assert_eq!(old_item, game.inventory[0]);
         assert_eq!(10, game.inventory.len());
 
-        assert_eq!(Err("sacrifice_item_index 1 need to have at least 2 modifiers but it only had 1".to_string()), execute_craft_reroll_modifier(&mut game, 0, 1, vec![1, 2]));
+        assert_eq!(Err("sacrifice_item_index 1 need to have at least 2 modifiers but it only had 1".to_string()), execute_craft_reroll_modifier(&mut game, 0, 1, vec![index_specifier::IndexSpecifier::Absolute(1), index_specifier::IndexSpecifier::Absolute(2)]));
         assert_eq!(old_item, game.inventory[0]);
         assert_eq!(10, game.inventory.len());
 
         assert_eq!(2, execute_craft_reroll_modifier_calculate_cost(&mut game, 0));
-        assert_eq!(Err("craft_reroll_modifier needs 2 items to be sacrificed but you only provided 1".to_string()), execute_craft_reroll_modifier(&mut game, 0, 0, vec![1]));
+        assert_eq!(Err("craft_reroll_modifier needs 2 items to be sacrificed but you only provided 1".to_string()), execute_craft_reroll_modifier(&mut game, 0, 0, vec![index_specifier::IndexSpecifier::Absolute(1)]));
         assert_eq!(old_item, game.inventory[0]);
         assert_eq!(10, game.inventory.len());
 
-        let result = execute_craft_reroll_modifier(&mut game, 0, 0, vec![1, 2]);
+        let result = execute_craft_reroll_modifier(&mut game, 0, 0, vec![index_specifier::IndexSpecifier::Absolute(1), index_specifier::IndexSpecifier::Absolute(2)]);
         assert!(result.is_ok());
         assert_ne!(old_item.unwrap(), result.clone().unwrap().new_item);
         let old_item = game.inventory[0].clone();
-        assert_eq!(8, game.inventory.iter().filter(|i|i.is_some()).count());
+        assert_eq!(8, game.inventory.iter().filter(|i| i.is_some()).count());
 
-        assert_eq!(Err("inventory_index 99 is not within the range of the inventory 10".to_string()), execute_craft_reroll_modifier(&mut game, 99, 0, vec![0]));
-        assert_eq!(Err("modifier_index 99 is not within the range of the item modifiers 2".to_string()), execute_craft_reroll_modifier(&mut game, 0, 99, vec![0]));
-        assert_eq!(Err("sacrifice_item_index 99 is not within the range of the inventory 10".to_string()), execute_craft_reroll_modifier(&mut game, 0, 0, vec![99, 1]));
-        assert_eq!(Err("inventory_index 1 is empty.".to_string()), execute_craft_reroll_modifier(&mut game, 1, 0, vec![4,5]));
-        assert_eq!(Err("sacrifice_item_index 1 is empty.".to_string()), execute_craft_reroll_modifier(&mut game, 0, 0, vec![1,2]));
-        assert_eq!(Err("sacrifice_item_indexes cannot contain duplicates [1, 1]".to_string()), execute_craft_reroll_modifier(&mut game, 0, 0, vec![1,1]));
+        assert_eq!(Err("inventory_index 99 is not within the range of the inventory 10".to_string()), execute_craft_reroll_modifier(&mut game, 99, 0, vec![index_specifier::IndexSpecifier::Absolute(0)]));
+        assert_eq!(Err("modifier_index 99 is not within the range of the item modifiers 2".to_string()), execute_craft_reroll_modifier(&mut game, 0, 99, vec![index_specifier::IndexSpecifier::Absolute(0)]));
+        assert_eq!(Err("index_specifier Absolute(99) is not within the range of the inventory 10".to_string()), execute_craft_reroll_modifier(&mut game, 0, 0, vec![index_specifier::IndexSpecifier::Absolute(99), index_specifier::IndexSpecifier::Absolute(1)]));
+        assert_eq!(Err("inventory_index 1 is empty.".to_string()), execute_craft_reroll_modifier(&mut game, 1, 0, vec![index_specifier::IndexSpecifier::Absolute(4), index_specifier::IndexSpecifier::Absolute(5)]));
+        assert_eq!(Err("index_specifier Absolute(1) is pointing at empty inventory slot.".to_string()), execute_craft_reroll_modifier(&mut game, 0, 0, vec![index_specifier::IndexSpecifier::Absolute(1), index_specifier::IndexSpecifier::Absolute(2)]));
+        assert_eq!(Err("index_specifier Absolute(8) is already present in calculated sacrifice indexes [8]".to_string()), execute_craft_reroll_modifier(&mut game, 0, 0, vec![index_specifier::IndexSpecifier::Absolute(8), index_specifier::IndexSpecifier::Absolute(8)]));
         assert_eq!(old_item, game.inventory[0]);
-        assert_eq!(8, game.inventory.iter().filter(|i|i.is_some()).count());
+        assert_eq!(8, game.inventory.iter().filter(|i| i.is_some()).count());
+    }
+
+    #[test]
+    fn test_execute_craft_item_positive() {
+        let mut game = generate_testing_game(Some([1; 16]));
+
+        game.inventory.insert(0, Some(Item {
+            modifiers: vec![
+                ItemModifier {
+                    costs: Vec::new(),
+                    gains: Vec::new(),
+                },
+                ItemModifier {
+                    costs: Vec::new(),
+                    gains: Vec::new(),
+                },
+            ],
+            crafting_info: CraftingInfo {
+                possible_rolls: game.difficulty.clone()
+            },
+        }));
+
+        let result = execute_craft_reroll_modifier(&mut game, 0, 0, vec![index_specifier::IndexSpecifier::RelativePositive(1), index_specifier::IndexSpecifier::RelativePositive(2)]);
+        assert!(result.is_ok());
+        assert_eq!(8, game.inventory.iter().filter(|i| i.is_some()).count());
+
+        let result = execute_craft_reroll_modifier(&mut game, 0, 0, vec![index_specifier::IndexSpecifier::RelativePositive(1), index_specifier::IndexSpecifier::RelativePositive(1)]);
+        assert!(result.is_ok());
+        assert_eq!(6, game.inventory.iter().filter(|i| i.is_some()).count());
+
+        let result = execute_craft_reroll_modifier(&mut game, 0, 0, vec![index_specifier::IndexSpecifier::RelativePositive(1), index_specifier::IndexSpecifier::RelativePositive(1)]);
+        assert!(result.is_ok());
+        assert_eq!(4, game.inventory.iter().filter(|i| i.is_some()).count());
+
+        let result = execute_craft_reroll_modifier(&mut game, 0, 0, vec![index_specifier::IndexSpecifier::RelativePositive(1), index_specifier::IndexSpecifier::RelativePositive(1)]);
+        assert!(result.is_ok());
+        assert_eq!(2, game.inventory.iter().filter(|i| i.is_some()).count());
+
+        assert_eq!(Err("index_specifier: RelativePositive(1) did not find any items in inventory from relative point 1 until end of inventory.".to_string()), execute_craft_reroll_modifier(&mut game, 0, 0, vec![index_specifier::IndexSpecifier::RelativePositive(1), index_specifier::IndexSpecifier::RelativePositive(1)]));
+        assert_eq!(2, game.inventory.iter().filter(|i| i.is_some()).count());
+    }
+
+    #[test]
+    fn test_execute_craft_item_negative() {
+        let mut game = generate_testing_game(Some([1; 16]));
+
+        game.inventory.push(Some(Item {
+            modifiers: vec![
+                ItemModifier {
+                    costs: Vec::new(),
+                    gains: Vec::new(),
+                },
+                ItemModifier {
+                    costs: Vec::new(),
+                    gains: Vec::new(),
+                },
+            ],
+            crafting_info: CraftingInfo {
+                possible_rolls: game.difficulty.clone()
+            },
+        }));
+
+        let result = execute_craft_reroll_modifier(&mut game, 9, 0, vec![index_specifier::IndexSpecifier::RelativeNegative(1), index_specifier::IndexSpecifier::RelativeNegative(2)]);
+        assert!(result.is_ok());
+        assert_eq!(8, game.inventory.iter().filter(|i| i.is_some()).count());
+
+        let result = execute_craft_reroll_modifier(&mut game, 9, 0, vec![index_specifier::IndexSpecifier::RelativeNegative(1), index_specifier::IndexSpecifier::RelativeNegative(1)]);
+        assert!(result.is_ok());
+        assert_eq!(6, game.inventory.iter().filter(|i| i.is_some()).count());
+
+        let result = execute_craft_reroll_modifier(&mut game, 9, 0, vec![index_specifier::IndexSpecifier::RelativeNegative(1), index_specifier::IndexSpecifier::RelativeNegative(1)]);
+        assert!(result.is_ok());
+        assert_eq!(4, game.inventory.iter().filter(|i| i.is_some()).count());
+
+        let result = execute_craft_reroll_modifier(&mut game, 9, 0, vec![index_specifier::IndexSpecifier::RelativeNegative(1), index_specifier::IndexSpecifier::RelativeNegative(1)]);
+        assert!(result.is_ok());
+        assert_eq!(2, game.inventory.iter().filter(|i| i.is_some()).count());
+
+        assert_eq!(Err("index_specifier: RelativeNegative(1) did not find any items in inventory from relative point 10 until start of inventory.".to_string()), execute_craft_reroll_modifier(&mut game, 9, 0, vec![index_specifier::IndexSpecifier::RelativeNegative(1), index_specifier::IndexSpecifier::RelativeNegative(1)]));
+        assert_eq!(2, game.inventory.iter().filter(|i| i.is_some()).count());
+    }
+
+    #[test]
+    fn test_execute_craft_item_mixed() {
+        let mut game = generate_testing_game(Some([1; 16]));
+
+        game.inventory.insert(5, Some(Item {
+            modifiers: vec![
+                ItemModifier {
+                    costs: Vec::new(),
+                    gains: Vec::new(),
+                },
+                ItemModifier {
+                    costs: Vec::new(),
+                    gains: Vec::new(),
+                },
+            ],
+            crafting_info: CraftingInfo {
+                possible_rolls: game.difficulty.clone()
+            },
+        }));
+
+        let result = execute_craft_reroll_modifier(&mut game, 5, 0, vec![index_specifier::IndexSpecifier::RelativeNegative(1), index_specifier::IndexSpecifier::RelativePositive(2)]);
+        assert!(result.is_ok());
+        assert_eq!(8, game.inventory.iter().filter(|i| i.is_some()).count());
+
+        let result = execute_craft_reroll_modifier(&mut game, 5, 0, vec![index_specifier::IndexSpecifier::RelativePositive(1), index_specifier::IndexSpecifier::RelativeNegative(1)]);
+        assert!(result.is_ok());
+        assert_eq!(6, game.inventory.iter().filter(|i| i.is_some()).count());
+
+        let result = execute_craft_reroll_modifier(&mut game, 5, 0, vec![index_specifier::IndexSpecifier::RelativePositive(1), index_specifier::IndexSpecifier::Absolute(0)]);
+        assert!(result.is_ok());
+        assert_eq!(4, game.inventory.iter().filter(|i| i.is_some()).count());
+
+        let result = execute_craft_reroll_modifier(&mut game, 5, 0, vec![index_specifier::IndexSpecifier::RelativeNegative(1), index_specifier::IndexSpecifier::Absolute(9)]);
+        assert!(result.is_ok());
+        assert_eq!(2, game.inventory.iter().filter(|i| i.is_some()).count());
+
+        assert_eq!(Err("index_specifier: RelativePositive(1) did not find any items in inventory from relative point 6 until end of inventory.".to_string()), execute_craft_reroll_modifier(&mut game, 5, 0, vec![index_specifier::IndexSpecifier::RelativePositive(1), index_specifier::IndexSpecifier::RelativeNegative(1)]));
+        assert_eq!(Err("index_specifier: RelativePositive(1) did not find any items in inventory from relative point 6 until end of inventory.".to_string()), execute_craft_reroll_modifier(&mut game, 5, 0, vec![index_specifier::IndexSpecifier::RelativeNegative(1), index_specifier::IndexSpecifier::RelativePositive(1)]));
+        assert_eq!(2, game.inventory.iter().filter(|i| i.is_some()).count());
+
+        game.inventory[2] = None;
+        assert_eq!(Err("index_specifier: RelativeNegative(1) did not find any items in inventory from relative point 6 until start of inventory.".to_string()), execute_craft_reroll_modifier(&mut game, 5, 0, vec![index_specifier::IndexSpecifier::RelativeNegative(1), index_specifier::IndexSpecifier::RelativeNegative(1)]));
     }
 
     #[test]
     fn seeding_test() {
         let mut game = generate_testing_game(Some([1; 16]));
-        let original_result = execute_craft_reroll_modifier(&mut game, 0, 0, vec![1]);
+        let original_result = execute_craft_reroll_modifier(&mut game, 0, 0, vec![index_specifier::IndexSpecifier::Absolute(1)]);
 
         for _i in 1..1000 {
             let mut game = generate_testing_game(Some([1; 16]));
-            let result = execute_craft_reroll_modifier(&mut game, 0, 0, vec![1]);
+            let result = execute_craft_reroll_modifier(&mut game, 0, 0, vec![index_specifier::IndexSpecifier::Absolute(1)]);
             assert_eq!(original_result, result);
         }
     }
@@ -163,7 +280,7 @@ mod tests_int {
                     possible_rolls: game.difficulty.clone()
                 },
             }));
-            assert!(execute_craft_reroll_modifier(&mut game, 0, 0, vec![i]).is_ok());
+            assert!(execute_craft_reroll_modifier(&mut game, 0, 0, vec![index_specifier::IndexSpecifier::Absolute(i)]).is_ok());
         }
     }
 }
