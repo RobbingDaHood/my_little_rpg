@@ -14,6 +14,8 @@ pub enum AttackType {
     Holy,
 }
 
+//TODO: Half unsatisfied defence, double unsatisfied attack, double tressure, doulbe items (Physical does not need to do anything).
+
 impl AttackType {
     pub fn get_all() -> Vec<AttackType> {
         vec![

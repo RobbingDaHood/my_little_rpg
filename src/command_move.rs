@@ -147,6 +147,11 @@ fn evaluate_item_costs(item: &&Item, current_damage: &HashMap<AttackType, u64>, 
         for cost in &modifier.costs {
             match cost {
                 ModifierCost::FlatItemResource(item_resource_type, amount) => *item_resource_cost.entry(item_resource_type.clone()).or_insert(0) += amount,
+                ModifierCost::FlatMinItemResourceRequirement(item_resource_type, amount) => {
+                    if *game.item_resources.get(item_resource_type).unwrap_or(&0) < *amount {
+                        return Err((format!("Did not fulfill the FlatMinItemResourceRequirement of {} {:?}, only had {:?}.", amount, item_resource_type, game.item_resources.clone()), None));
+                    } else {}
+                },
                 ModifierCost::FlatMinAttackRequirement(attack_type, amount) => {
                     if current_damage.get(attack_type).unwrap_or(&0) < amount {
                         return Err((format!("Did not fulfill the FlatMinAttackRequirement of {} {:?} damage, only did {:?} damage.", amount, attack_type, current_damage), None));
@@ -597,5 +602,56 @@ mod tests_int {
         assert_eq!("Costs paid and all gains executed.".to_string(), result.item_report[2].effect_description);
         assert_eq!("Costs paid and all gains executed.".to_string(), result.item_report[3].effect_description);
         assert_eq!("Did not fulfill the FlatSumMaxAttackRequirement of 20 damage, did {Physical: 22} damage damage and that is too much.".to_string(), result.item_report[4].effect_description);
+    }
+
+    //TODO add tests that check several execute_move_command in a row, for the item resource accumulation.
+
+    #[test]
+    fn test_flat_min_sum_item_resource_requirement() {
+        let mut game = generate_testing_game(Some([1; 16]));
+        game.equipped_items = Vec::new();
+
+        let first_item_cannot_pay = Item {
+            modifiers: vec![
+                ItemModifier {
+                    costs: vec![
+                        ModifierCost::FlatMinItemResourceRequirement(ItemResourceType::Mana, 20)
+                    ],
+                    gains: Vec::new(),
+                }
+            ],
+            crafting_info: CraftingInfo {
+                possible_rolls: game.difficulty.clone()
+            },
+        };
+
+        let second_item_generates_needed_resource = Item {
+            modifiers: vec![
+                ItemModifier {
+                    costs: Vec::new(),
+                    gains: vec![
+                        ModifierGain::FlatItemResource(ItemResourceType::Mana, 20)
+                    ],
+                }
+            ],
+            crafting_info: CraftingInfo {
+                possible_rolls: game.difficulty.clone()
+            },
+        };
+
+        game.equipped_items.push(first_item_cannot_pay.clone());
+        game.equipped_items.push(second_item_generates_needed_resource.clone());
+        game.equipped_items.push(first_item_cannot_pay.clone());
+
+
+        let result = execute_move_command(&mut game, 0);
+
+        assert!(result.is_err());
+
+        let result = result.unwrap_err();
+        assert_eq!("You did not deal enough damage to overcome the challenges in this place.".to_string(), result.result);
+        assert_eq!("Did not fulfill the FlatMinItemResourceRequirement of 20 Mana, only had {}.".to_string(), result.item_report[0].effect_description);
+        assert_eq!("Costs paid and all gains executed.".to_string(), result.item_report[1].effect_description);
+        assert_eq!("Costs paid and all gains executed.".to_string(), result.item_report[2].effect_description);
     }
 }
