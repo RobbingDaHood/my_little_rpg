@@ -157,6 +157,16 @@ fn evaluate_item_costs(item: &&Item, current_damage: &HashMap<AttackType, u64>, 
                         return Err((format!("Did not fulfill the FlatMaxAttackRequirement of {} {:?} damage, did {:?} damage and that is too much.", amount, attack_type, current_damage), None));
                     } else {}
                 }
+                ModifierCost::FlatSumMinAttackRequirement(amount) => {
+                    if current_damage.values().sum::<u64>() < *amount {
+                        return Err((format!("Did not fulfill the FlatSumMinAttackRequirement of {} damage, only did {:?} damage.", amount, current_damage), None));
+                    } else {}
+                }
+                ModifierCost::FlatSumMaxAttackRequirement(amount) => {
+                    if current_damage.values().sum::<u64>() > *amount {
+                        return Err((format!("Did not fulfill the FlatSumMaxAttackRequirement of {} damage, did {:?} damage damage and that is too much.", amount, current_damage), None));
+                    } else {}
+                }
                 ModifierCost::PlaceLimitedByIndexModulus(modulus, valid_values) => {
                     let modulus_value = index.rem_euclid(usize::from(*modulus));
                     if !valid_values.contains(&u8::try_from(modulus_value).unwrap()) {
@@ -481,5 +491,111 @@ mod tests_int {
         assert_eq!("Were not able to pay all the costs. Had to pay {Mana: 20}, but only had {} available.".to_string(), result.item_report[0].effect_description);
         assert_eq!("Costs paid and all gains executed.".to_string(), result.item_report[1].effect_description);
         assert_eq!("Costs paid and all gains executed.".to_string(), result.item_report[2].effect_description);
+    }
+
+    #[test]
+    fn test_flat_min_sum_attack_requirement() {
+        let mut game = generate_testing_game(Some([1; 16]));
+        game.equipped_items = Vec::new();
+
+        let first_item_cannot_pay = Item {
+            modifiers: vec![
+                ItemModifier {
+                    costs: vec![
+                        ModifierCost::FlatSumMinAttackRequirement(20)
+                    ],
+                    gains: Vec::new(),
+                }
+            ],
+            crafting_info: CraftingInfo {
+                possible_rolls: game.difficulty.clone()
+            },
+        };
+
+        let second_item_generates_needed_resource = Item {
+            modifiers: vec![
+                ItemModifier {
+                    costs: Vec::new(),
+                    gains: vec![
+                        ModifierGain::FlatDamage(AttackType::Physical, 10)
+                    ],
+                }
+            ],
+            crafting_info: CraftingInfo {
+                possible_rolls: game.difficulty.clone()
+            },
+        };
+
+        game.equipped_items.push(first_item_cannot_pay.clone());
+        game.equipped_items.push(second_item_generates_needed_resource.clone());
+        game.equipped_items.push(first_item_cannot_pay.clone());
+        game.equipped_items.push(second_item_generates_needed_resource.clone());
+        game.equipped_items.push(first_item_cannot_pay.clone());
+
+
+        let result = execute_move_command(&mut game, 0);
+
+        assert!(result.is_err());
+
+        let result = result.unwrap_err();
+        assert_eq!("You did not deal enough damage to overcome the challenges in this place.".to_string(), result.result);
+        assert_eq!("Did not fulfill the FlatSumMinAttackRequirement of 20 damage, only did {} damage.".to_string(), result.item_report[0].effect_description);
+        assert_eq!("Costs paid and all gains executed.".to_string(), result.item_report[1].effect_description);
+        assert_eq!("Did not fulfill the FlatSumMinAttackRequirement of 20 damage, only did {Physical: 10} damage.".to_string(), result.item_report[2].effect_description);
+        assert_eq!("Costs paid and all gains executed.".to_string(), result.item_report[3].effect_description);
+        assert_eq!("Costs paid and all gains executed.".to_string(), result.item_report[4].effect_description);
+    }
+
+    #[test]
+    fn test_flat_max_sum_attack_requirement() {
+        let mut game = generate_testing_game(Some([1; 16]));
+        game.equipped_items = Vec::new();
+
+        let first_item_cannot_pay = Item {
+            modifiers: vec![
+                ItemModifier {
+                    costs: vec![
+                        ModifierCost::FlatSumMaxAttackRequirement(20)
+                    ],
+                    gains: Vec::new(),
+                }
+            ],
+            crafting_info: CraftingInfo {
+                possible_rolls: game.difficulty.clone()
+            },
+        };
+
+        let second_item_generates_needed_resource = Item {
+            modifiers: vec![
+                ItemModifier {
+                    costs: Vec::new(),
+                    gains: vec![
+                        ModifierGain::FlatDamage(AttackType::Physical, 11)
+                    ],
+                }
+            ],
+            crafting_info: CraftingInfo {
+                possible_rolls: game.difficulty.clone()
+            },
+        };
+
+        game.equipped_items.push(first_item_cannot_pay.clone());
+        game.equipped_items.push(second_item_generates_needed_resource.clone());
+        game.equipped_items.push(first_item_cannot_pay.clone());
+        game.equipped_items.push(second_item_generates_needed_resource.clone());
+        game.equipped_items.push(first_item_cannot_pay.clone());
+
+
+        let result = execute_move_command(&mut game, 0);
+
+        assert!(result.is_err());
+
+        let result = result.unwrap_err();
+        assert_eq!("You did not deal enough damage to overcome the challenges in this place.".to_string(), result.result);
+        assert_eq!("Costs paid and all gains executed.".to_string(), result.item_report[0].effect_description);
+        assert_eq!("Costs paid and all gains executed.".to_string(), result.item_report[1].effect_description);
+        assert_eq!("Costs paid and all gains executed.".to_string(), result.item_report[2].effect_description);
+        assert_eq!("Costs paid and all gains executed.".to_string(), result.item_report[3].effect_description);
+        assert_eq!("Did not fulfill the FlatSumMaxAttackRequirement of 20 damage, did {Physical: 22} damage damage and that is too much.".to_string(), result.item_report[4].effect_description);
     }
 }

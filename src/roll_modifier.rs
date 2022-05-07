@@ -41,7 +41,7 @@ fn execute_craft_roll_modifier_costs(game: &mut Game, crafting_info: &CraftingIn
 
     for _i in 0..number_of_costs {
         if accumulated_cost < max_cost {
-            match game.random_generator_state.gen_range(0..4) {
+            match game.random_generator_state.gen_range(0..6) {
                 0 => {
                     let attack_type = get_random_attack_type_from_unlocked(game, &Some(&crafting_info.possible_rolls));
 
@@ -51,7 +51,7 @@ fn execute_craft_roll_modifier_costs(game: &mut Game, crafting_info: &CraftingIn
 
                     modifier_costs.push(ModifierCost::FlatMinAttackRequirement(attack_type, value.clone()));
                     accumulated_cost += value;
-                },
+                }
                 1 => {
                     let attack_type = get_random_attack_type_from_unlocked(game, &Some(&crafting_info.possible_rolls));
 
@@ -61,7 +61,7 @@ fn execute_craft_roll_modifier_costs(game: &mut Game, crafting_info: &CraftingIn
 
                     modifier_costs.push(ModifierCost::FlatMaxAttackRequirement(attack_type, value.clone()));
                     accumulated_cost += maximum_value - value;
-                },
+                }
                 2 => {
                     let max_modulus = min(usize::from(u8::MAX), game.places.len());
                     let max_modulus = max(3, max_modulus);
@@ -77,7 +77,23 @@ fn execute_craft_roll_modifier_costs(game: &mut Game, crafting_info: &CraftingIn
                     modifier_costs.push(ModifierCost::PlaceLimitedByIndexModulus(modulus, valid_numbers));
 
                     accumulated_cost += (game.places.len() * ((modulus / number_of_valid_values) as usize)) as u64;
-                },
+                }
+                3 => {
+                    let minimum_value = crafting_info.possible_rolls.min_resistance.values().sum::<u64>();
+                    let maximum_value = crafting_info.possible_rolls.max_resistance.values().sum::<u64>();
+                    let value = min(max_cost - accumulated_cost, game.random_generator_state.gen_range(minimum_value..=maximum_value));
+
+                    modifier_costs.push(ModifierCost::FlatSumMinAttackRequirement(value.clone()));
+                    accumulated_cost += value;
+                }
+                4 => {
+                    let minimum_value = crafting_info.possible_rolls.min_resistance.values().sum::<u64>();
+                    let maximum_value = crafting_info.possible_rolls.max_resistance.values().sum::<u64>();
+                    let value = min(max_cost - accumulated_cost, game.random_generator_state.gen_range(minimum_value..=maximum_value));
+
+                    modifier_costs.push(ModifierCost::FlatSumMaxAttackRequirement(value.clone()));
+                    accumulated_cost += maximum_value - value;
+                }
                 _ => {
                     let cost = game.random_generator_state.gen_range(1..max(2, max_cost - accumulated_cost));
                     modifier_costs.push(ModifierCost::FlatItemResource(ItemResourceType::Mana, cost));
@@ -188,6 +204,14 @@ mod tests_int {
                         let token = ModifierCost::PlaceLimitedByIndexModulus(1, Vec::new());
                         *cost_modifiers.entry(token).or_insert(0) += 1;
                     }
+                    ModifierCost::FlatSumMinAttackRequirement(_) => {
+                        let token = ModifierCost::FlatSumMinAttackRequirement(0);
+                        *cost_modifiers.entry(token).or_insert(0) += 1;
+                    }
+                    ModifierCost::FlatSumMaxAttackRequirement(_) => {
+                        let token = ModifierCost::FlatSumMaxAttackRequirement(0);
+                        *cost_modifiers.entry(token).or_insert(0) += 1;
+                    }
                 }
             }
 
@@ -214,6 +238,9 @@ mod tests_int {
             .map(|attack_type| attack_type.clone())
             .filter(|attack_type| cost_modifiers.get(&ModifierCost::FlatMaxAttackRequirement(attack_type.clone(), 0)).unwrap() == &0)
             .count());
+
+        assert_ne!(0, *cost_modifiers.get(&ModifierCost::FlatSumMinAttackRequirement(0)).unwrap());
+        assert_ne!(0, *cost_modifiers.get(&ModifierCost::FlatSumMaxAttackRequirement(0)).unwrap());
 
         assert_ne!(0, *cost_modifiers.get(&ModifierCost::PlaceLimitedByIndexModulus(1, Vec::new())).unwrap());
 
