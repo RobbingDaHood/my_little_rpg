@@ -1,6 +1,6 @@
 use crate::item_modifier::ItemModifier;
 use serde::{Deserialize, Serialize};
-use crate::place_generator::Difficulty;
+use crate::difficulty::Difficulty;
 
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
 pub struct Item {

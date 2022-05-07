@@ -1,6 +1,5 @@
 use std::collections::HashMap;
 use crate::place::Place;
-use crate::place_generator::{Difficulty};
 use serde::{Deserialize, Serialize};
 use crate::command_craft_reroll_modifier::execute_craft_reroll_modifier_calculate_cost;
 use crate::command_expand_elements::execute_expand_elements_calculate_cost;
@@ -12,6 +11,7 @@ use crate::command_expand_min_simultanius_element::execute_expand_min_simultaneo
 use crate::command_craft_expand_modifier::execute_craft_expand_modifiers_calculate_cost;
 use crate::command_expand_places::execute_expand_places_calculate_cost;
 use crate::command_reduce_difficulty::{execute_execute_reduce_difficulty_cost};
+use crate::difficulty::Difficulty;
 use crate::Game;
 use crate::hex_encoder::encode_hex;
 use crate::item::Item;

@@ -40,16 +40,26 @@ fn execute_craft_roll_modifier_costs(game: &mut Game, crafting_info: &CraftingIn
 
     for _i in 0..number_of_costs {
         if accumulated_cost < max_cost {
-            match game.random_generator_state.gen_range(0..2) {
+            match game.random_generator_state.gen_range(0..3) {
                 0 => {
-                    let attack_type = get_random_attack_type_from_unlocked(game);
+                    let attack_type = get_random_attack_type_from_unlocked(game, &Some(&crafting_info.possible_rolls));
 
-                    let minimum_value = *game.difficulty.min_resistance.get(&attack_type).unwrap();
-                    let maximum_value = *game.difficulty.max_resistance.get(&attack_type).unwrap();
-                    let value = min(max_cost - accumulated_cost, game.random_generator_state.gen_range(minimum_value..maximum_value));
+                    let minimum_value = *crafting_info.possible_rolls.min_resistance.get(&attack_type).unwrap();
+                    let maximum_value = *crafting_info.possible_rolls.max_resistance.get(&attack_type).unwrap();
+                    let value = min(max_cost - accumulated_cost, game.random_generator_state.gen_range(minimum_value..=maximum_value));
 
                     modifier_costs.push(ModifierCost::FlatMinAttackRequirement(attack_type, value.clone()));
                     accumulated_cost += value;
+                },
+                1 => {
+                    let attack_type = get_random_attack_type_from_unlocked(game, &Some(&crafting_info.possible_rolls));
+
+                    let minimum_value = *crafting_info.possible_rolls.min_resistance.get(&attack_type).unwrap();
+                    let maximum_value = *crafting_info.possible_rolls.max_resistance.get(&attack_type).unwrap();
+                    let value = min(max_cost - accumulated_cost, game.random_generator_state.gen_range(minimum_value..=maximum_value));
+
+                    modifier_costs.push(ModifierCost::FlatMaxAttackRequirement(attack_type, value.clone()));
+                    accumulated_cost += maximum_value - value;
                 },
                 _ => {
                     let cost = game.random_generator_state.gen_range(1..max(2, max_cost - accumulated_cost));
@@ -153,6 +163,10 @@ mod tests_int {
                         let token = ModifierCost::FlatMinAttackRequirement(attack_type, 0);
                         *cost_modifiers.entry(token).or_insert(0) += 1;
                     }
+                    ModifierCost::FlatMaxAttackRequirement(attack_type, _) => {
+                        let token = ModifierCost::FlatMaxAttackRequirement(attack_type, 0);
+                        *cost_modifiers.entry(token).or_insert(0) += 1;
+                    }
                 }
             }
 
@@ -173,6 +187,11 @@ mod tests_int {
         assert_eq!(0, game.difficulty.min_resistance.keys()
             .map(|attack_type| attack_type.clone())
             .filter(|attack_type| cost_modifiers.get(&ModifierCost::FlatMinAttackRequirement(attack_type.clone(), 0)).unwrap() == &0)
+            .count());
+
+        assert_eq!(0, game.difficulty.min_resistance.keys()
+            .map(|attack_type| attack_type.clone())
+            .filter(|attack_type| cost_modifiers.get(&ModifierCost::FlatMaxAttackRequirement(attack_type.clone(), 0)).unwrap() == &0)
             .count());
 
         assert_eq!(0, ItemResourceType::get_all().into_iter()

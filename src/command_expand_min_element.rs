@@ -2,11 +2,11 @@ use std::collections::HashMap;
 use rand::Rng;
 use crate::attack_types::AttackType;
 use crate::Game;
-use crate::place_generator::Difficulty;
 use crate::treasure_types::{pay_crafting_cost, TreasureType};
 use crate::treasure_types::TreasureType::Gold;
 
 use serde::{Deserialize, Serialize};
+use crate::difficulty::Difficulty;
 
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
 pub struct ExecuteExpandMinElementReport {

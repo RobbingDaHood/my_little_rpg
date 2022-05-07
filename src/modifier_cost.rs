@@ -6,5 +6,5 @@ use crate::item_resource::ItemResourceType;
 pub enum ModifierCost {
     FlatItemResource(ItemResourceType, u64),
     FlatMinAttackRequirement(AttackType, u64),
-    //FlatMaxAttackRequirement(AttackType, u64),
+    FlatMaxAttackRequirement(AttackType, u64),
 }

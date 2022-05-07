@@ -2,7 +2,7 @@ use std::collections::HashMap;
 use crate::Game;
 use crate::treasure_types::TreasureType::Gold;
 use serde::{Deserialize, Serialize};
-use crate::place_generator::Difficulty;
+use crate::difficulty::Difficulty;
 use crate::treasure_types::{pay_crafting_cost, TreasureType};
 use crate::game::get_random_attack_type_from_unlocked;
 
@@ -22,7 +22,7 @@ pub fn execute_expand_max_element(game: &mut Game) -> Result<ExecuteExpandMaxEle
     };
 
     //Increase max of existing element
-    let picked_element = get_random_attack_type_from_unlocked(game);
+    let picked_element = get_random_attack_type_from_unlocked(game, &None);
 
     *game.difficulty.max_resistance.get_mut(&picked_element).unwrap() += crafting_cost.get(&Gold).unwrap();
 

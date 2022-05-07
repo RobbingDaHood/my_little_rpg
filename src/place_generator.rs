@@ -1,21 +1,12 @@
 use std::cmp::{max, min};
 use std::collections::{HashMap, HashSet};
 use std::ops::Add;
-use crate::{attack_types, Game};
+use crate::{Game};
 use crate::place::Place;
-use serde::{Deserialize, Serialize};
 use crate::attack_types::AttackType;
 use crate::treasure_types::TreasureType;
 use rand::Rng;
 use rand::seq::SliceRandom;
-
-#[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
-pub struct Difficulty {
-    pub(crate) max_resistance: HashMap<attack_types::AttackType, u64>,
-    pub(crate) min_resistance: HashMap<attack_types::AttackType, u64>,
-    pub(crate) max_simultaneous_resistances: u8,
-    pub(crate) min_simultaneous_resistances: u8,
-}
 
 pub fn generate_place(game: &mut Game) -> Place {
     let mut resistance: HashMap<AttackType, u64> = HashMap::new();

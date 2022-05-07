@@ -1,13 +1,14 @@
 use std::cmp::{max, min};
 use std::collections::HashMap;
-use std::ops::{Div};
+use std::ops::Div;
 use crate::Game;
 use crate::treasure_types::{TreasureType};
 use crate::treasure_types::TreasureType::Gold;
 use serde::{Deserialize, Serialize};
 use rand::prelude::SliceRandom;
+use crate::difficulty::Difficulty;
 use crate::game::get_random_attack_type_from_unlocked;
-use crate::place_generator::{Difficulty, generate_place};
+use crate::place_generator::{generate_place};
 
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
 pub struct ReduceDifficultyReport {
@@ -19,7 +20,7 @@ pub struct ReduceDifficultyReport {
 
 pub fn execute_reduce_difficulty(game: &mut Game) -> Result<ReduceDifficultyReport, String> {
     //Add new element
-    let attack_type = get_random_attack_type_from_unlocked(game);
+    let attack_type = get_random_attack_type_from_unlocked(game, &None);
 
     let max_value = game.difficulty.max_resistance.get(&attack_type).unwrap();
     let new_max_value = max_value.div(2);
@@ -62,8 +63,8 @@ mod tests_int {
     use std::collections::HashMap;
     use crate::attack_types::AttackType;
     use crate::command_reduce_difficulty::execute_reduce_difficulty;
+    use crate::difficulty::Difficulty;
     use crate::game_generator::{generate_testing_game};
-    use crate::place_generator::Difficulty;
     use crate::treasure_types::TreasureType::Gold;
 
     #[test]

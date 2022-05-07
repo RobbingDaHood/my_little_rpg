@@ -3,7 +3,7 @@ use crate::attack_types;
 use crate::treasure_types::TreasureType;
 
 use serde::{Deserialize, Serialize};
-use crate::place_generator::Difficulty;
+use crate::difficulty::Difficulty;
 
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
 pub struct Place {
@@ -31,8 +31,8 @@ impl Place {
 mod tests_int {
     use std::collections::HashMap;
     use crate::attack_types::AttackType;
+    use crate::difficulty::Difficulty;
     use crate::place::Place;
-    use crate::place_generator::Difficulty;
 
     #[test]
     fn claim_rewards_no_resistance() {

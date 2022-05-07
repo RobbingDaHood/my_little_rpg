@@ -7,9 +7,10 @@ use crate::item_modifier::ItemModifier;
 use crate::item_resource::ItemResourceType;
 use crate::modifier_cost::ModifierCost;
 use crate::modifier_gain::ModifierGain;
-use crate::place_generator::{generate_place, Difficulty};
+use crate::place_generator::{generate_place};
 use rand::{RngCore};
 use rand::SeedableRng;
+use crate::difficulty::Difficulty;
 use crate::hex_encoder::encode_hex;
 
 pub fn generate_new_game(seed: Option<[u8; 16]>) -> Game {
