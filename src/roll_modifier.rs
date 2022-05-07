@@ -10,7 +10,7 @@ use crate::modifier_cost::ModifierCost;
 use crate::modifier_gain::ModifierGain::FlatItemResource;
 use crate::modifier_gain::ModifierGain;
 use crate::modifier_gain::ModifierGain::FlatDamage;
-use rand::prelude::SliceRandom;
+use crate::game::get_random_attack_type_from_unlocked;
 
 pub fn execute_craft_roll_modifier(game: &mut Game, item_index: usize) -> ItemModifier {
     let crafting_info = &game.inventory[item_index].as_ref().unwrap().crafting_info.clone();
@@ -42,13 +42,7 @@ fn execute_craft_roll_modifier_costs(game: &mut Game, crafting_info: &CraftingIn
         if accumulated_cost < max_cost {
             match game.random_generator_state.gen_range(0..2) {
                 0 => {
-                    let attack_type = AttackType::get_all().into_iter()
-                        .filter(|attack_type| game.difficulty.min_resistance.contains_key(attack_type))
-                        .map(|attack_type| attack_type.clone())
-                        .collect::<Vec<AttackType>>()
-                        .choose(&mut game.random_generator_state)
-                        .unwrap()
-                        .clone();
+                    let attack_type = get_random_attack_type_from_unlocked(game);
 
                     let minimum_value = *game.difficulty.min_resistance.get(&attack_type).unwrap();
                     let maximum_value = *game.difficulty.max_resistance.get(&attack_type).unwrap();
@@ -56,7 +50,7 @@ fn execute_craft_roll_modifier_costs(game: &mut Game, crafting_info: &CraftingIn
 
                     modifier_costs.push(ModifierCost::FlatMinAttackRequirement(attack_type, value.clone()));
                     accumulated_cost += value;
-                }
+                },
                 _ => {
                     let cost = game.random_generator_state.gen_range(1..max(2, max_cost - accumulated_cost));
                     modifier_costs.push(ModifierCost::FlatItemResource(ItemResourceType::Mana, cost));

@@ -1,11 +1,10 @@
 use std::collections::HashMap;
-use crate::attack_types::AttackType;
 use crate::Game;
 use crate::treasure_types::TreasureType::Gold;
 use serde::{Deserialize, Serialize};
 use crate::place_generator::Difficulty;
 use crate::treasure_types::{pay_crafting_cost, TreasureType};
-use rand::prelude::SliceRandom;
+use crate::game::get_random_attack_type_from_unlocked;
 
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
 pub struct ExecuteExpandMaxElementReport {
@@ -23,12 +22,7 @@ pub fn execute_expand_max_element(game: &mut Game) -> Result<ExecuteExpandMaxEle
     };
 
     //Increase max of existing element
-    let picked_element = AttackType::get_all().into_iter()
-        .filter(|attack_type| game.difficulty.max_resistance.contains_key(attack_type))
-        .collect::<Vec<AttackType>>()
-        .choose(&mut game.random_generator_state)
-        .unwrap()
-        .clone();
+    let picked_element = get_random_attack_type_from_unlocked(game);
 
     *game.difficulty.max_resistance.get_mut(&picked_element).unwrap() += crafting_cost.get(&Gold).unwrap();
 
