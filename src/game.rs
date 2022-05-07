@@ -9,8 +9,9 @@ use crate::item::Item;
 use crate::item_resource::ItemResourceType;
 use rand::prelude::SliceRandom;
 use crate::difficulty::Difficulty;
+use crate::game_statistics::GameStatistics;
 
-//TODO Count moves, to enable competition on seed.
+//TODO SaveTheWorld
 
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
 pub struct Game {
@@ -22,6 +23,7 @@ pub struct Game {
     pub(crate) item_resources: HashMap<ItemResourceType, u64>,
     pub(crate) seed: [u8; 16],
     pub(crate) random_generator_state: Lcg64Xsh32,
+    pub(crate) game_statistics: GameStatistics,
 }
 
 pub fn get_random_attack_type_from_unlocked(game: &mut Game, given_unlocks: &Option<&Difficulty>) -> AttackType {

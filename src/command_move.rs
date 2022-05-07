@@ -36,6 +36,8 @@ pub struct ExecuteMoveCommandErrorReport {
 pub fn execute_move_command(game: &mut Game, index: usize) -> Result<ExecuteMoveCommandReport, ExecuteMoveCommandErrorReport> {
     if game.places.len() <= index { return report_place_does_not_exist(game, index); }
 
+    game.game_statistics.moves_count += 1;
+
     let mut current_damage = HashMap::new();
     let mut item_report = Vec::new();
 
@@ -157,9 +159,7 @@ fn evaluate_item_costs(item: &&Item, current_damage: &HashMap<AttackType, u64>, 
                 }
                 ModifierCost::PlaceLimitedByIndexModulus(modulus, valid_values) => {
                     let modulus_value = index.rem_euclid(usize::from(*modulus));
-                    let error_message = format!("Did not fulfill the PlaceLimitedByIndexModulus: {} % {} = {} and that is not contained in {:?}.", index, modulus, modulus_value, valid_values);
-                    let modulus_u8 = &u8::try_from(modulus_value).unwrap();
-                    if !valid_values.contains(modulus_u8) {
+                    if !valid_values.contains(&u8::try_from(modulus_value).unwrap()) {
                         return Err((format!("Did not fulfill the PlaceLimitedByIndexModulus: {} % {} = {} and that is not contained in {:?}.", index, modulus, modulus_value, valid_values), None));
                     } else {}
                 }
@@ -193,6 +193,7 @@ mod tests_int {
         assert_eq!(None, game.treasure.get(&TreasureType::Gold));
         assert_eq!(None, game.item_resources.get(&ItemResourceType::Mana));
         assert_eq!(9, game.inventory.len());
+        assert_eq!(0, game.game_statistics.moves_count);
 
         let result = execute_move_command(&mut game, 0);
 
@@ -205,6 +206,7 @@ mod tests_int {
         assert_eq!(None, game.treasure.get(&TreasureType::Gold));
         assert_eq!(Some(&5), game.item_resources.get(&ItemResourceType::Mana));
         assert_eq!(9, game.inventory.len());
+        assert_eq!(1, game.game_statistics.moves_count);
 
         let result = execute_move_command(&mut game, 0);
 
@@ -218,6 +220,7 @@ mod tests_int {
         assert_ne!(&0, game.treasure.get(&TreasureType::Gold).unwrap());
         assert_eq!(Some(&1), game.item_resources.get(&ItemResourceType::Mana));
         assert_eq!(10, game.inventory.len());
+        assert_eq!(2, game.game_statistics.moves_count);
     }
 
     #[test]

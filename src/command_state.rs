@@ -13,6 +13,7 @@ use crate::command_expand_places::execute_expand_places_calculate_cost;
 use crate::command_reduce_difficulty::{execute_execute_reduce_difficulty_cost};
 use crate::difficulty::Difficulty;
 use crate::Game;
+use crate::game_statistics::GameStatistics;
 use crate::hex_encoder::encode_hex;
 use crate::item::Item;
 use crate::item_resource::ItemResourceType;
@@ -28,6 +29,7 @@ pub struct PresentationGameState {
     pub(crate) item_resources: HashMap<ItemResourceType, u64>,
     pub(crate) crafting_action_costs: PlaceCosts,
     pub(crate) seed: String,
+    pub(crate) game_statistics: GameStatistics,
 }
 
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
@@ -109,6 +111,7 @@ pub fn execute_state(game: &mut Game) -> PresentationGameState {
         item_resources: game.item_resources.clone(),
         crafting_action_costs: crafting_actions,
         seed: encode_hex(&game.seed),
+        game_statistics: game.game_statistics.clone()
     }
 }
 

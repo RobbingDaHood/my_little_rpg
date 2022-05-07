@@ -35,6 +35,7 @@ mod command_reduce_difficulty;
 mod command_reorder_inventory;
 mod index_specifier;
 mod difficulty;
+mod game_statistics;
 
 use structopt::StructOpt;
 use crate::hex_encoder::decode_hex;
