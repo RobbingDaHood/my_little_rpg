@@ -40,7 +40,7 @@ pub fn execute_move_command(game: &mut Game, index: usize) -> Result<ExecuteMove
     let mut item_report = Vec::new();
 
     for item in &game.equipped_items {
-        let item_resource_cost = match evaluate_item_costs(&item, &current_damage, &game) {
+        let item_resource_cost = match evaluate_item_costs(&item, &current_damage, &game, index) {
             Ok(costs) => costs,
             Err((message, item_resource_cost)) => {
                 update_item_report(&current_damage, &game.item_resources, &mut item_report, item, &item_resource_cost, message.as_str());
@@ -139,7 +139,7 @@ fn calculate_are_all_costs_payable(current_item_resources: &HashMap<ItemResource
     are_all_costs_payable
 }
 
-fn evaluate_item_costs(item: &&Item, current_damage: &HashMap<AttackType, u64>, game: &Game) -> Result<HashMap<ItemResourceType, u64>, (String, Option<HashMap<ItemResourceType, u64>>)> {
+fn evaluate_item_costs(item: &&Item, current_damage: &HashMap<AttackType, u64>, game: &Game, index: usize) -> Result<HashMap<ItemResourceType, u64>, (String, Option<HashMap<ItemResourceType, u64>>)> {
     let mut item_resource_cost = HashMap::new();
     for modifier in &item.modifiers {
         for cost in &modifier.costs {
@@ -149,10 +149,18 @@ fn evaluate_item_costs(item: &&Item, current_damage: &HashMap<AttackType, u64>, 
                     if current_damage.get(attack_type).unwrap_or(&0) < amount {
                         return Err((format!("Did not fulfill the FlatMinAttackRequirement of {} {:?} damage, only did {:?} damage.", amount, attack_type, current_damage), None));
                     } else {}
-                },
+                }
                 ModifierCost::FlatMaxAttackRequirement(attack_type, amount) => {
                     if current_damage.get(attack_type).unwrap_or(&0) > amount {
                         return Err((format!("Did not fulfill the FlatMaxAttackRequirement of {} {:?} damage, did {:?} damage and that is too much.", amount, attack_type, current_damage), None));
+                    } else {}
+                }
+                ModifierCost::PlaceLimitedByIndexModulus(modulus, valid_values) => {
+                    let modulus_value = index.rem_euclid(usize::from(*modulus));
+                    let error_message = format!("Did not fulfill the PlaceLimitedByIndexModulus: {} % {} = {} and that is not contained in {:?}.", index, modulus, modulus_value, valid_values);
+                    let modulus_u8 = &u8::try_from(modulus_value).unwrap();
+                    if !valid_values.contains(modulus_u8) {
+                        return Err((format!("Did not fulfill the PlaceLimitedByIndexModulus: {} % {} = {} and that is not contained in {:?}.", index, modulus, modulus_value, valid_values), None));
                     } else {}
                 }
             }
@@ -389,6 +397,38 @@ mod tests_int {
         assert_eq!("Costs paid and all gains executed.".to_string(), result.item_report[0].effect_description);
         assert_eq!("Costs paid and all gains executed.".to_string(), result.item_report[1].effect_description);
         assert_eq!("Did not fulfill the FlatMaxAttackRequirement of 1 Physical damage, did {Physical: 3} damage and that is too much.".to_string(), result.item_report[2].effect_description);
+    }
+
+    #[test]
+    fn test_place_limited_by_index_modulus_requirement() {
+        let mut game = generate_testing_game(Some([1; 16]));
+        game.equipped_items = Vec::new();
+
+        let first_item_cannot_pay = Item {
+            modifiers: vec![
+                ItemModifier {
+                    costs: vec![
+                        ModifierCost::PlaceLimitedByIndexModulus(6, vec![1, 3, 4])
+                    ],
+                    gains: Vec::new(),
+                }
+            ],
+            crafting_info: CraftingInfo {
+                possible_rolls: game.difficulty.clone()
+            },
+        };
+
+        game.equipped_items.push(first_item_cannot_pay.clone());
+        assert_eq!("Did not fulfill the PlaceLimitedByIndexModulus: 0 % 6 = 0 and that is not contained in [1, 3, 4].".to_string(), execute_move_command(&mut game, 0).unwrap_err().item_report[0].effect_description);
+        assert_eq!("Costs paid and all gains executed.".to_string(), execute_move_command(&mut game, 1).unwrap_err().item_report[0].effect_description);
+        assert_eq!("Did not fulfill the PlaceLimitedByIndexModulus: 2 % 6 = 2 and that is not contained in [1, 3, 4].".to_string(), execute_move_command(&mut game, 2).unwrap_err().item_report[0].effect_description);
+        assert_eq!("Costs paid and all gains executed.".to_string(), execute_move_command(&mut game, 3).unwrap_err().item_report[0].effect_description);
+        assert_eq!("Costs paid and all gains executed.".to_string(), execute_move_command(&mut game, 4).unwrap_err().item_report[0].effect_description);
+        assert_eq!("Did not fulfill the PlaceLimitedByIndexModulus: 5 % 6 = 5 and that is not contained in [1, 3, 4].".to_string(), execute_move_command(&mut game, 5).unwrap_err().item_report[0].effect_description);
+        assert_eq!("Did not fulfill the PlaceLimitedByIndexModulus: 6 % 6 = 0 and that is not contained in [1, 3, 4].".to_string(), execute_move_command(&mut game, 6).unwrap_err().item_report[0].effect_description);
+        assert_eq!("Costs paid and all gains executed.".to_string(), execute_move_command(&mut game, 7).unwrap_err().item_report[0].effect_description);
+        assert_eq!("Did not fulfill the PlaceLimitedByIndexModulus: 8 % 6 = 2 and that is not contained in [1, 3, 4].".to_string(), execute_move_command(&mut game, 8).unwrap_err().item_report[0].effect_description);
+        assert_eq!("Costs paid and all gains executed.".to_string(), execute_move_command(&mut game, 9).unwrap_err().item_report[0].effect_description);
     }
 
     #[test]

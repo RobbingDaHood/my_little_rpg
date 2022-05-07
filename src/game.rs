@@ -10,6 +10,8 @@ use crate::item_resource::ItemResourceType;
 use rand::prelude::SliceRandom;
 use crate::difficulty::Difficulty;
 
+//TODO Count moves, to enable competition on seed.
+
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
 pub struct Game {
     pub(crate) places: Vec<Place>,

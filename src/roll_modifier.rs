@@ -1,4 +1,5 @@
 use std::cmp::{max, min};
+use std::collections::HashSet;
 use std::ops::Add;
 use rand::Rng;
 use crate::attack_types::AttackType;
@@ -40,7 +41,7 @@ fn execute_craft_roll_modifier_costs(game: &mut Game, crafting_info: &CraftingIn
 
     for _i in 0..number_of_costs {
         if accumulated_cost < max_cost {
-            match game.random_generator_state.gen_range(0..3) {
+            match game.random_generator_state.gen_range(0..4) {
                 0 => {
                     let attack_type = get_random_attack_type_from_unlocked(game, &Some(&crafting_info.possible_rolls));
 
@@ -60,6 +61,22 @@ fn execute_craft_roll_modifier_costs(game: &mut Game, crafting_info: &CraftingIn
 
                     modifier_costs.push(ModifierCost::FlatMaxAttackRequirement(attack_type, value.clone()));
                     accumulated_cost += maximum_value - value;
+                },
+                2 => {
+                    let max_modulus = min(usize::from(u8::MAX), game.places.len());
+                    let max_modulus = max(3, max_modulus);
+                    let modulus = u8::try_from(game.random_generator_state.gen_range(2..max_modulus)).unwrap();
+                    let number_of_valid_values = game.random_generator_state.gen_range(1..modulus);
+
+                    let valid_numbers = (0..number_of_valid_values).into_iter()
+                        .map(|_| game.random_generator_state.gen_range(0..max_modulus))
+                        .map(|value| u8::try_from(value).unwrap())
+                        .collect::<HashSet<u8>>().into_iter()
+                        .collect();
+
+                    modifier_costs.push(ModifierCost::PlaceLimitedByIndexModulus(modulus, valid_numbers));
+
+                    accumulated_cost += (game.places.len() * ((modulus / number_of_valid_values) as usize)) as u64;
                 },
                 _ => {
                     let cost = game.random_generator_state.gen_range(1..max(2, max_cost - accumulated_cost));
@@ -167,6 +184,10 @@ mod tests_int {
                         let token = ModifierCost::FlatMaxAttackRequirement(attack_type, 0);
                         *cost_modifiers.entry(token).or_insert(0) += 1;
                     }
+                    ModifierCost::PlaceLimitedByIndexModulus(_, _) => {
+                        let token = ModifierCost::PlaceLimitedByIndexModulus(1, Vec::new());
+                        *cost_modifiers.entry(token).or_insert(0) += 1;
+                    }
                 }
             }
 
@@ -193,6 +214,8 @@ mod tests_int {
             .map(|attack_type| attack_type.clone())
             .filter(|attack_type| cost_modifiers.get(&ModifierCost::FlatMaxAttackRequirement(attack_type.clone(), 0)).unwrap() == &0)
             .count());
+
+        assert_ne!(0, *cost_modifiers.get(&ModifierCost::PlaceLimitedByIndexModulus(1, Vec::new())).unwrap());
 
         assert_eq!(0, ItemResourceType::get_all().into_iter()
             .filter(|item_resource| cost_modifiers.get(&ModifierCost::FlatItemResource(item_resource.clone(), 0)).unwrap() == &0)
