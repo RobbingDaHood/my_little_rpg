@@ -69,7 +69,7 @@ fn execute_craft_roll_modifier_costs(game: &mut Game, crafting_info: &CraftingIn
                     let number_of_valid_values = game.random_generator_state.gen_range(1..modulus);
 
                     let valid_numbers = (0..number_of_valid_values).into_iter()
-                        .map(|_| game.random_generator_state.gen_range(0..max_modulus))
+                        .map(|_| game.random_generator_state.gen_range(0..modulus))
                         .map(|value| u8::try_from(value).unwrap())
                         .collect::<HashSet<u8>>().into_iter()
                         .collect();
