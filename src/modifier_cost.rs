@@ -18,5 +18,4 @@ pub enum ModifierCost {
     PlaceLimitedByIndexModulus(u8, Vec<u8>),
     MinWinsInARow(u8),
     MaxWinsInARow(u8),
-    //TODO Wins/loses in row
 }

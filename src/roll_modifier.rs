@@ -141,16 +141,20 @@ fn execute_craft_roll_modifier_costs(game: &mut Game, crafting_info: &CraftingIn
                     accumulated_cost += maximum_value - value;
                 }
                 11 => {
-                    let value = game.random_generator_state.gen_range(1..u8::MAX);
+                    let value = u8::try_from(min(usize::from(u8::MAX), game.places.len() * 2)).unwrap();
+                    let value = max(2, value);
+                    let value = game.random_generator_state.gen_range(1..value);
 
                     modifier_costs.push(ModifierCost::MinWinsInARow(value.clone()));
                     accumulated_cost += u64::from(value);
                 }
                 12 => {
-                    let value = game.random_generator_state.gen_range(0..u8::MAX);
+                    let max_value = u8::try_from(min(usize::from(u8::MAX), game.places.len() * 2)).unwrap();
+                    let value = max(1, max_value);
+                    let value = game.random_generator_state.gen_range(0..value);
 
                     modifier_costs.push(ModifierCost::MaxWinsInARow(value.clone()));
-                    accumulated_cost += u64::from(u8::MAX - value);
+                    accumulated_cost += u64::from(max_value - value);
                 }
                 _ => {
                     let cost = game.random_generator_state.gen_range(1..max(2, max_cost - accumulated_cost));
