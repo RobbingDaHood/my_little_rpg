@@ -41,7 +41,7 @@ fn execute_craft_roll_modifier_costs(game: &mut Game, crafting_info: &CraftingIn
 
     for _i in 0..number_of_costs {
         if accumulated_cost < max_cost {
-            match game.random_generator_state.gen_range(0..7) {
+            match game.random_generator_state.gen_range(0..8) {
                 0 => {
                     let attack_type = get_random_attack_type_from_unlocked(game, &Some(&crafting_info.possible_rolls));
 
@@ -97,7 +97,12 @@ fn execute_craft_roll_modifier_costs(game: &mut Game, crafting_info: &CraftingIn
                 5 => {
                     let cost = game.random_generator_state.gen_range(1..max(2, max_cost - accumulated_cost));
                     modifier_costs.push(ModifierCost::FlatMinItemResourceRequirement(ItemResourceType::Mana, cost));
-                    accumulated_cost += cost;
+                    accumulated_cost += cost; //TODO Better cost
+                }
+                6 => {
+                    let cost = game.random_generator_state.gen_range(1..max(2, max_cost - accumulated_cost));
+                    modifier_costs.push(ModifierCost::FlatMaxItemResourceRequirement(ItemResourceType::Mana, cost));
+                    accumulated_cost += (max_cost - accumulated_cost) - cost; //TODO Better cost
                 }
                 _ => {
                     let cost = game.random_generator_state.gen_range(1..max(2, max_cost - accumulated_cost));
@@ -201,6 +206,10 @@ mod tests_int {
                         let token = ModifierCost::FlatMinItemResourceRequirement(item_resource, 0);
                         *cost_modifiers.entry(token).or_insert(0) += 1;
                     }
+                    ModifierCost::FlatMaxItemResourceRequirement(item_resource, _) => {
+                        let token = ModifierCost::FlatMaxItemResourceRequirement(item_resource, 0);
+                        *cost_modifiers.entry(token).or_insert(0) += 1;
+                    }
                     ModifierCost::FlatMinAttackRequirement(attack_type, _) => {
                         let token = ModifierCost::FlatMinAttackRequirement(attack_type, 0);
                         *cost_modifiers.entry(token).or_insert(0) += 1;
@@ -259,6 +268,10 @@ mod tests_int {
 
         assert_eq!(0, ItemResourceType::get_all().into_iter()
             .filter(|item_resource| cost_modifiers.get(&ModifierCost::FlatMinItemResourceRequirement(item_resource.clone(), 0)).unwrap() == &0)
+            .count());
+
+        assert_eq!(0, ItemResourceType::get_all().into_iter()
+            .filter(|item_resource| cost_modifiers.get(&ModifierCost::FlatMaxItemResourceRequirement(item_resource.clone(), 0)).unwrap() == &0)
             .count());
 
         assert_eq!(0, game.difficulty.min_resistance.keys()

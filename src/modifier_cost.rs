@@ -6,8 +6,7 @@ use crate::item_resource::ItemResourceType;
 pub enum ModifierCost {
     FlatItemResource(ItemResourceType, u64),
     FlatMinItemResourceRequirement(ItemResourceType, u64),
-    //TODO Max item ressource
-    //TODO min item ressource
+    FlatMaxItemResourceRequirement(ItemResourceType, u64),
     FlatMinAttackRequirement(AttackType, u64),
     FlatMaxAttackRequirement(AttackType, u64),
     FlatSumMinAttackRequirement(u64), //TODO Handle summing issue; x * u64 could be more than 64; That is still a high number though. Maybe it is fine that attacks are u32.
