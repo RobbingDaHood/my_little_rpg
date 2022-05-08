@@ -41,7 +41,7 @@ fn execute_craft_roll_modifier_costs(game: &mut Game, crafting_info: &CraftingIn
 
     for _i in 0..number_of_costs {
         if accumulated_cost < max_cost {
-            match game.random_generator_state.gen_range(0..11) {
+            match game.random_generator_state.gen_range(0..12) {
                 0 => {
                     let attack_type = get_random_attack_type_from_unlocked(game, &Some(&crafting_info.possible_rolls));
 
@@ -131,6 +131,14 @@ fn execute_craft_roll_modifier_costs(game: &mut Game, crafting_info: &CraftingIn
 
                     modifier_costs.push(ModifierCost::FlatMinSumResistanceRequirement(value.clone()));
                     accumulated_cost += value;
+                }
+                10 => {
+                    let minimum_value = crafting_info.possible_rolls.min_resistance.values().sum::<u64>();
+                    let maximum_value = crafting_info.possible_rolls.max_resistance.values().sum::<u64>();
+                    let value = min(max_cost - accumulated_cost, game.random_generator_state.gen_range(minimum_value..=maximum_value));
+
+                    modifier_costs.push(ModifierCost::FlatMaxSumResistanceRequirement(value.clone()));
+                    accumulated_cost += maximum_value - value;
                 }
                 _ => {
                     let cost = game.random_generator_state.gen_range(1..max(2, max_cost - accumulated_cost));
@@ -270,6 +278,10 @@ mod tests_int {
                         let token = ModifierCost::FlatMinSumResistanceRequirement(0);
                         *cost_modifiers.entry(token).or_insert(0) += 1;
                     }
+                    ModifierCost::FlatMaxSumResistanceRequirement(_) => {
+                        let token = ModifierCost::FlatMaxSumResistanceRequirement(0);
+                        *cost_modifiers.entry(token).or_insert(0) += 1;
+                    }
                 }
             }
 
@@ -334,5 +346,6 @@ mod tests_int {
             .count());
 
         assert_ne!(0, *cost_modifiers.get(&ModifierCost::FlatMinSumResistanceRequirement(0)).unwrap());
+        assert_ne!(0, *cost_modifiers.get(&ModifierCost::FlatMaxSumResistanceRequirement(0)).unwrap());
     }
 }

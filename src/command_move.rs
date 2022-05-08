@@ -199,6 +199,12 @@ fn evaluate_item_costs(item: &&Item, current_damage: &HashMap<AttackType, u64>, 
                         return Err((format!("Did not fulfill the FlatMinSumResistanceRequirement of {} damage, place only has {:?} damage.", amount, damage_sum), None));
                     } else {}
                 }
+                ModifierCost::FlatMaxSumResistanceRequirement(amount) => {
+                    let damage_sum = game.places[index].resistance.values().sum::<u64>();
+                    if damage_sum > *amount {
+                        return Err((format!("Did not fulfill the FlatMaxSumResistanceRequirement of {} damage, place has {:?} damage and that is too much.", amount, damage_sum), None));
+                    } else {}
+                }
             }
         }
     }
@@ -841,5 +847,43 @@ mod tests_int {
         let result = result.unwrap_err();
         assert_eq!("You did not deal enough damage to overcome the challenges in this place.".to_string(), result.result);
         assert_eq!("Costs paid and all gains executed.".to_string(), result.item_report[0].effect_description);
+    }
+
+    #[test]
+    fn test_flat_max_sum_resistance_requirement() {
+        let mut game = generate_testing_game(Some([1; 16]));
+        game.equipped_items = Vec::new();
+
+        let first_item_cannot_pay = Item {
+            modifiers: vec![
+                ItemModifier {
+                    costs: vec![
+                        ModifierCost::FlatMaxSumResistanceRequirement(94)
+                    ],
+                    gains: Vec::new(),
+                }
+            ],
+            crafting_info: CraftingInfo {
+                possible_rolls: game.difficulty.clone()
+            },
+        };
+
+        game.equipped_items.push(first_item_cannot_pay.clone());
+
+        let result = execute_move_command(&mut game, 0);
+
+        assert!(result.is_err());
+
+        let result = result.unwrap_err();
+        assert_eq!("You did not deal enough damage to overcome the challenges in this place.".to_string(), result.result);
+        assert_eq!("Costs paid and all gains executed.".to_string(), result.item_report[0].effect_description);
+
+        let result = execute_move_command(&mut game, 9);
+
+        assert!(result.is_err());
+
+        let result = result.unwrap_err();
+        assert_eq!("You did not deal enough damage to overcome the challenges in this place.".to_string(), result.result);
+        assert_eq!("Did not fulfill the FlatMaxSumResistanceRequirement of 94 damage, place has 160 damage and that is too much.".to_string(), result.item_report[0].effect_description);
     }
 }
