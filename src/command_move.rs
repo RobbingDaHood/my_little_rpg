@@ -183,6 +183,12 @@ fn evaluate_item_costs(item: &&Item, current_damage: &HashMap<AttackType, u64>, 
                         return Err((format!("Did not fulfill the PlaceLimitedByIndexModulus: {} % {} = {} and that is not contained in {:?}.", index, modulus, modulus_value, valid_values), None));
                     } else {}
                 }
+                ModifierCost::FlatMinResistanceRequirement(attack_type, amount) => {
+                    let resustance = game.places[index].resistance.get(attack_type).unwrap_or(&0);
+                    if resustance < amount {
+                        return Err((format!("Did not fulfill the FlatMinResistanceRequirement of {} {:?} damage, place only has {:?} damage.", amount, attack_type, AttackType::order_map(&game.places[index].resistance)), None));
+                    } else {}
+                }
             }
         }
     }
@@ -711,5 +717,43 @@ mod tests_int {
         assert_eq!("Costs paid and all gains executed.".to_string(), result.item_report[2].effect_description);
         assert_eq!("Costs paid and all gains executed.".to_string(), result.item_report[3].effect_description);
         assert_eq!("Did not fulfill the FlatMaxItemResourceRequirement of 20 Mana, had {Mana: 40} and that is too much.".to_string(), result.item_report[4].effect_description);
+    }
+
+    #[test]
+    fn test_flat_min_resistance_requirement() {
+        let mut game = generate_testing_game(Some([1; 16]));
+        game.equipped_items = Vec::new();
+
+        let first_item_cannot_pay = Item {
+            modifiers: vec![
+                ItemModifier {
+                    costs: vec![
+                        ModifierCost::FlatMinResistanceRequirement(AttackType::Fire, 12)
+                    ],
+                    gains: Vec::new(),
+                }
+            ],
+            crafting_info: CraftingInfo {
+                possible_rolls: game.difficulty.clone()
+            },
+        };
+
+        game.equipped_items.push(first_item_cannot_pay.clone());
+
+        let result = execute_move_command(&mut game, 0);
+
+        assert!(result.is_err());
+
+        let result = result.unwrap_err();
+        assert_eq!("You did not deal enough damage to overcome the challenges in this place.".to_string(), result.result);
+        assert_eq!("Did not fulfill the FlatMinResistanceRequirement of 12 Fire damage, place only has [(Frost, 7), (Lightning, 11), (Light, 6), (Darkness, 6), (Nature, 35), (Corruption, 28)] damage.".to_string(), result.item_report[0].effect_description);
+
+        let result = execute_move_command(&mut game, 9);
+
+        assert!(result.is_err());
+
+        let result = result.unwrap_err();
+        assert_eq!("You did not deal enough damage to overcome the challenges in this place.".to_string(), result.result);
+        assert_eq!("Costs paid and all gains executed.".to_string(), result.item_report[0].effect_description);
     }
 }

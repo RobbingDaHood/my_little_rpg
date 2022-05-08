@@ -1,3 +1,4 @@
+use std::collections::{HashMap, HashSet};
 use serde::{Deserialize, Serialize};
 use crate::attack_types::AttackType::{Corruption, Darkness, Fire, Frost, Holy, Light, Lightning, Nature, Physical};
 
@@ -14,7 +15,7 @@ pub enum AttackType {
     Holy,
 }
 
-//TODO: Half unsatisfied defence, double unsatisfied attack, double tressure, doulbe items (Physical does not need to do anything).
+//TODO: COuld also create a ressource if more than half damage goes through; Then that ressource could be used in crafting and modifiers.
 
 impl AttackType {
     pub fn get_all() -> Vec<AttackType> {
@@ -29,5 +30,19 @@ impl AttackType {
             Corruption,
             Holy,
         ]
+    }
+
+    pub fn order_set(collection: &HashSet<&AttackType> ) -> Vec<AttackType> {
+        AttackType::get_all().iter()
+            .filter(|attack_type| collection.contains(attack_type))
+            .map(|attack_type| attack_type.clone())
+            .collect::<Vec<AttackType>>()
+    }
+
+    pub fn order_map(collection: &HashMap<AttackType, u64> ) -> Vec<(AttackType, u64)> {
+        AttackType::get_all().iter()
+            .filter(|attack_type| collection.contains_key(attack_type))
+            .map(|attack_type| (attack_type.clone(), *collection.get(attack_type).unwrap()))
+            .collect::<Vec<(AttackType, u64)>>()
     }
 }

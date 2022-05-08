@@ -22,10 +22,7 @@ pub fn generate_place(game: &mut Game) -> Place {
     let maximum_elements = min(relevant_attack_types.len(), game.difficulty.max_simultaneous_resistances as usize);
     let resistance_numbers = game.random_generator_state.gen_range(minimum_elements..maximum_elements.add(1));
 
-    let attack_types = AttackType::get_all().iter()
-        .filter(|attack_type| game.difficulty.min_resistance.contains_key(attack_type))
-        .map(|attack_type| attack_type.clone())
-        .collect::<Vec<AttackType>>();
+    let attack_types = AttackType::order_set(&game.difficulty.min_resistance.keys().collect());
 
     let mut resistance_sum = 0;
     let mut count_elements = 0;

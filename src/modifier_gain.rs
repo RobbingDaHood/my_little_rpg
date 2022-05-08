@@ -8,6 +8,7 @@ use crate::modifier_gain::ModifierGain::{FlatDamage, FlatItemResource};
 pub enum ModifierGain {
     FlatDamage(AttackType, u64),
     FlatItemResource(ItemResourceType, u64),
+//TODO: Half unsatisfied defence, double unsatisfied attack, double tressure, doulbe items
 }
 
 impl ModifierGain {
