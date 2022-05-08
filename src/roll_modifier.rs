@@ -41,7 +41,7 @@ fn execute_craft_roll_modifier_costs(game: &mut Game, crafting_info: &CraftingIn
 
     for _i in 0..number_of_costs {
         if accumulated_cost < max_cost {
-            match game.random_generator_state.gen_range(0..9) {
+            match game.random_generator_state.gen_range(0..10) {
                 0 => {
                     let attack_type = get_random_attack_type_from_unlocked(game, &Some(&crafting_info.possible_rolls));
 
@@ -113,6 +113,16 @@ fn execute_craft_roll_modifier_costs(game: &mut Game, crafting_info: &CraftingIn
 
                     modifier_costs.push(ModifierCost::FlatMinResistanceRequirement(attack_type, value.clone()));
                     accumulated_cost += value;
+                }
+                8 => {
+                    let attack_type = get_random_attack_type_from_unlocked(game, &Some(&crafting_info.possible_rolls));
+
+                    let minimum_value = *crafting_info.possible_rolls.min_resistance.get(&attack_type).unwrap();
+                    let maximum_value = *crafting_info.possible_rolls.max_resistance.get(&attack_type).unwrap();
+                    let value = min(max_cost - accumulated_cost, game.random_generator_state.gen_range(minimum_value..=maximum_value));
+
+                    modifier_costs.push(ModifierCost::FlatMaxResistanceRequirement(attack_type, value.clone()));
+                    accumulated_cost += maximum_value - value;
                 }
                 _ => {
                     let cost = game.random_generator_state.gen_range(1..max(2, max_cost - accumulated_cost));
@@ -244,6 +254,10 @@ mod tests_int {
                         let token = ModifierCost::FlatMinResistanceRequirement(attack_type, 0);
                         *cost_modifiers.entry(token).or_insert(0) += 1;
                     }
+                    ModifierCost::FlatMaxResistanceRequirement(attack_type, _) => {
+                        let token = ModifierCost::FlatMaxResistanceRequirement(attack_type, 0);
+                        *cost_modifiers.entry(token).or_insert(0) += 1;
+                    }
                 }
             }
 
@@ -300,6 +314,11 @@ mod tests_int {
         assert_eq!(0, game.difficulty.min_resistance.keys()
             .map(|attack_type| attack_type.clone())
             .filter(|attack_type| cost_modifiers.get(&ModifierCost::FlatMinResistanceRequirement(attack_type.clone(), 0)).unwrap() == &0)
+            .count());
+
+        assert_eq!(0, game.difficulty.min_resistance.keys()
+            .map(|attack_type| attack_type.clone())
+            .filter(|attack_type| cost_modifiers.get(&ModifierCost::FlatMaxResistanceRequirement(attack_type.clone(), 0)).unwrap() == &0)
             .count());
     }
 }

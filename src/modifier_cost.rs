@@ -12,6 +12,7 @@ pub enum ModifierCost {
     FlatSumMinAttackRequirement(u64), //TODO Handle summing issue; x * u64 could be more than 64; That is still a high number though. Maybe it is fine that attacks are u32.
     FlatSumMaxAttackRequirement(u64),
     FlatMinResistanceRequirement(AttackType, u64),
+    FlatMaxResistanceRequirement(AttackType, u64),
     //TODO Add all the above on the places too
     PlaceLimitedByIndexModulus(u8, Vec<u8>),
     //TODO fixed list of indexes
