@@ -219,6 +219,11 @@ fn evaluate_item_costs(item: &&Item, current_damage: &HashMap<AttackType, u64>, 
                         return Err((format!("Did not fulfill the MinWinsInARow of {} win, only hase {:?} wins in a row.", amount, game.game_statistics.wins_in_a_row), None));
                     } else {}
                 }
+                ModifierCost::MaxWinsInARow(amount) => {
+                    if game.game_statistics.wins_in_a_row > u64::from(*amount) {
+                        return Err((format!("Did not fulfill the MaxWinsInARow of {} win, have {:?} wins in a row and that is too much.", amount, game.game_statistics.wins_in_a_row), None));
+                    } else {}
+                }
             }
         }
     }
@@ -958,6 +963,54 @@ mod tests_int {
         let result = result.unwrap_err();
         assert_eq!("You did not deal enough damage to overcome the challenges in this place.".to_string(), result.result);
         assert_eq!("Costs paid and all gains executed.".to_string(), result.item_report[0].effect_description);
+        assert_eq!("Costs paid and all gains executed.".to_string(), result.item_report[1].effect_description);
+    }
+
+    #[test]
+    fn test_max_win_row_requirement() {
+        let mut game = generate_testing_game(Some([1; 16]));
+
+        let first_item_cannot_pay = Item {
+            modifiers: vec![
+                ItemModifier {
+                    costs: vec![
+                        ModifierCost::MaxWinsInARow(0)
+                    ],
+                    gains: Vec::new(),
+                }
+            ],
+            crafting_info: CraftingInfo {
+                possible_rolls: game.difficulty.clone()
+            },
+        };
+
+        game.equipped_items.insert(0, first_item_cannot_pay.clone());
+
+        let result = execute_move_command(&mut game, 0);
+
+        assert!(result.is_err());
+
+        let result = result.unwrap_err();
+        assert_eq!("You did not deal enough damage to overcome the challenges in this place.".to_string(), result.result);
+        assert_eq!("Costs paid and all gains executed.".to_string(), result.item_report[0].effect_description);
+        assert_eq!("Costs paid and all gains executed.".to_string(), result.item_report[1].effect_description);
+
+        let result = execute_move_command(&mut game, 0);
+
+        assert!(result.is_ok());
+
+        let result = result.unwrap();
+        assert_eq!("You won and got a new item in the inventory.".to_string(), result.result);
+        assert_eq!("Costs paid and all gains executed.".to_string(), result.item_report[0].effect_description);
+        assert_eq!("Costs paid and all gains executed.".to_string(), result.item_report[1].effect_description);
+
+        let result = execute_move_command(&mut game, 9);
+
+        assert!(result.is_err());
+
+        let result = result.unwrap_err();
+        assert_eq!("You did not deal enough damage to overcome the challenges in this place.".to_string(), result.result);
+        assert_eq!("Did not fulfill the MaxWinsInARow of 0 win, have 1 wins in a row and that is too much.".to_string(), result.item_report[0].effect_description);
         assert_eq!("Costs paid and all gains executed.".to_string(), result.item_report[1].effect_description);
     }
 }
