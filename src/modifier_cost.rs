@@ -16,6 +16,6 @@ pub enum ModifierCost {
     FlatMinSumResistanceRequirement(u64),
     FlatMaxSumResistanceRequirement(u64),
     PlaceLimitedByIndexModulus(u8, Vec<u8>),
-    //TODO fixed list of indexes
+    MinWinsInARow(u8)
     //TODO Wins/loses in row
 }

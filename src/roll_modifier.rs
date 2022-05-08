@@ -41,7 +41,7 @@ fn execute_craft_roll_modifier_costs(game: &mut Game, crafting_info: &CraftingIn
 
     for _i in 0..number_of_costs {
         if accumulated_cost < max_cost {
-            match game.random_generator_state.gen_range(0..12) {
+            match game.random_generator_state.gen_range(0..13) {
                 0 => {
                     let attack_type = get_random_attack_type_from_unlocked(game, &Some(&crafting_info.possible_rolls));
 
@@ -139,6 +139,12 @@ fn execute_craft_roll_modifier_costs(game: &mut Game, crafting_info: &CraftingIn
 
                     modifier_costs.push(ModifierCost::FlatMaxSumResistanceRequirement(value.clone()));
                     accumulated_cost += maximum_value - value;
+                }
+                11 => {
+                    let value = game.random_generator_state.gen_range(1..u8::MAX);
+
+                    modifier_costs.push(ModifierCost::MinWinsInARow(value.clone()));
+                    accumulated_cost += u64::from(value);
                 }
                 _ => {
                     let cost = game.random_generator_state.gen_range(1..max(2, max_cost - accumulated_cost));
@@ -282,6 +288,10 @@ mod tests_int {
                         let token = ModifierCost::FlatMaxSumResistanceRequirement(0);
                         *cost_modifiers.entry(token).or_insert(0) += 1;
                     }
+                    ModifierCost::MinWinsInARow(_) => {
+                        let token = ModifierCost::MinWinsInARow(0);
+                        *cost_modifiers.entry(token).or_insert(0) += 1;
+                    }
                 }
             }
 
@@ -347,5 +357,6 @@ mod tests_int {
 
         assert_ne!(0, *cost_modifiers.get(&ModifierCost::FlatMinSumResistanceRequirement(0)).unwrap());
         assert_ne!(0, *cost_modifiers.get(&ModifierCost::FlatMaxSumResistanceRequirement(0)).unwrap());
+        assert_ne!(0, *cost_modifiers.get(&ModifierCost::MinWinsInARow(0)).unwrap());
     }
 }

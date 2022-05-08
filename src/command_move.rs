@@ -58,9 +58,18 @@ pub fn execute_move_command(game: &mut Game, index: usize) -> Result<ExecuteMove
         if let Some(rewards) = game.places.get(index)
             .expect("Error: execute_move_command: Could not find place even though it were within the index.")
             .claim_rewards(&current_damage) {
+
+            game.game_statistics.wins += 1;
+            game.game_statistics.wins_in_a_row += 1;
+            game.game_statistics.loses_in_a_row = 0;
+
             return update_claim_place_effect(game, index, item_report, rewards);
         }
     }
+
+    game.game_statistics.loses += 1;
+    game.game_statistics.loses_in_a_row += 1;
+    game.game_statistics.wins_in_a_row = 0;
 
     Err(ExecuteMoveCommandErrorReport {
         item_report,
@@ -205,6 +214,11 @@ fn evaluate_item_costs(item: &&Item, current_damage: &HashMap<AttackType, u64>, 
                         return Err((format!("Did not fulfill the FlatMaxSumResistanceRequirement of {} damage, place has {:?} damage and that is too much.", amount, damage_sum), None));
                     } else {}
                 }
+                ModifierCost::MinWinsInARow(amount) => {
+                    if game.game_statistics.wins_in_a_row < u64::from(*amount) {
+                        return Err((format!("Did not fulfill the MinWinsInARow of {} win, only hase {:?} wins in a row.", amount, game.game_statistics.wins_in_a_row), None));
+                    } else {}
+                }
             }
         }
     }
@@ -236,6 +250,10 @@ mod tests_int {
         assert_eq!(None, game.item_resources.get(&ItemResourceType::Mana));
         assert_eq!(9, game.inventory.len());
         assert_eq!(0, game.game_statistics.moves_count);
+        assert_eq!(0, game.game_statistics.wins);
+        assert_eq!(0, game.game_statistics.loses);
+        assert_eq!(0, game.game_statistics.wins_in_a_row);
+        assert_eq!(0, game.game_statistics.loses_in_a_row);
 
         let result = execute_move_command(&mut game, 0);
 
@@ -249,6 +267,10 @@ mod tests_int {
         assert_eq!(Some(&5), game.item_resources.get(&ItemResourceType::Mana));
         assert_eq!(9, game.inventory.len());
         assert_eq!(1, game.game_statistics.moves_count);
+        assert_eq!(0, game.game_statistics.wins);
+        assert_eq!(1, game.game_statistics.loses);
+        assert_eq!(0, game.game_statistics.wins_in_a_row);
+        assert_eq!(1, game.game_statistics.loses_in_a_row);
 
         let result = execute_move_command(&mut game, 0);
 
@@ -263,6 +285,10 @@ mod tests_int {
         assert_eq!(Some(&1), game.item_resources.get(&ItemResourceType::Mana));
         assert_eq!(10, game.inventory.len());
         assert_eq!(2, game.game_statistics.moves_count);
+        assert_eq!(1, game.game_statistics.wins);
+        assert_eq!(1, game.game_statistics.loses);
+        assert_eq!(1, game.game_statistics.wins_in_a_row);
+        assert_eq!(0, game.game_statistics.loses_in_a_row);
     }
 
     #[test]
@@ -885,5 +911,53 @@ mod tests_int {
         let result = result.unwrap_err();
         assert_eq!("You did not deal enough damage to overcome the challenges in this place.".to_string(), result.result);
         assert_eq!("Did not fulfill the FlatMaxSumResistanceRequirement of 94 damage, place has 160 damage and that is too much.".to_string(), result.item_report[0].effect_description);
+    }
+
+    #[test]
+    fn test_min_win_row_requirement() {
+        let mut game = generate_testing_game(Some([1; 16]));
+
+        let first_item_cannot_pay = Item {
+            modifiers: vec![
+                ItemModifier {
+                    costs: vec![
+                        ModifierCost::MinWinsInARow(1)
+                    ],
+                    gains: Vec::new(),
+                }
+            ],
+            crafting_info: CraftingInfo {
+                possible_rolls: game.difficulty.clone()
+            },
+        };
+
+        game.equipped_items.insert(0, first_item_cannot_pay.clone());
+
+        let result = execute_move_command(&mut game, 0);
+
+        assert!(result.is_err());
+
+        let result = result.unwrap_err();
+        assert_eq!("You did not deal enough damage to overcome the challenges in this place.".to_string(), result.result);
+        assert_eq!("Did not fulfill the MinWinsInARow of 1 win, only hase 0 wins in a row.".to_string(), result.item_report[0].effect_description);
+        assert_eq!("Costs paid and all gains executed.".to_string(), result.item_report[1].effect_description);
+
+        let result = execute_move_command(&mut game, 0);
+
+        assert!(result.is_ok());
+
+        let result = result.unwrap();
+        assert_eq!("You won and got a new item in the inventory.".to_string(), result.result);
+        assert_eq!("Did not fulfill the MinWinsInARow of 1 win, only hase 0 wins in a row.".to_string(), result.item_report[0].effect_description);
+        assert_eq!("Costs paid and all gains executed.".to_string(), result.item_report[1].effect_description);
+
+        let result = execute_move_command(&mut game, 9);
+
+        assert!(result.is_err());
+
+        let result = result.unwrap_err();
+        assert_eq!("You did not deal enough damage to overcome the challenges in this place.".to_string(), result.result);
+        assert_eq!("Costs paid and all gains executed.".to_string(), result.item_report[0].effect_description);
+        assert_eq!("Costs paid and all gains executed.".to_string(), result.item_report[1].effect_description);
     }
 }

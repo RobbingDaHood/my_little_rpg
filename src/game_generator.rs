@@ -5,7 +5,6 @@ use crate::Game;
 use crate::item::{CraftingInfo, Item};
 use crate::item_modifier::ItemModifier;
 use crate::item_resource::ItemResourceType;
-use crate::modifier_cost::ModifierCost;
 use crate::modifier_gain::ModifierGain;
 use crate::place_generator::{generate_place};
 use rand::{RngCore};
@@ -13,6 +12,7 @@ use rand::SeedableRng;
 use crate::difficulty::Difficulty;
 use crate::game_statistics::GameStatistics;
 use crate::hex_encoder::encode_hex;
+use crate::modifier_cost::ModifierCost;
 
 pub fn generate_new_game(seed: Option<[u8; 16]>) -> Game {
     let mut min_resistance = HashMap::new();
@@ -42,6 +42,10 @@ pub fn generate_new_game(seed: Option<[u8; 16]>) -> Game {
 
     let game_statistics = GameStatistics {
         moves_count: 0,
+        wins: 0,
+        loses: 0,
+        wins_in_a_row: 0,
+        loses_in_a_row: 0
     };
 
     let mut game = Game { places: Vec::new(), equipped_items, difficulty, treasure: HashMap::new(), item_resources: HashMap::new(), inventory: Vec::new(), seed, random_generator_state: random_generator, game_statistics };
@@ -145,6 +149,10 @@ pub fn generate_testing_game(seed: Option<[u8; 16]>) -> Game {
 
     let game_statistics = GameStatistics {
         moves_count: 0,
+        wins: 0,
+        loses: 0,
+        wins_in_a_row: 0,
+        loses_in_a_row: 0
     };
 
     let mut game = Game { places: Vec::new(), equipped_items, difficulty, treasure: HashMap::new(), item_resources: HashMap::new(), inventory, seed, random_generator_state: random_generator, game_statistics };
