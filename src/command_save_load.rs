@@ -1,5 +1,5 @@
 use std::fs;
-use std::fs::{create_dir_all, File};
+use std::fs::{create_dir_all};
 use serde_json::json;
 use crate::Game;
 
@@ -55,7 +55,7 @@ mod tests_int {
         for _i in 1..1000 {
             let mut game = generate_testing_game(Some([1; 16]));
             game.treasure.insert(Gold, 1000);
-            execute_save_command(&game, "save_load_seeding_test".to_string(), Some("./testing/".to_string()));
+            execute_save_command(&game, "save_load_seeding_test".to_string(), Some("./testing/".to_string())).unwrap();
             let mut parsed_game = execute_load_command("save_load_seeding_test".to_string(), Some("./testing/".to_string())).unwrap();
 
             assert_eq!(game, parsed_game);

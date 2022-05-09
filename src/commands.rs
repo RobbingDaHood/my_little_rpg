@@ -1,4 +1,4 @@
-use crate::commands::Command::{AddModifier, Equip, ExpandElements, ExpandEquipmentSlots, ExpandMaxElement, ExpandMaxSimultaneousElement, ExpandMinElement, ExpandMinSimultaneousElement, ExpandPlaces, Help, Move, ReduceDifficulty, ReorderInventory, RerollModifier, SaveTheWorld, State, SwapEquipment};
+use crate::commands::Command::{AddModifier, Equip, ExpandElements, ExpandEquipmentSlots, ExpandMaxElement, ExpandMaxSimultaneousElement, ExpandMinElement, ExpandMinSimultaneousElement, ExpandPlaces, Help, LoadTheWorld, Move, ReduceDifficulty, ReorderInventory, RerollModifier, SaveTheWorld, State, SwapEquipment};
 use serde::{Deserialize, Serialize};
 use crate::index_specifier::IndexSpecifier;
 
@@ -21,6 +21,7 @@ pub enum Command {
     Help,
     ReorderInventory,
     SaveTheWorld(String, Option<String>),
+    LoadTheWorld(String, Option<String>),
 }
 
 impl Command {
@@ -43,6 +44,7 @@ impl Command {
             Help,
             ReorderInventory,
             SaveTheWorld("String".to_string(), None),
+            LoadTheWorld("String".to_string(), None),
         ]
     }
 
@@ -193,6 +195,26 @@ impl TryFrom<&String> for Command {
                     Err(error_message.clone())
                 };
             }
+            "LoadTheWorld" => {
+                let error_message = format!("Trouble parsing LoadTheWorld command, it needs a save game name and optionally a path to the savegame (remember to end the path with /). Default location is ./save_games/. Got {:?}", command_parts);
+                if command_parts.len() < 2 {
+                    return Err(error_message.clone());
+                }
+
+                return if let Ok(save_game_name) = command_parts[1].parse::<String>() {
+                    if command_parts.len() < 3 {
+                        Ok(LoadTheWorld(save_game_name, None))
+                    } else {
+                        if let Ok(save_game_path) = command_parts[2].parse::<String>() {
+                            Ok(LoadTheWorld(save_game_name, Some(save_game_path)))
+                        } else {
+                            return Err(error_message.clone());
+                        }
+                    }
+                } else {
+                    Err(error_message.clone())
+                };
+            }
             _ => Err(format!("Command not known. Got {:?}", command_parts))
         };
     }
@@ -264,6 +286,10 @@ mod tests_int {
         assert_eq!(Command::SaveTheWorld("a".to_string(), Some("b".to_string())), Command::try_from(&"SaveTheWorld a b".to_string()).unwrap());
         assert_eq!(Command::SaveTheWorld("a".to_string(), None), Command::try_from(&"SaveTheWorld a".to_string()).unwrap());
         assert_eq!(Err("Trouble parsing SaveTheWorld command, it needs a save game name and optionally a path to the savegame (remember to end the path with /). Default location is ./save_games/. Got [\"SaveTheWorld\"]".to_string()), Command::try_from(&"SaveTheWorld".to_string()));
+
+        assert_eq!(Command::LoadTheWorld("a".to_string(), Some("b".to_string())), Command::try_from(&"LoadTheWorld a b".to_string()).unwrap());
+        assert_eq!(Command::LoadTheWorld("a".to_string(), None), Command::try_from(&"LoadTheWorld a".to_string()).unwrap());
+        assert_eq!(Err("Trouble parsing LoadTheWorld command, it needs a save game name and optionally a path to the savegame (remember to end the path with /). Default location is ./save_games/. Got [\"LoadTheWorld\"]".to_string()), Command::try_from(&"LoadTheWorld".to_string()));
 
         assert_eq!(Err("Command not known. Got [\"InvalidCommand\"]".to_string()), Command::try_from(&"InvalidCommand".to_string()));
     }

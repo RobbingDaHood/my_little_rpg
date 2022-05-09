@@ -39,6 +39,7 @@ fn execute_help_for_command(command: Command) -> &'static str {
         Command::AddModifier(_, _) => "AddModifier X Y: Give item in inventory at index X a new random modifier. Y is a comma seperated list of indexes for items in the inventory to sacrifice to pay the cost of the command, they each need to have at least the same amount of modifiers as the item being upgraded. Z can contain relative indexes prefixed with + or -, they are relative to X.",
         Command::Help => "Help: Get the help text that you are reading right now.",
         Command::ReorderInventory => "ReorderInventory: Arranges all items in the inventory so there are no more gaps in indexes between items.",
-        Command::SaveTheWorld(_, _) => "SaveTheWorld X Optional(Y): Save the world! So you can load it later; Stay saved. X is save game name, Y is optional save game path."
+        Command::SaveTheWorld(_, _) => "SaveTheWorld X Optional(Y): Save the world! So you can load it later; Stay saved. X is save game name, Y is optional save game path.",
+        Command::LoadTheWorld(_, _) => "LoadTheWorld X Optional(Y): Load a saved game. X is save game name, Y is optional save game path.",
     }
 }

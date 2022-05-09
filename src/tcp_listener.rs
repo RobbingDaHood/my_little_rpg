@@ -18,7 +18,7 @@ use crate::command_help::execute_help;
 use crate::command_move::execute_move_command;
 use crate::command_reduce_difficulty::execute_reduce_difficulty;
 use crate::command_reorder_inventory::execute_reorder_inventory;
-use crate::command_save_load::execute_save_command;
+use crate::command_save_load::{execute_load_command, execute_save_command};
 use crate::command_state::execute_state;
 use crate::commands::Command;
 use crate::game_generator::{generate_new_game};
@@ -106,6 +106,18 @@ impl Listener {
             },
             Ok(Command::SaveTheWorld(save_game_name, save_game_path)) => if let Err(e) = stream.write(format!("{} \n", json!(execute_save_command(game, save_game_name, save_game_path))).as_bytes()) {
                 panic!("{}", e);
+            },
+            Ok(Command::LoadTheWorld(save_game_name, save_game_path)) => {
+                let message = match execute_load_command(save_game_name, save_game_path) {
+                    Err(error_message) => Err(error_message),
+                    Ok(new_game) => {
+                        *game = new_game;
+                        Ok("Game is loaded!")
+                    }
+                };
+                if let Err(e) = stream.write(format!("{} \n", json!(message)).as_bytes()) {
+                    panic!("{}", e);
+                }
             },
         }
     }
