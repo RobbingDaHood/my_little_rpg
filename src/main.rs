@@ -36,6 +36,7 @@ mod command_reorder_inventory;
 mod index_specifier;
 mod difficulty;
 mod game_statistics;
+mod command_save_load;
 
 use structopt::StructOpt;
 use crate::hex_encoder::decode_hex;
