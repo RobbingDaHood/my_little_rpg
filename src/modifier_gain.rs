@@ -2,7 +2,7 @@ use crate::attack_types::AttackType;
 
 use serde::{Deserialize, Serialize};
 use crate::item_resource::ItemResourceType;
-use crate::modifier_gain::ModifierGain::{FlatDamage, FlatDamageAgainstHighestResistance, FlatItemResource, FlatResistanceReduction, PercentageIncreaseDamage, PercentageIncreaseResistanceReduction};
+use crate::modifier_gain::ModifierGain::{FlatDamage, FlatDamageAgainstHighestResistance, FlatItemResource, FlatResistanceReduction, PercentageIncreaseDamage, PercentageIncreaseDamageAgainstHighestResistance, PercentageIncreaseResistanceReduction};
 
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize, Eq, Hash)]
 pub enum ModifierGain {
@@ -12,6 +12,7 @@ pub enum ModifierGain {
     FlatResistanceReduction(AttackType, u64),
     PercentageIncreaseResistanceReduction(AttackType, u16),
     FlatDamageAgainstHighestResistance(u64),
+    PercentageIncreaseDamageAgainstHighestResistance(u16),
 //TODO: Half unsatisfied defence, double unsatisfied attack, double tressure, doulbe items
 }
 
@@ -40,6 +41,7 @@ impl ModifierGain {
         }
 
         result.push(FlatDamageAgainstHighestResistance(0));
+        result.push(PercentageIncreaseDamageAgainstHighestResistance(0));
 
         result
     }
