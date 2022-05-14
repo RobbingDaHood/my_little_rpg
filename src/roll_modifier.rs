@@ -182,7 +182,7 @@ fn execute_craft_roll_modifier_benefits(game: &mut Game, crafting_info: &Craftin
         let cost_bonus = if i == maximum_elements {
             leftover_cost
         } else {
-            game.random_generator_state.gen_range(0..=leftover_cost)
+            game.random_generator_state.gen_range(1..=leftover_cost)
         };
         leftover_cost -= cost_bonus;
 
@@ -201,10 +201,10 @@ fn execute_craft_roll_modifier_benefits(game: &mut Game, crafting_info: &Craftin
                     ModifierGain::FlatDamage(attack_type.clone(), damage.clone())
                 }
                 PercentageIncreaseDamage(attack_type, _) => {
-                    ModifierGain::PercentageIncreaseDamage(attack_type.clone(), u16::try_from(cost_bonus).unwrap_or(u16::MAX))
+                    ModifierGain::PercentageIncreaseDamage(attack_type.clone(), u16::try_from(cost_bonus).unwrap_or(u16::MAX).max(1))
                 }
                 FlatItemResource(item_resource_type, _) => {
-                    ModifierGain::FlatItemResource(item_resource_type.clone(), cost_bonus * 2 + 1)
+                    ModifierGain::FlatItemResource(item_resource_type.clone(), max(1, cost_bonus * 2))
                 }
                 FlatResistanceReduction(attack_type, _) => {
                     let min_damage = *crafting_info.possible_rolls.min_resistance.get(attack_type).unwrap_or(&0);
@@ -217,25 +217,25 @@ fn execute_craft_roll_modifier_benefits(game: &mut Game, crafting_info: &Craftin
                     ModifierGain::FlatResistanceReduction(attack_type.clone(), damage.clone())
                 }
                 PercentageIncreaseResistanceReduction(attack_type, _) => {
-                    ModifierGain::PercentageIncreaseResistanceReduction(attack_type.clone(), u16::try_from(cost_bonus).unwrap_or(u16::MAX))
+                    ModifierGain::PercentageIncreaseResistanceReduction(attack_type.clone(), u16::try_from(cost_bonus).unwrap_or(u16::MAX).max(1))
                 }
                 FlatDamageAgainstHighestResistance(_) => {
-                    ModifierGain::FlatDamageAgainstHighestResistance(cost_bonus.checked_div(2).unwrap_or(1))
+                    ModifierGain::FlatDamageAgainstHighestResistance(cost_bonus.checked_div(2).unwrap_or(1).max(1))
                 }
                 PercentageIncreaseDamageAgainstHighestResistance(_) => {
-                    ModifierGain::PercentageIncreaseDamageAgainstHighestResistance(u16::try_from(cost_bonus.checked_div(2).unwrap_or(1)).unwrap_or(u16::MAX))
+                    ModifierGain::PercentageIncreaseDamageAgainstHighestResistance(u16::try_from(cost_bonus.checked_div(2).unwrap_or(1).max(1)).unwrap_or(u16::MAX))
                 }
                 FlatDamageAgainstLowestResistance(_) => {
-                    ModifierGain::FlatDamageAgainstLowestResistance(cost_bonus.checked_div(4).unwrap_or(1))
+                    ModifierGain::FlatDamageAgainstLowestResistance(cost_bonus.checked_div(4).unwrap_or(1).max(1))
                 }
                 PercentageIncreaseDamageAgainstLowestResistance(_) => {
-                    ModifierGain::PercentageIncreaseDamageAgainstLowestResistance(u16::try_from(cost_bonus.checked_div(4).unwrap_or(1)).unwrap_or(u16::MAX))
+                    ModifierGain::PercentageIncreaseDamageAgainstLowestResistance(u16::try_from(cost_bonus.checked_div(4).unwrap_or(1).max(1)).unwrap_or(u16::MAX))
                 }
                 PercentageIncreaseTreasure(treasure_type, _) => {
-                    ModifierGain::PercentageIncreaseTreasure(treasure_type.clone(), u16::try_from(cost_bonus).unwrap_or(u16::MAX))
+                    ModifierGain::PercentageIncreaseTreasure(treasure_type.clone(), u16::try_from(cost_bonus).unwrap_or(u16::MAX).max(1))
                 }
                 FlatIncreaseRewardedItems(_) => {
-                    ModifierGain::FlatIncreaseRewardedItems(u16::try_from(cost_bonus.checked_div(10).unwrap_or(1)).unwrap_or(u16::MAX))
+                    ModifierGain::FlatIncreaseRewardedItems(u16::try_from(cost_bonus.checked_div(10).unwrap_or(1).max(1)).unwrap_or(u16::MAX))
                 }
             }
         )

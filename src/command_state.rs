@@ -54,7 +54,7 @@ pub struct PresentationPlace {
 pub struct PresentationItem {
     index: usize,
     item: Item,
-    crafting_action_costs: Result<ItemCosts, String>,
+    crafting_action_costs: Result<ItemCosts, String>, //TODO Insert this into items, in a way where we do not need to maintain a second item model
 }
 
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
