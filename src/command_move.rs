@@ -145,6 +145,23 @@ fn update_gain_effect(current_damage: &mut HashMap<AttackType, u64>, current_res
                 },
                 ModifierGain::FlatItemResource(item_resource_type, amount) => *current_item_resources.entry(item_resource_type.clone()).or_insert(0) += amount,
                 ModifierGain::FlatResistanceReduction(attack_type, amount) => *current_resistance_reduction.entry(attack_type.clone()).or_insert(0) += amount,
+                ModifierGain::PercentageIncreaseResistanceReduction(attack_type, percentage) => {
+                    match current_resistance_reduction.get(attack_type) {
+                        None => {}
+                        Some(resistance_reduction_amount) => {
+                            let added_attack_value = resistance_reduction_amount
+                                .checked_div(100)
+                                .unwrap_or(1)
+                                .max(1)
+                                .checked_mul(*percentage as u64)
+                                .unwrap_or(u64::MAX);
+                            let multiplied_attack_value = resistance_reduction_amount
+                                .checked_add(added_attack_value)
+                                .unwrap_or(u64::MAX);
+                            current_resistance_reduction.insert(attack_type.clone(), multiplied_attack_value);
+                        }
+                    }
+                },
             }
         }
     }
@@ -1107,5 +1124,38 @@ mod tests_int {
         assert_eq!("You did not deal enough damage to overcome the challenges in this place.".to_string(), result.result);
         assert_eq!("Costs paid and all gains executed.".to_string(), result.item_report[0].effect_description);
         assert_eq!(200, *result.item_report[0].current_resistance_reduction.get(&AttackType::Physical).unwrap());
+    }
+
+    #[test]
+    fn test_percentage_increase_resistance_reduction() {
+        let mut game = generate_testing_game(Some([1; 16]));
+        game.equipped_items = Vec::new();
+
+        let item = Item {
+            modifiers: vec![
+                ItemModifier {
+                    costs: Vec::new(),
+                    gains: vec![
+                        ModifierGain::FlatResistanceReduction(AttackType::Physical, 200),
+                        ModifierGain::PercentageIncreaseResistanceReduction(AttackType::Physical, 200),
+                    ],
+                }
+            ],
+            crafting_info: CraftingInfo {
+                possible_rolls: game.difficulty.clone()
+            },
+        };
+
+        game.equipped_items.push(item.clone());
+
+
+        let result = execute_move_command(&mut game, 0);
+
+        assert!(result.is_err());
+
+        let result = result.unwrap_err();
+        assert_eq!("You did not deal enough damage to overcome the challenges in this place.".to_string(), result.result);
+        assert_eq!("Costs paid and all gains executed.".to_string(), result.item_report[0].effect_description);
+        assert_eq!(600, *result.item_report[0].current_resistance_reduction.get(&AttackType::Physical).unwrap());
     }
 }
