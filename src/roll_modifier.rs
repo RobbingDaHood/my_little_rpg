@@ -8,7 +8,7 @@ use crate::item::CraftingInfo;
 use crate::item_modifier::ItemModifier;
 use crate::item_resource::ItemResourceType;
 use crate::modifier_cost::ModifierCost;
-use crate::modifier_gain::ModifierGain::{FlatDamageAgainstHighestResistance, FlatDamageAgainstLowestResistance, FlatItemResource, FlatResistanceReduction, PercentageIncreaseDamage, PercentageIncreaseDamageAgainstHighestResistance, PercentageIncreaseDamageAgainstLowestResistance, PercentageIncreaseResistanceReduction};
+use crate::modifier_gain::ModifierGain::{FlatDamageAgainstHighestResistance, FlatDamageAgainstLowestResistance, FlatItemResource, FlatResistanceReduction, PercentageIncreaseDamage, PercentageIncreaseDamageAgainstHighestResistance, PercentageIncreaseDamageAgainstLowestResistance, PercentageIncreaseResistanceReduction, PercentageIncreaseTreasure};
 use crate::modifier_gain::ModifierGain;
 use crate::modifier_gain::ModifierGain::FlatDamage;
 use crate::game::get_random_attack_type_from_unlocked;
@@ -231,6 +231,9 @@ fn execute_craft_roll_modifier_benefits(game: &mut Game, crafting_info: &Craftin
                 PercentageIncreaseDamageAgainstLowestResistance(_) => {
                     ModifierGain::PercentageIncreaseDamageAgainstLowestResistance(u16::try_from(cost_bonus.checked_div(4).unwrap_or(1)).unwrap_or(u16::MAX))
                 }
+                PercentageIncreaseTreasure(treasure_type, _) => {
+                    ModifierGain::PercentageIncreaseTreasure(treasure_type.clone(), u16::try_from(cost_bonus).unwrap_or(u16::MAX))
+                }
             }
         )
     }
@@ -245,6 +248,7 @@ mod tests_int {
     use crate::modifier_cost::ModifierCost;
     use crate::modifier_gain::ModifierGain;
     use crate::roll_modifier::execute_craft_roll_modifier;
+    use crate::treasure_types::TreasureType;
 
 
     #[test]
@@ -374,6 +378,10 @@ mod tests_int {
                         let token = ModifierGain::PercentageIncreaseDamageAgainstLowestResistance(0);
                         *gain_modifiers.entry(token).or_insert(0) += 1;
                     }
+                    ModifierGain::PercentageIncreaseTreasure(treasure_type, _) => {
+                        let token = ModifierGain::PercentageIncreaseTreasure(treasure_type, 0);
+                        *gain_modifiers.entry(token).or_insert(0) += 1;
+                    }
                 }
             }
         }
@@ -448,5 +456,9 @@ mod tests_int {
         assert_ne!(0, *gain_modifiers.get(&ModifierGain::PercentageIncreaseDamageAgainstHighestResistance(0)).unwrap());
         assert_ne!(0, *gain_modifiers.get(&ModifierGain::FlatDamageAgainstLowestResistance(0)).unwrap());
         assert_ne!(0, *gain_modifiers.get(&ModifierGain::PercentageIncreaseDamageAgainstLowestResistance(0)).unwrap());
+
+        assert_eq!(0, TreasureType::get_all().into_iter()
+            .filter(|treasure_type| gain_modifiers.get(&ModifierGain::PercentageIncreaseTreasure(treasure_type.clone(), 0)).unwrap() == &0)
+            .count());
     }
 }

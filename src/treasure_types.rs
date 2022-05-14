@@ -1,10 +1,19 @@
 use std::collections::HashMap;
 use serde::{Deserialize, Serialize};
 use crate::Game;
+use crate::treasure_types::TreasureType::Gold;
 
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize, Eq, Hash)]
 pub enum TreasureType {
     Gold
+}
+
+impl TreasureType {
+    pub fn get_all() -> Vec<TreasureType> {
+        vec![
+            Gold,
+        ]
+    }
 }
 
 pub fn pay_crafting_cost(game: &mut Game, crafting_cost: &HashMap<TreasureType, u64>) -> Result<(), String> {
