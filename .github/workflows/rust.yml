@@ -1,0 +1,71 @@
+name: Rust
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  build:
+
+    runs-on: ${{ matrix.os }}
+    strategy:
+        matrix:
+            os: [ubuntu-latest, windows-latest, macos-latest]
+
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Build
+      run: cargo build --verbose
+    
+    - name: Install Rust toolchain
+      uses: actions-rs/toolchain@16499b5e05bf2e26879000db0c1d13f7e13fa3af #@v1
+      with:
+        profile: minimal
+        toolchain: stable
+        components: clippy
+        override: true
+
+    - name: Install required cargo
+      run: cargo install clippy-sarif sarif-fmt
+
+    - name: Run rust-clippy
+      run:
+        cargo clippy
+        --all-features
+        --message-format=json | clippy-sarif | tee rust-clippy-results.sarif | sarif-fmt
+      continue-on-error: true
+
+    - name: Upload analysis results to GitHub
+      uses: github/codeql-action/upload-sarif@v2
+      with:
+        sarif_file: rust-clippy-results.sarif
+        wait-for-processing: true
+      
+    - name: Run tests
+      run: cargo test --verbose
+    
+
+#     - name: Send mail
+#       if: always()
+#       uses: dawidd6/action-send-mail@v2
+#       with:
+#         # mail server settings
+#         server_address: smtp.gmail.com
+#         server_port: 465
+#         # user credentials
+#         username: ${{ secrets.EMAIL_USERNAME }}
+#         password: ${{ secrets.EMAIL_PASSWORD }}
+#         # email subject
+#         subject: ${{ github.job }} job of ${{ github.repository }} has ${{ job.status }}
+#         # email body as text
+#         body: ${{ github.job }} job in worflow ${{ github.workflow }} of ${{ github.repository }} has ${{ job.status }}
+#         # comma-separated string, send email to
+#         to: supderdacal@gmail.com
+#         # from email name
+#         from: happy.coding.mouse@gmail.com
