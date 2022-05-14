@@ -8,7 +8,7 @@ use crate::item::CraftingInfo;
 use crate::item_modifier::ItemModifier;
 use crate::item_resource::ItemResourceType;
 use crate::modifier_cost::ModifierCost;
-use crate::modifier_gain::ModifierGain::{FlatItemResource, PercentageIncreaseDamage};
+use crate::modifier_gain::ModifierGain::{FlatItemResource, FlatResistanceReduction, PercentageIncreaseDamage};
 use crate::modifier_gain::ModifierGain;
 use crate::modifier_gain::ModifierGain::FlatDamage;
 use crate::game::get_random_attack_type_from_unlocked;
@@ -200,11 +200,21 @@ fn execute_craft_roll_modifier_benefits(game: &mut Game, crafting_info: &Craftin
 
                     ModifierGain::FlatDamage(attack_type.clone(), damage.clone())
                 }
+                PercentageIncreaseDamage(attack_type, _) => {
+                    ModifierGain::PercentageIncreaseDamage(attack_type.clone(), u16::try_from(cost_bonus).unwrap_or(u16::MAX))
+                }
                 FlatItemResource(item_resource_type, _) => {
                     ModifierGain::FlatItemResource(item_resource_type.clone(), cost_bonus * 2 + 1)
                 }
-                PercentageIncreaseDamage(attack_type, _) => {
-                    ModifierGain::PercentageIncreaseDamage(attack_type.clone(), u16::try_from(cost_bonus).unwrap_or(u16::MAX))
+                FlatResistanceReduction(attack_type, _) => {
+                    let min_damage = *crafting_info.possible_rolls.min_resistance.get(attack_type).unwrap_or(&0);
+                    let max_damage = *crafting_info.possible_rolls.max_resistance.get(attack_type).unwrap_or(&1);
+                    let damage = game.random_generator_state.gen_range(min_damage..=max_damage);
+                    let damage = damage / 2;
+                    let damage = max(1, damage);
+                    let damage = damage + cost_bonus * 2;
+
+                    ModifierGain::FlatResistanceReduction(attack_type.clone(), damage.clone())
                 }
             }
         )
@@ -325,6 +335,10 @@ mod tests_int {
                         let token = ModifierGain::PercentageIncreaseDamage(attack_type, 0);
                         *gain_modifiers.entry(token).or_insert(0) += 1;
                     }
+                    ModifierGain::FlatResistanceReduction(item_resource, _) => {
+                        let token = ModifierGain::FlatResistanceReduction(item_resource, 0);
+                        *gain_modifiers.entry(token).or_insert(0) += 1;
+                    }
                 }
             }
         }
@@ -384,5 +398,11 @@ mod tests_int {
             .map(|attack_type| attack_type.clone())
             .filter(|attack_type| gain_modifiers.get(&ModifierGain::PercentageIncreaseDamage(attack_type.clone(), 0)).unwrap() == &0)
             .count());
+
+        assert_eq!(0, game.difficulty.min_resistance.keys()
+            .map(|attack_type| attack_type.clone())
+            .filter(|attack_type| gain_modifiers.get(&ModifierGain::FlatResistanceReduction(attack_type.clone(), 0)).unwrap() == &0)
+            .count());
+
     }
 }
