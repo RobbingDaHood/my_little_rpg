@@ -8,7 +8,7 @@ use crate::item::CraftingInfo;
 use crate::item_modifier::ItemModifier;
 use crate::item_resource::ItemResourceType;
 use crate::modifier_cost::ModifierCost;
-use crate::modifier_gain::ModifierGain::FlatItemResource;
+use crate::modifier_gain::ModifierGain::{FlatItemResource, PercentageIncreaseDamage};
 use crate::modifier_gain::ModifierGain;
 use crate::modifier_gain::ModifierGain::FlatDamage;
 use crate::game::get_random_attack_type_from_unlocked;
@@ -189,7 +189,7 @@ fn execute_craft_roll_modifier_benefits(game: &mut Game, crafting_info: &Craftin
         let gain_seize = all_modifier_gain_options.len();
         let modifier_index = game.random_generator_state.gen_range(0..gain_seize);
         modifier_gain.push(
-            match &all_modifier_gain_options[modifier_index] {
+            match &all_modifier_gain_options[modifier_index] { //TODO do the same with costs.
                 FlatDamage(attack_type, _) => {
                     let min_damage = *crafting_info.possible_rolls.min_resistance.get(attack_type).unwrap_or(&0);
                     let max_damage = *crafting_info.possible_rolls.max_resistance.get(attack_type).unwrap_or(&1);
@@ -198,11 +198,13 @@ fn execute_craft_roll_modifier_benefits(game: &mut Game, crafting_info: &Craftin
                     let damage = max(1, damage);
                     let damage = damage + cost_bonus * 2;
 
-
                     ModifierGain::FlatDamage(attack_type.clone(), damage.clone())
                 }
                 FlatItemResource(item_resource_type, _) => {
                     ModifierGain::FlatItemResource(item_resource_type.clone(), cost_bonus * 2 + 1)
+                }
+                PercentageIncreaseDamage(attack_type, _) => {
+                    ModifierGain::PercentageIncreaseDamage(attack_type.clone(), u16::try_from(cost_bonus).unwrap_or(u16::MAX))
                 }
             }
         )
@@ -319,6 +321,10 @@ mod tests_int {
                         let token = ModifierGain::FlatDamage(attack_type, 0);
                         *gain_modifiers.entry(token).or_insert(0) += 1;
                     }
+                    ModifierGain::PercentageIncreaseDamage(attack_type, _) => {
+                        let token = ModifierGain::PercentageIncreaseDamage(attack_type, 0);
+                        *gain_modifiers.entry(token).or_insert(0) += 1;
+                    }
                 }
             }
         }
@@ -352,15 +358,6 @@ mod tests_int {
 
         assert_eq!(0, game.difficulty.min_resistance.keys()
             .map(|attack_type| attack_type.clone())
-            .filter(|attack_type| gain_modifiers.get(&ModifierGain::FlatDamage(attack_type.clone(), 0)).unwrap() == &0)
-            .count());
-
-        assert_eq!(0, ItemResourceType::get_all().into_iter()
-            .filter(|item_resource| gain_modifiers.get(&ModifierGain::FlatItemResource(item_resource.clone(), 0)).unwrap() == &0)
-            .count());
-
-        assert_eq!(0, game.difficulty.min_resistance.keys()
-            .map(|attack_type| attack_type.clone())
             .filter(|attack_type| cost_modifiers.get(&ModifierCost::FlatMinResistanceRequirement(attack_type.clone(), 0)).unwrap() == &0)
             .count());
 
@@ -373,5 +370,19 @@ mod tests_int {
         assert_ne!(0, *cost_modifiers.get(&ModifierCost::FlatMaxSumResistanceRequirement(0)).unwrap());
         assert_ne!(0, *cost_modifiers.get(&ModifierCost::MinWinsInARow(0)).unwrap());
         assert_ne!(0, *cost_modifiers.get(&ModifierCost::MaxWinsInARow(0)).unwrap());
+
+        assert_eq!(0, game.difficulty.min_resistance.keys()
+            .map(|attack_type| attack_type.clone())
+            .filter(|attack_type| gain_modifiers.get(&ModifierGain::FlatDamage(attack_type.clone(), 0)).unwrap() == &0)
+            .count());
+
+        assert_eq!(0, ItemResourceType::get_all().into_iter()
+            .filter(|item_resource| gain_modifiers.get(&ModifierGain::FlatItemResource(item_resource.clone(), 0)).unwrap() == &0)
+            .count());
+
+        assert_eq!(0, game.difficulty.min_resistance.keys()
+            .map(|attack_type| attack_type.clone())
+            .filter(|attack_type| gain_modifiers.get(&ModifierGain::PercentageIncreaseDamage(attack_type.clone(), 0)).unwrap() == &0)
+            .count());
     }
 }

@@ -116,6 +116,20 @@ fn update_gain_effect(current_damage: &mut HashMap<AttackType, u64>, current_ite
             match gain {
                 ModifierGain::FlatDamage(attack_type, amount) => *current_damage.entry(attack_type.clone()).or_insert(0) += amount,
                 ModifierGain::FlatItemResource(item_resource_type, amount) => *current_item_resources.entry(item_resource_type.clone()).or_insert(0) += amount,
+                ModifierGain::PercentageIncreaseDamage(attack_type, percentage) => {
+                    match current_damage.get(attack_type) {
+                        None => {},
+                        Some(attack_value) => {
+                            let multiplied_attack_value = attack_value
+                                .checked_div(100)
+                                .unwrap_or(1)
+                                .max(1)
+                                .checked_mul(*percentage as u64)
+                                .unwrap_or(u64::MAX);
+                            current_damage.insert(attack_type.clone(), multiplied_attack_value);
+                        }
+                    }
+                },
             }
         }
     }
@@ -1012,5 +1026,38 @@ mod tests_int {
         assert_eq!("You did not deal enough damage to overcome the challenges in this place.".to_string(), result.result);
         assert_eq!("Did not fulfill the MaxWinsInARow of 0 win, have 1 wins in a row and that is too much.".to_string(), result.item_report[0].effect_description);
         assert_eq!("Costs paid and all gains executed.".to_string(), result.item_report[1].effect_description);
+    }
+
+    #[test]
+    fn test_percentage_increase_damage() {
+        let mut game = generate_testing_game(Some([1; 16]));
+        game.equipped_items = Vec::new();
+
+        let item = Item {
+            modifiers: vec![
+                ItemModifier {
+                    costs: Vec::new(),
+                    gains: vec![
+                        ModifierGain::FlatDamage(AttackType::Physical, 200),
+                        ModifierGain::PercentageIncreaseDamage(AttackType::Physical, 200),
+                    ]
+                }
+            ],
+            crafting_info: CraftingInfo {
+                possible_rolls: game.difficulty.clone()
+            },
+        };
+
+        game.equipped_items.push(item.clone());
+
+
+        let result = execute_move_command(&mut game, 0);
+
+        assert!(result.is_err());
+
+        let result = result.unwrap_err();
+        assert_eq!("You did not deal enough damage to overcome the challenges in this place.".to_string(), result.result);
+        assert_eq!("Costs paid and all gains executed.".to_string(), result.item_report[0].effect_description);
+        assert_eq!(400, *result.item_report[0].current_damage.get(&AttackType::Physical).unwrap());
     }
 }
