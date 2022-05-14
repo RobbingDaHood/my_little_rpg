@@ -53,7 +53,7 @@ pub fn execute_move_command(game: &mut Game, index: usize) -> Result<ExecuteMove
         };
 
         update_cost_effect(&mut game.item_resources, &item_resource_cost);
-        update_gain_effect(&mut current_damage, &mut current_resistance_reduction, &mut game.item_resources, &item);
+        update_gain_effect(&mut current_damage, &mut current_resistance_reduction, &mut game.item_resources, &item, game.places.get(index).unwrap());
         update_item_report(&current_damage, &current_resistance_reduction, &game.item_resources, &mut item_report, item, &Some(item_resource_cost), "Costs paid and all gains executed.");
 
         //For the calculation of claiming the rewards we can merge the attack damage and flat resistance reduction into damage;
@@ -121,7 +121,7 @@ fn update_claim_place_effect(game: &mut Game, index: usize, item_report: Vec<Ite
     });
 }
 
-fn update_gain_effect(current_damage: &mut HashMap<AttackType, u64>, current_resistance_reduction: &mut HashMap<AttackType, u64>, current_item_resources: &mut HashMap<ItemResourceType, u64>, item: &&Item) {
+fn update_gain_effect(current_damage: &mut HashMap<AttackType, u64>, current_resistance_reduction: &mut HashMap<AttackType, u64>, current_item_resources: &mut HashMap<ItemResourceType, u64>, item: &&Item, place: &Place) {
     for modifier in &item.modifiers {
         for gain in &modifier.gains {
             match gain {
@@ -161,6 +161,13 @@ fn update_gain_effect(current_damage: &mut HashMap<AttackType, u64>, current_res
                             current_resistance_reduction.insert(attack_type.clone(), multiplied_attack_value);
                         }
                     }
+                },
+                ModifierGain::FlatDamageAgainstHighestResistance(amount) => {
+                    let attack_type_with_max_resistance = place.resistance.iter()
+                        .max_by(|(_, a_attack_amount), (_, b_attack_amount)| a_attack_amount.cmp(b_attack_amount))
+                        .map(|(attack_type, _)| attack_type)
+                        .unwrap();
+                    current_damage.insert(attack_type_with_max_resistance.clone(), *amount);
                 },
             }
         }
@@ -1157,5 +1164,37 @@ mod tests_int {
         assert_eq!("You did not deal enough damage to overcome the challenges in this place.".to_string(), result.result);
         assert_eq!("Costs paid and all gains executed.".to_string(), result.item_report[0].effect_description);
         assert_eq!(600, *result.item_report[0].current_resistance_reduction.get(&AttackType::Physical).unwrap());
+    }
+
+    #[test]
+    fn test_flat_damage_against_highest_resistance() {
+        let mut game = generate_testing_game(Some([1; 16]));
+        game.equipped_items = Vec::new();
+
+        let item = Item {
+            modifiers: vec![
+                ItemModifier {
+                    costs: Vec::new(),
+                    gains: vec![
+                        ModifierGain::FlatDamageAgainstHighestResistance(200),
+                    ],
+                }
+            ],
+            crafting_info: CraftingInfo {
+                possible_rolls: game.difficulty.clone()
+            },
+        };
+
+        game.equipped_items.push(item.clone());
+
+
+        let result = execute_move_command(&mut game, 0);
+
+        assert!(result.is_err());
+
+        let result = result.unwrap_err();
+        assert_eq!("You did not deal enough damage to overcome the challenges in this place.".to_string(), result.result);
+        assert_eq!("Costs paid and all gains executed.".to_string(), result.item_report[0].effect_description);
+        assert_eq!(200, *result.item_report[0].current_damage.get(&AttackType::Nature).unwrap());
     }
 }

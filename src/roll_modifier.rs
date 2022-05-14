@@ -8,7 +8,7 @@ use crate::item::CraftingInfo;
 use crate::item_modifier::ItemModifier;
 use crate::item_resource::ItemResourceType;
 use crate::modifier_cost::ModifierCost;
-use crate::modifier_gain::ModifierGain::{FlatItemResource, FlatResistanceReduction, PercentageIncreaseDamage, PercentageIncreaseResistanceReduction};
+use crate::modifier_gain::ModifierGain::{FlatDamageAgainstHighestResistance, FlatItemResource, FlatResistanceReduction, PercentageIncreaseDamage, PercentageIncreaseResistanceReduction};
 use crate::modifier_gain::ModifierGain;
 use crate::modifier_gain::ModifierGain::FlatDamage;
 use crate::game::get_random_attack_type_from_unlocked;
@@ -219,6 +219,9 @@ fn execute_craft_roll_modifier_benefits(game: &mut Game, crafting_info: &Craftin
                 PercentageIncreaseResistanceReduction(attack_type, _) => {
                     ModifierGain::PercentageIncreaseResistanceReduction(attack_type.clone(), u16::try_from(cost_bonus).unwrap_or(u16::MAX))
                 }
+                FlatDamageAgainstHighestResistance(_) => {
+                    ModifierGain::FlatDamageAgainstHighestResistance(cost_bonus.checked_div(2).unwrap_or(1))
+                }
             }
         )
     }
@@ -342,8 +345,12 @@ mod tests_int {
                         let token = ModifierGain::FlatResistanceReduction(item_resource, 0);
                         *gain_modifiers.entry(token).or_insert(0) += 1;
                     }
-                    ModifierGain::PercentageIncreaseResistanceReduction(item_resource, _) => {
-                        let token = ModifierGain::PercentageIncreaseResistanceReduction(item_resource, 0);
+                        ModifierGain::PercentageIncreaseResistanceReduction(item_resource, _) => {
+                    let token = ModifierGain::PercentageIncreaseResistanceReduction(item_resource, 0);
+                    *gain_modifiers.entry(token).or_insert(0) += 1;
+                    }
+                    ModifierGain::FlatDamageAgainstHighestResistance(_) => {
+                        let token = ModifierGain::FlatDamageAgainstHighestResistance(0);
                         *gain_modifiers.entry(token).or_insert(0) += 1;
                     }
                 }
@@ -415,6 +422,8 @@ mod tests_int {
             .map(|attack_type| attack_type.clone())
             .filter(|attack_type| gain_modifiers.get(&ModifierGain::PercentageIncreaseResistanceReduction(attack_type.clone(), 0)).unwrap() == &0)
             .count());
+
+        assert_ne!(0, *gain_modifiers.get(&ModifierGain::FlatDamageAgainstHighestResistance(0)).unwrap());
 
     }
 }
