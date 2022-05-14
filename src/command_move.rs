@@ -17,6 +17,7 @@ pub struct ItemReport {
     current_damage: HashMap<AttackType, u64>,
     current_resistance_reduction: HashMap<AttackType, u64>,
     treasure_bonus: HashMap<TreasureType, u16>,
+    item_gain: u16,
     effect_description: String,
     item_resource_costs: Option<HashMap<ItemResourceType, u64>>,
     current_item_resources: HashMap<ItemResourceType, u64>,
@@ -43,20 +44,21 @@ pub fn execute_move_command(game: &mut Game, index: usize) -> Result<ExecuteMove
     let mut current_damage = HashMap::new();
     let mut current_resistance_reduction = HashMap::new();
     let mut treasure_bonus = HashMap::new();
+    let mut item_gain = 1;
     let mut item_report = Vec::new();
 
     for item in &game.equipped_items {
         let item_resource_cost = match evaluate_item_costs(&item, &current_damage, &game, index) {
             Ok(costs) => costs,
             Err((message, item_resource_cost)) => {
-                update_item_report(&current_damage, &current_resistance_reduction, &treasure_bonus, &game.item_resources, &mut item_report, item, &item_resource_cost, message.as_str());
+                update_item_report(&current_damage, &current_resistance_reduction, &treasure_bonus, &item_gain, &game.item_resources, &mut item_report, item, &item_resource_cost, message.as_str());
                 continue;
             }
         };
 
         update_cost_effect(&mut game.item_resources, &item_resource_cost);
-        update_gain_effect(&mut current_damage, &mut current_resistance_reduction, &mut treasure_bonus, &mut game.item_resources, &item, game.places.get(index).unwrap());
-        update_item_report(&current_damage, &current_resistance_reduction, &treasure_bonus, &game.item_resources, &mut item_report, item, &Some(item_resource_cost), "Costs paid and all gains executed.");
+        update_gain_effect(&mut current_damage, &mut current_resistance_reduction, &mut treasure_bonus, &mut item_gain, &mut game.item_resources, &item, game.places.get(index).unwrap());
+        update_item_report(&current_damage, &current_resistance_reduction, &treasure_bonus, &item_gain, &game.item_resources, &mut item_report, item, &Some(item_resource_cost), "Costs paid and all gains executed.");
 
         //For the calculation of claiming the rewards we can merge the attack damage and flat resistance reduction into damage;
         let merged_damage_and_reduced_resistance = current_damage.keys().chain(current_resistance_reduction.keys())
@@ -95,6 +97,20 @@ pub fn execute_move_command(game: &mut Game, index: usize) -> Result<ExecuteMove
                 )
                 .collect();
 
+            for _i in 0..item_gain {
+                game.inventory.push(Some(Item {
+                    crafting_info: CraftingInfo {
+                        possible_rolls: game.places[index].item_reward_possible_rolls.clone(),
+                    },
+                    modifiers: vec![
+                        ItemModifier {
+                            costs: Vec::new(),
+                            gains: Vec::new(),
+                        }
+                    ],
+                }));
+            }
+
             return update_claim_place_effect(game, index, item_report, modified_rewards);
         }
     }
@@ -123,18 +139,6 @@ fn update_claim_place_effect(game: &mut Game, index: usize, item_report: Vec<Ite
         *game.treasure.entry(treasure_type).or_insert(0) += amount;
     }
 
-    game.inventory.push(Some(Item {
-        crafting_info: CraftingInfo {
-            possible_rolls: game.places[index].item_reward_possible_rolls.clone(),
-        },
-        modifiers: vec![
-            ItemModifier {
-                costs: Vec::new(),
-                gains: Vec::new(),
-            }
-        ],
-    }));
-
     game.places[index] = generate_place(game);
 
     return Ok(ExecuteMoveCommandReport {
@@ -144,7 +148,7 @@ fn update_claim_place_effect(game: &mut Game, index: usize, item_report: Vec<Ite
     });
 }
 
-fn update_gain_effect(current_damage: &mut HashMap<AttackType, u64>, current_resistance_reduction: &mut HashMap<AttackType, u64>, treasure_bonus: &mut HashMap<TreasureType, u16>, current_item_resources: &mut HashMap<ItemResourceType, u64>, item: &&Item, place: &Place) {
+fn update_gain_effect(current_damage: &mut HashMap<AttackType, u64>, current_resistance_reduction: &mut HashMap<AttackType, u64>, treasure_bonus: &mut HashMap<TreasureType, u16>, item_gain: &mut u16, current_item_resources: &mut HashMap<ItemResourceType, u64>, item: &&Item, place: &Place) {
     for modifier in &item.modifiers {
         for gain in &modifier.gains {
             match gain {
@@ -238,6 +242,7 @@ fn update_gain_effect(current_damage: &mut HashMap<AttackType, u64>, current_res
                     }
                 }
                 ModifierGain::PercentageIncreaseTreasure(treasure_type, amount) => *treasure_bonus.entry(treasure_type.clone()).or_insert(0) += amount,
+                ModifierGain::FlatIncreaseRewardedItems(amount) => *item_gain = item_gain.checked_add(*amount).unwrap_or(u16::MAX),
             }
         }
     }
@@ -249,12 +254,13 @@ fn update_cost_effect(current_item_resources: &mut HashMap<ItemResourceType, u64
     }
 }
 
-fn update_item_report(current_damage: &HashMap<AttackType, u64>, current_resistance_reduction: &HashMap<AttackType, u64>, treasure_bonus: &HashMap<TreasureType, u16>, current_item_resources: &HashMap<ItemResourceType, u64>, item_report: &mut Vec<ItemReport>, item: &Item, item_resource_cost: &Option<HashMap<ItemResourceType, u64>>, effect_description: &str) {
+fn update_item_report(current_damage: &HashMap<AttackType, u64>, current_resistance_reduction: &HashMap<AttackType, u64>, treasure_bonus: &HashMap<TreasureType, u16>, item_gain: &u16, current_item_resources: &HashMap<ItemResourceType, u64>, item_report: &mut Vec<ItemReport>, item: &Item, item_resource_cost: &Option<HashMap<ItemResourceType, u64>>, effect_description: &str) {
     item_report.push(ItemReport {
         item: item.clone(),
         current_damage: current_damage.clone(),
         current_resistance_reduction: current_resistance_reduction.clone(),
         treasure_bonus: treasure_bonus.clone(),
+        item_gain: item_gain.clone(),
         effect_description: effect_description.to_string(),
         item_resource_costs: item_resource_cost.clone(),
         current_item_resources: current_item_resources.clone(),
@@ -1371,6 +1377,7 @@ mod tests_int {
     fn test_percentage_increase_treasure() {
         let mut game = generate_testing_game(Some([1; 16]));
 
+        //Remove all costs of super item
         for modifier in &mut game.equipped_items[1].modifiers {
             modifier.costs = Vec::new();
         }
@@ -1395,5 +1402,32 @@ mod tests_int {
 
         assert_eq!(old_place.reward.get(&TreasureType::Gold).unwrap() * 6, *game.treasure.get(&TreasureType::Gold).unwrap());
         assert_ne!(&0, game.treasure.get(&TreasureType::Gold).unwrap());
+    }
+
+    #[test]
+    fn test_increase_item_gain() {
+        let mut game = generate_testing_game(Some([1; 16]));
+
+        //Remove all costs of super item
+        for modifier in &mut game.equipped_items[1].modifiers {
+            modifier.costs = Vec::new();
+        }
+
+        game.equipped_items[1]
+            .modifiers[0]
+            .gains.push(ModifierGain::FlatIncreaseRewardedItems(200));
+
+        let old_inventory_count = game.inventory.len();
+
+        let result = execute_move_command(&mut game, 0);
+
+        assert!(result.is_ok());
+
+        let result = result.unwrap();
+        assert_eq!("You won and got a new item in the inventory.".to_string(), result.result);
+        assert_eq!("Costs paid and all gains executed.".to_string(), result.item_report[0].effect_description);
+        assert_eq!(201, result.item_report[1].item_gain);
+
+        assert_eq!(old_inventory_count + 201, game.inventory.len());
     }
 }

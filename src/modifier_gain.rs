@@ -2,7 +2,7 @@ use crate::attack_types::AttackType;
 
 use serde::{Deserialize, Serialize};
 use crate::item_resource::ItemResourceType;
-use crate::modifier_gain::ModifierGain::{FlatDamage, FlatDamageAgainstHighestResistance, FlatDamageAgainstLowestResistance, FlatItemResource, FlatResistanceReduction, PercentageIncreaseDamage, PercentageIncreaseDamageAgainstHighestResistance, PercentageIncreaseDamageAgainstLowestResistance, PercentageIncreaseResistanceReduction, PercentageIncreaseTreasure};
+use crate::modifier_gain::ModifierGain::{FlatDamage, FlatDamageAgainstHighestResistance, FlatDamageAgainstLowestResistance, FlatIncreaseRewardedItems, FlatItemResource, FlatResistanceReduction, PercentageIncreaseDamage, PercentageIncreaseDamageAgainstHighestResistance, PercentageIncreaseDamageAgainstLowestResistance, PercentageIncreaseResistanceReduction, PercentageIncreaseTreasure};
 use crate::treasure_types::TreasureType;
 
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize, Eq, Hash)]
@@ -17,6 +17,7 @@ pub enum ModifierGain {
     FlatDamageAgainstLowestResistance(u64),
     PercentageIncreaseDamageAgainstLowestResistance(u16),
     PercentageIncreaseTreasure(TreasureType, u16),
+    FlatIncreaseRewardedItems(u16),
 //TODO: Half unsatisfied defence, double unsatisfied attack, double tressure, doulbe items
 }
 
@@ -52,6 +53,8 @@ impl ModifierGain {
         for treasure_type in TreasureType::get_all() {
             result.push(PercentageIncreaseTreasure(treasure_type, 0));
         }
+
+        result.push(FlatIncreaseRewardedItems(0));
 
         result
     }
