@@ -8,7 +8,7 @@ use crate::item::CraftingInfo;
 use crate::item_modifier::ItemModifier;
 use crate::item_resource::ItemResourceType;
 use crate::modifier_cost::ModifierCost;
-use crate::modifier_gain::ModifierGain::{FlatDamageAgainstHighestResistance, FlatDamageAgainstLowestResistance, FlatItemResource, FlatResistanceReduction, PercentageIncreaseDamage, PercentageIncreaseDamageAgainstHighestResistance, PercentageIncreaseResistanceReduction};
+use crate::modifier_gain::ModifierGain::{FlatDamageAgainstHighestResistance, FlatDamageAgainstLowestResistance, FlatItemResource, FlatResistanceReduction, PercentageIncreaseDamage, PercentageIncreaseDamageAgainstHighestResistance, PercentageIncreaseDamageAgainstLowestResistance, PercentageIncreaseResistanceReduction};
 use crate::modifier_gain::ModifierGain;
 use crate::modifier_gain::ModifierGain::FlatDamage;
 use crate::game::get_random_attack_type_from_unlocked;
@@ -228,6 +228,9 @@ fn execute_craft_roll_modifier_benefits(game: &mut Game, crafting_info: &Craftin
                 FlatDamageAgainstLowestResistance(_) => {
                     ModifierGain::FlatDamageAgainstLowestResistance(cost_bonus.checked_div(4).unwrap_or(1))
                 }
+                PercentageIncreaseDamageAgainstLowestResistance(_) => {
+                    ModifierGain::PercentageIncreaseDamageAgainstLowestResistance(u16::try_from(cost_bonus.checked_div(4).unwrap_or(1)).unwrap_or(u16::MAX))
+                }
             }
         )
     }
@@ -367,6 +370,10 @@ mod tests_int {
                         let token = ModifierGain::FlatDamageAgainstLowestResistance(0);
                         *gain_modifiers.entry(token).or_insert(0) += 1;
                     }
+                    ModifierGain::PercentageIncreaseDamageAgainstLowestResistance(_) => {
+                        let token = ModifierGain::PercentageIncreaseDamageAgainstLowestResistance(0);
+                        *gain_modifiers.entry(token).or_insert(0) += 1;
+                    }
                 }
             }
         }
@@ -440,5 +447,6 @@ mod tests_int {
         assert_ne!(0, *gain_modifiers.get(&ModifierGain::FlatDamageAgainstHighestResistance(0)).unwrap());
         assert_ne!(0, *gain_modifiers.get(&ModifierGain::PercentageIncreaseDamageAgainstHighestResistance(0)).unwrap());
         assert_ne!(0, *gain_modifiers.get(&ModifierGain::FlatDamageAgainstLowestResistance(0)).unwrap());
+        assert_ne!(0, *gain_modifiers.get(&ModifierGain::PercentageIncreaseDamageAgainstLowestResistance(0)).unwrap());
     }
 }
