@@ -121,27 +121,11 @@ mod tests_int {
         assert_eq!(1, game.difficulty.min_simultaneous_resistances);
         assert_eq!(1, game.difficulty.max_simultaneous_resistances);
 
-        assert_eq!(2, *game.difficulty.min_resistance.get(&AttackType::Physical).unwrap());
-        assert_eq!(None, game.difficulty.min_resistance.get(&AttackType::Fire));
+        assert_eq!(None, game.difficulty.min_resistance.get(&AttackType::Physical));
+        assert_eq!(2, *game.difficulty.min_resistance.get(&AttackType::Fire).unwrap());
 
-        assert_eq!(5, *game.difficulty.max_resistance.get(&AttackType::Physical).unwrap());
-        assert_eq!(None, game.difficulty.max_resistance.get(&AttackType::Fire));
-
-        assert_eq!(1, game.places.iter()
-            .map(|place| place.item_reward_possible_rolls.clone())
-            .filter(|roll| roll.eq(&game.difficulty))
-            .count());
-
-        assert!(execute_reduce_difficulty(&mut game).is_ok());
-
-        assert_eq!(1, game.difficulty.min_simultaneous_resistances);
-        assert_eq!(1, game.difficulty.max_simultaneous_resistances);
-
-        assert_eq!(1, *game.difficulty.min_resistance.get(&AttackType::Physical).unwrap());
-        assert_eq!(None, game.difficulty.min_resistance.get(&AttackType::Fire));
-
-        assert_eq!(2, *game.difficulty.max_resistance.get(&AttackType::Physical).unwrap());
-        assert_eq!(None, game.difficulty.max_resistance.get(&AttackType::Fire));
+        assert_eq!(None, game.difficulty.max_resistance.get(&AttackType::Physical));
+        assert_eq!(5, *game.difficulty.max_resistance.get(&AttackType::Fire).unwrap());
 
         assert_eq!(1, game.places.iter()
             .map(|place| place.item_reward_possible_rolls.clone())
@@ -153,11 +137,27 @@ mod tests_int {
         assert_eq!(1, game.difficulty.min_simultaneous_resistances);
         assert_eq!(1, game.difficulty.max_simultaneous_resistances);
 
-        assert_eq!(1, *game.difficulty.min_resistance.get(&AttackType::Physical).unwrap());
-        assert_eq!(None, game.difficulty.min_resistance.get(&AttackType::Fire));
+        assert_eq!(None, game.difficulty.min_resistance.get(&AttackType::Physical));
+        assert_eq!(1, *game.difficulty.min_resistance.get(&AttackType::Fire).unwrap());
 
-        assert_eq!(2, *game.difficulty.max_resistance.get(&AttackType::Physical).unwrap());
-        assert_eq!(None, game.difficulty.max_resistance.get(&AttackType::Fire));
+        assert_eq!(None, game.difficulty.max_resistance.get(&AttackType::Physical));
+        assert_eq!(2, *game.difficulty.max_resistance.get(&AttackType::Fire).unwrap());
+
+        assert_eq!(1, game.places.iter()
+            .map(|place| place.item_reward_possible_rolls.clone())
+            .filter(|roll| roll.eq(&game.difficulty))
+            .count());
+
+        assert!(execute_reduce_difficulty(&mut game).is_ok());
+
+        assert_eq!(1, game.difficulty.min_simultaneous_resistances);
+        assert_eq!(1, game.difficulty.max_simultaneous_resistances);
+
+        assert_eq!(None, game.difficulty.min_resistance.get(&AttackType::Physical));
+        assert_eq!(1, *game.difficulty.min_resistance.get(&AttackType::Fire).unwrap());
+
+        assert_eq!(None, game.difficulty.max_resistance.get(&AttackType::Physical));
+        assert_eq!(2, *game.difficulty.max_resistance.get(&AttackType::Fire).unwrap());
 
         assert_eq!(2, game.places.iter()
             .map(|place| place.item_reward_possible_rolls.clone())

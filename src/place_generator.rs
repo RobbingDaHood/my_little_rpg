@@ -20,7 +20,7 @@ pub fn generate_place(game: &mut Game) -> Place {
 
     let minimum_elements = min(relevant_attack_types.len(), game.difficulty.min_simultaneous_resistances as usize);
     let maximum_elements = min(relevant_attack_types.len(), game.difficulty.max_simultaneous_resistances as usize);
-    let resistance_numbers = game.random_generator_state.gen_range(minimum_elements..maximum_elements.add(1));
+    let resistance_numbers = game.random_generator_state.gen_range(minimum_elements..=maximum_elements);
 
     let attack_types = AttackType::order_set(&game.difficulty.min_resistance.keys().collect());
 
@@ -32,7 +32,7 @@ pub fn generate_place(game: &mut Game) -> Place {
         let min_value = game.difficulty.min_resistance.get(attack_type).unwrap();
         let max_value = game.difficulty.max_resistance.get(attack_type).unwrap();
 
-        let resistance_value = game.random_generator_state.gen_range(*min_value..*max_value);
+        let resistance_value = game.random_generator_state.gen_range(*min_value..=*max_value);
         resistance.insert(attack_type.clone(), resistance_value);
         resistance_sum += resistance_value;
 
@@ -64,7 +64,7 @@ mod tests_int {
 
         let place = generate_place(&mut game);
 
-        assert_eq!(place.resistance.len(), 5);
+        assert_eq!(place.resistance.len(), 6);
         assert_eq!(game.difficulty, place.item_reward_possible_rolls);
     }
 

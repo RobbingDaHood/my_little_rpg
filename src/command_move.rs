@@ -906,7 +906,7 @@ mod tests_int {
             modifiers: vec![
                 ItemModifier {
                     costs: vec![
-                        ModifierCost::FlatMinResistanceRequirement(AttackType::Fire, 12)
+                        ModifierCost::FlatMinResistanceRequirement(AttackType::Fire, 18)
                     ],
                     gains: Vec::new(),
                 }
@@ -924,9 +924,9 @@ mod tests_int {
 
         let result = result.unwrap_err();
         assert_eq!("You did not deal enough damage to overcome the challenges in this place.".to_string(), result.result);
-        assert_eq!("Did not fulfill the FlatMinResistanceRequirement of 12 Fire damage, place only has [(Frost, 7), (Lightning, 11), (Light, 6), (Darkness, 6), (Nature, 35), (Corruption, 28)] damage.".to_string(), result.item_report[0].effect_description);
+        assert_eq!("Did not fulfill the FlatMinResistanceRequirement of 18 Fire damage, place only has [(Fire, 17), (Frost, 7), (Darkness, 6), (Nature, 70), (Corruption, 52), (Holy, 89)] damage.".to_string(), result.item_report[0].effect_description);
 
-        let result = execute_move_command(&mut game, 9);
+        let result = execute_move_command(&mut game, 7);
 
         assert!(result.is_err());
 
@@ -944,7 +944,7 @@ mod tests_int {
             modifiers: vec![
                 ItemModifier {
                     costs: vec![
-                        ModifierCost::FlatMaxResistanceRequirement(AttackType::Fire, 12)
+                        ModifierCost::FlatMaxResistanceRequirement(AttackType::Fire, 17)
                     ],
                     gains: Vec::new(),
                 }
@@ -964,13 +964,13 @@ mod tests_int {
         assert_eq!("You did not deal enough damage to overcome the challenges in this place.".to_string(), result.result);
         assert_eq!("Costs paid and all gains executed.".to_string(), result.item_report[0].effect_description);
 
-        let result = execute_move_command(&mut game, 9);
+        let result = execute_move_command(&mut game, 7);
 
         assert!(result.is_err());
 
         let result = result.unwrap_err();
         assert_eq!("You did not deal enough damage to overcome the challenges in this place.".to_string(), result.result);
-        assert_eq!("Did not fulfill the FlatMaxResistanceRequirement of 12 Fire damage, place has [(Fire, 13), (Frost, 26), (Lightning, 30), (Darkness, 21), (Nature, 51), (Holy, 19)] damage and that is too much.".to_string(), result.item_report[0].effect_description);
+        assert_eq!("Did not fulfill the FlatMaxResistanceRequirement of 17 Fire damage, place has [(Fire, 20), (Frost, 4), (Light, 11), (Darkness, 37), (Corruption, 80), (Holy, 59)] damage and that is too much.".to_string(), result.item_report[0].effect_description);
     }
 
     #[test]
@@ -982,7 +982,7 @@ mod tests_int {
             modifiers: vec![
                 ItemModifier {
                     costs: vec![
-                        ModifierCost::FlatMinSumResistanceRequirement(94)
+                        ModifierCost::FlatMinSumResistanceRequirement(195)
                     ],
                     gains: Vec::new(),
                 }
@@ -994,15 +994,15 @@ mod tests_int {
 
         game.equipped_items.push(first_item_cannot_pay.clone());
 
-        let result = execute_move_command(&mut game, 0);
+        let result = execute_move_command(&mut game, 9);
 
         assert!(result.is_err());
 
         let result = result.unwrap_err();
         assert_eq!("You did not deal enough damage to overcome the challenges in this place.".to_string(), result.result);
-        assert_eq!("Did not fulfill the FlatMinSumResistanceRequirement of 94 damage, place only has 93 damage.".to_string(), result.item_report[0].effect_description);
+        assert_eq!("Did not fulfill the FlatMinSumResistanceRequirement of 195 damage, place only has 194 damage.".to_string(), result.item_report[0].effect_description);
 
-        let result = execute_move_command(&mut game, 9);
+        let result = execute_move_command(&mut game, 0);
 
         assert!(result.is_err());
 
@@ -1020,7 +1020,7 @@ mod tests_int {
             modifiers: vec![
                 ItemModifier {
                     costs: vec![
-                        ModifierCost::FlatMaxSumResistanceRequirement(94)
+                        ModifierCost::FlatMaxSumResistanceRequirement(194)
                     ],
                     gains: Vec::new(),
                 }
@@ -1032,7 +1032,7 @@ mod tests_int {
 
         game.equipped_items.push(first_item_cannot_pay.clone());
 
-        let result = execute_move_command(&mut game, 0);
+        let result = execute_move_command(&mut game, 9);
 
         assert!(result.is_err());
 
@@ -1040,13 +1040,13 @@ mod tests_int {
         assert_eq!("You did not deal enough damage to overcome the challenges in this place.".to_string(), result.result);
         assert_eq!("Costs paid and all gains executed.".to_string(), result.item_report[0].effect_description);
 
-        let result = execute_move_command(&mut game, 9);
+        let result = execute_move_command(&mut game, 0);
 
         assert!(result.is_err());
 
         let result = result.unwrap_err();
         assert_eq!("You did not deal enough damage to overcome the challenges in this place.".to_string(), result.result);
-        assert_eq!("Did not fulfill the FlatMaxSumResistanceRequirement of 94 damage, place has 160 damage and that is too much.".to_string(), result.item_report[0].effect_description);
+        assert_eq!("Did not fulfill the FlatMaxSumResistanceRequirement of 194 damage, place has 241 damage and that is too much.".to_string(), result.item_report[0].effect_description);
     }
 
     #[test]
@@ -1272,7 +1272,7 @@ mod tests_int {
         let result = result.unwrap_err();
         assert_eq!("You did not deal enough damage to overcome the challenges in this place.".to_string(), result.result);
         assert_eq!("Costs paid and all gains executed.".to_string(), result.item_report[0].effect_description);
-        assert_eq!(200, *result.item_report[0].current_damage.get(&AttackType::Nature).unwrap());
+        assert_eq!(200, *result.item_report[0].current_damage.get(&AttackType::Holy).unwrap());
     }
 
     #[test]
@@ -1305,7 +1305,7 @@ mod tests_int {
         let result = result.unwrap_err();
         assert_eq!("You did not deal enough damage to overcome the challenges in this place.".to_string(), result.result);
         assert_eq!("Costs paid and all gains executed.".to_string(), result.item_report[0].effect_description);
-        assert_eq!(600, *result.item_report[0].current_damage.get(&AttackType::Nature).unwrap());
+        assert_eq!(600, *result.item_report[0].current_damage.get(&AttackType::Holy).unwrap());
     }
 
     #[test]
@@ -1337,7 +1337,7 @@ mod tests_int {
         let result = result.unwrap_err();
         assert_eq!("You did not deal enough damage to overcome the challenges in this place.".to_string(), result.result);
         assert_eq!("Costs paid and all gains executed.".to_string(), result.item_report[0].effect_description);
-        assert_eq!(200, *result.item_report[0].current_damage.get(&AttackType::Light).unwrap());
+        assert_eq!(200, *result.item_report[0].current_damage.get(&AttackType::Darkness).unwrap());
     }
 
     #[test]
@@ -1370,7 +1370,7 @@ mod tests_int {
         let result = result.unwrap_err();
         assert_eq!("You did not deal enough damage to overcome the challenges in this place.".to_string(), result.result);
         assert_eq!("Costs paid and all gains executed.".to_string(), result.item_report[0].effect_description);
-        assert_eq!(400, *result.item_report[0].current_damage.get(&AttackType::Light).unwrap());
+        assert_eq!(400, *result.item_report[0].current_damage.get(&AttackType::Darkness).unwrap());
     }
 
     #[test]
@@ -1403,7 +1403,7 @@ mod tests_int {
         let result = result.unwrap_err();
         assert_eq!("You did not deal enough damage to overcome the challenges in this place.".to_string(), result.result);
         assert_eq!("Costs paid and all gains executed.".to_string(), result.item_report[0].effect_description);
-        assert_eq!(600, *result.item_report[0].current_damage.get(&AttackType::Light).unwrap());
+        assert_eq!(600, *result.item_report[0].current_damage.get(&AttackType::Darkness).unwrap());
     }
 
     #[test]
