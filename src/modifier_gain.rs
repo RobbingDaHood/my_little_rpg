@@ -18,7 +18,6 @@ pub enum ModifierGain {
     PercentageIncreaseDamageAgainstLowestResistance(u16),
     PercentageIncreaseTreasure(TreasureType, u16),
     FlatIncreaseRewardedItems(u16),
-//TODO: Half unsatisfied defence, double unsatisfied attack, double tressure, doulbe items
 }
 
 impl ModifierGain {

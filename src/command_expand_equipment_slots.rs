@@ -71,7 +71,8 @@ mod tests_int {
                 }
             ],
             crafting_info: CraftingInfo {
-                possible_rolls: game.difficulty.clone()
+                possible_rolls: game.difficulty.clone(),
+                places_count: game.places.len(),
             },
         };
         game.inventory.push( Some(item.clone()));

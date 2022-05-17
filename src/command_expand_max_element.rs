@@ -22,7 +22,7 @@ pub fn execute_expand_max_element(game: &mut Game) -> Result<ExecuteExpandMaxEle
     };
 
     //Increase max of existing element
-    let picked_element = get_random_attack_type_from_unlocked(game, &None);
+    let picked_element = get_random_attack_type_from_unlocked(&mut game.random_generator_state, &game.difficulty.min_resistance);
 
     *game.difficulty.max_resistance.get_mut(&picked_element).unwrap() += crafting_cost.get(&Gold).unwrap();
 

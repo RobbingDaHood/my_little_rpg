@@ -101,6 +101,7 @@ pub fn execute_move_command(game: &mut Game, index: usize) -> Result<ExecuteMove
                 game.inventory.push(Some(Item {
                     crafting_info: CraftingInfo {
                         possible_rolls: game.places[index].item_reward_possible_rolls.clone(),
+                        places_count: game.places.len(),
                     },
                     modifiers: vec![
                         ItemModifier {
@@ -475,7 +476,8 @@ mod tests_int {
                 }
             ],
             crafting_info: CraftingInfo {
-                possible_rolls: game.difficulty.clone()
+                possible_rolls: game.difficulty.clone(),
+                places_count: game.places.len(),
             },
         };
         game.equipped_items.insert(0, power_item);
@@ -523,7 +525,8 @@ mod tests_int {
                 }
             ],
             crafting_info: CraftingInfo {
-                possible_rolls: game.difficulty.clone()
+                possible_rolls: game.difficulty.clone(),
+                places_count: game.places.len(),
             },
         };
 
@@ -537,7 +540,8 @@ mod tests_int {
                 }
             ],
             crafting_info: CraftingInfo {
-                possible_rolls: game.difficulty.clone()
+                possible_rolls: game.difficulty.clone(),
+                places_count: game.places.len(),
             },
         };
 
@@ -572,7 +576,8 @@ mod tests_int {
                 }
             ],
             crafting_info: CraftingInfo {
-                possible_rolls: game.difficulty.clone()
+                possible_rolls: game.difficulty.clone(),
+                places_count: game.places.len(),
             },
         };
 
@@ -586,7 +591,8 @@ mod tests_int {
                 }
             ],
             crafting_info: CraftingInfo {
-                possible_rolls: game.difficulty.clone()
+                possible_rolls: game.difficulty.clone(),
+                places_count: game.places.len(),
             },
         };
 
@@ -621,7 +627,8 @@ mod tests_int {
                 }
             ],
             crafting_info: CraftingInfo {
-                possible_rolls: game.difficulty.clone()
+                possible_rolls: game.difficulty.clone(),
+                places_count: game.places.len(),
             },
         };
 
@@ -653,7 +660,8 @@ mod tests_int {
                 }
             ],
             crafting_info: CraftingInfo {
-                possible_rolls: game.difficulty.clone()
+                possible_rolls: game.difficulty.clone(),
+                places_count: game.places.len(),
             },
         };
 
@@ -667,7 +675,8 @@ mod tests_int {
                 }
             ],
             crafting_info: CraftingInfo {
-                possible_rolls: game.difficulty.clone()
+                possible_rolls: game.difficulty.clone(),
+                places_count: game.places.len(),
             },
         };
 
@@ -702,7 +711,8 @@ mod tests_int {
                 }
             ],
             crafting_info: CraftingInfo {
-                possible_rolls: game.difficulty.clone()
+                possible_rolls: game.difficulty.clone(),
+                places_count: game.places.len(),
             },
         };
 
@@ -716,7 +726,8 @@ mod tests_int {
                 }
             ],
             crafting_info: CraftingInfo {
-                possible_rolls: game.difficulty.clone()
+                possible_rolls: game.difficulty.clone(),
+                places_count: game.places.len(),
             },
         };
 
@@ -755,7 +766,8 @@ mod tests_int {
                 }
             ],
             crafting_info: CraftingInfo {
-                possible_rolls: game.difficulty.clone()
+                possible_rolls: game.difficulty.clone(),
+                places_count: game.places.len(),
             },
         };
 
@@ -769,7 +781,8 @@ mod tests_int {
                 }
             ],
             crafting_info: CraftingInfo {
-                possible_rolls: game.difficulty.clone()
+                possible_rolls: game.difficulty.clone(),
+                places_count: game.places.len(),
             },
         };
 
@@ -810,7 +823,8 @@ mod tests_int {
                 }
             ],
             crafting_info: CraftingInfo {
-                possible_rolls: game.difficulty.clone()
+                possible_rolls: game.difficulty.clone(),
+                places_count: game.places.len(),
             },
         };
 
@@ -824,7 +838,8 @@ mod tests_int {
                 }
             ],
             crafting_info: CraftingInfo {
-                possible_rolls: game.difficulty.clone()
+                possible_rolls: game.difficulty.clone(),
+                places_count: game.places.len(),
             },
         };
 
@@ -859,7 +874,8 @@ mod tests_int {
                 }
             ],
             crafting_info: CraftingInfo {
-                possible_rolls: game.difficulty.clone()
+                possible_rolls: game.difficulty.clone(),
+                places_count: game.places.len(),
             },
         };
 
@@ -873,7 +889,8 @@ mod tests_int {
                 }
             ],
             crafting_info: CraftingInfo {
-                possible_rolls: game.difficulty.clone()
+                possible_rolls: game.difficulty.clone(),
+                places_count: game.places.len(),
             },
         };
 
@@ -912,7 +929,8 @@ mod tests_int {
                 }
             ],
             crafting_info: CraftingInfo {
-                possible_rolls: game.difficulty.clone()
+                possible_rolls: game.difficulty.clone(),
+                places_count: game.places.len(),
             },
         };
 
@@ -950,7 +968,8 @@ mod tests_int {
                 }
             ],
             crafting_info: CraftingInfo {
-                possible_rolls: game.difficulty.clone()
+                possible_rolls: game.difficulty.clone(),
+                places_count: game.places.len(),
             },
         };
 
@@ -988,7 +1007,8 @@ mod tests_int {
                 }
             ],
             crafting_info: CraftingInfo {
-                possible_rolls: game.difficulty.clone()
+                possible_rolls: game.difficulty.clone(),
+                places_count: game.places.len(),
             },
         };
 
@@ -1026,7 +1046,8 @@ mod tests_int {
                 }
             ],
             crafting_info: CraftingInfo {
-                possible_rolls: game.difficulty.clone()
+                possible_rolls: game.difficulty.clone(),
+                places_count: game.places.len(),
             },
         };
 
@@ -1063,7 +1084,8 @@ mod tests_int {
                 }
             ],
             crafting_info: CraftingInfo {
-                possible_rolls: game.difficulty.clone()
+                possible_rolls: game.difficulty.clone(),
+                places_count: game.places.len(),
             },
         };
 
@@ -1111,7 +1133,8 @@ mod tests_int {
                 }
             ],
             crafting_info: CraftingInfo {
-                possible_rolls: game.difficulty.clone()
+                possible_rolls: game.difficulty.clone(),
+                places_count: game.places.len(),
             },
         };
 
@@ -1161,7 +1184,8 @@ mod tests_int {
                 }
             ],
             crafting_info: CraftingInfo {
-                possible_rolls: game.difficulty.clone()
+                possible_rolls: game.difficulty.clone(),
+                places_count: game.places.len(),
             },
         };
 
@@ -1193,7 +1217,8 @@ mod tests_int {
                 }
             ],
             crafting_info: CraftingInfo {
-                possible_rolls: game.difficulty.clone()
+                possible_rolls: game.difficulty.clone(),
+                places_count: game.places.len(),
             },
         };
 
@@ -1226,7 +1251,8 @@ mod tests_int {
                 }
             ],
             crafting_info: CraftingInfo {
-                possible_rolls: game.difficulty.clone()
+                possible_rolls: game.difficulty.clone(),
+                places_count: game.places.len(),
             },
         };
 
@@ -1258,7 +1284,8 @@ mod tests_int {
                 }
             ],
             crafting_info: CraftingInfo {
-                possible_rolls: game.difficulty.clone()
+                possible_rolls: game.difficulty.clone(),
+                places_count: game.places.len(),
             },
         };
 
@@ -1291,7 +1318,8 @@ mod tests_int {
                 }
             ],
             crafting_info: CraftingInfo {
-                possible_rolls: game.difficulty.clone()
+                possible_rolls: game.difficulty.clone(),
+                places_count: game.places.len(),
             },
         };
 
@@ -1323,7 +1351,8 @@ mod tests_int {
                 }
             ],
             crafting_info: CraftingInfo {
-                possible_rolls: game.difficulty.clone()
+                possible_rolls: game.difficulty.clone(),
+                places_count: game.places.len(),
             },
         };
 
@@ -1356,7 +1385,8 @@ mod tests_int {
                 }
             ],
             crafting_info: CraftingInfo {
-                possible_rolls: game.difficulty.clone()
+                possible_rolls: game.difficulty.clone(),
+                places_count: game.places.len(),
             },
         };
 
@@ -1389,7 +1419,8 @@ mod tests_int {
                 }
             ],
             crafting_info: CraftingInfo {
-                possible_rolls: game.difficulty.clone()
+                possible_rolls: game.difficulty.clone(),
+                places_count: game.places.len(),
             },
         };
 

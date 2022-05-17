@@ -33,7 +33,8 @@ pub fn generate_new_game(seed: Option<[u8; 16]>) -> Game {
                 }
             ],
             crafting_info: CraftingInfo {
-                possible_rolls: difficulty.clone()
+                possible_rolls: difficulty.clone(),
+                places_count: 1,
             },
         }
     ];
@@ -107,7 +108,8 @@ pub fn generate_testing_game(seed: Option<[u8; 16]>) -> Game {
     let item = Item {
         modifiers,
         crafting_info: CraftingInfo {
-            possible_rolls: difficulty.clone()
+            possible_rolls: difficulty.clone(),
+            places_count: 10,
         },
     };
     equipped_items.push(item);
@@ -124,7 +126,8 @@ pub fn generate_testing_game(seed: Option<[u8; 16]>) -> Game {
     let item = Item {
         modifiers,
         crafting_info: CraftingInfo {
-            possible_rolls: difficulty.clone()
+            possible_rolls: difficulty.clone(),
+            places_count: 10,
         },
     };
     equipped_items.push(item);
@@ -140,7 +143,8 @@ pub fn generate_testing_game(seed: Option<[u8; 16]>) -> Game {
                 }
             ],
             crafting_info: CraftingInfo {
-                possible_rolls: difficulty.clone()
+                possible_rolls: difficulty.clone(),
+                places_count: 10,
             },
         }))
     }

@@ -56,7 +56,7 @@ pub fn execute_craft_expand_modifiers(game: &mut Game, inventory_index: usize, m
     }
 
     //Create item
-    let new_item_modifier = execute_craft_roll_modifier(game, inventory_index);
+    let new_item_modifier = execute_craft_roll_modifier(&mut game.random_generator_state, &game.inventory[inventory_index].as_ref().unwrap().crafting_info);
     game.inventory[inventory_index].as_mut().unwrap().modifiers.push(new_item_modifier);
 
     Ok(ExecuteExpandModifiersReport {

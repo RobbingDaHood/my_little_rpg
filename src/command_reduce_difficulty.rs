@@ -20,7 +20,7 @@ pub struct ReduceDifficultyReport {
 
 pub fn execute_reduce_difficulty(game: &mut Game) -> Result<ReduceDifficultyReport, String> {
     //Add new element
-    let attack_type = get_random_attack_type_from_unlocked(game, &None);
+    let attack_type = get_random_attack_type_from_unlocked(&mut game.random_generator_state, &game.difficulty.min_resistance);
 
     let max_value = game.difficulty.max_resistance.get(&attack_type).unwrap();
     let new_max_value = max_value.div(2);

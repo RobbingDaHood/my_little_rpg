@@ -2,8 +2,8 @@ use std::cmp::{max, min};
 use std::collections::HashSet;
 use std::ops::Add;
 use rand::Rng;
+use rand_pcg::Lcg64Xsh32;
 use crate::attack_types::AttackType;
-use crate::Game;
 use crate::item::CraftingInfo;
 use crate::item_modifier::ItemModifier;
 use crate::item_resource::ItemResourceType;
@@ -13,75 +13,72 @@ use crate::modifier_gain::ModifierGain;
 use crate::modifier_gain::ModifierGain::FlatDamage;
 use crate::game::get_random_attack_type_from_unlocked;
 
-pub fn execute_craft_roll_modifier(game: &mut Game, item_index: usize) -> ItemModifier {
-    let crafting_info = &game.inventory[item_index].as_ref().unwrap().crafting_info.clone();
-
+pub fn execute_craft_roll_modifier(random_generator_state: &mut Lcg64Xsh32, crafting_info: &CraftingInfo) -> ItemModifier {
     let minimum_elements = min(crafting_info.possible_rolls.min_resistance.len(), crafting_info.possible_rolls.min_simultaneous_resistances as usize);
     let maximum_elements = min(crafting_info.possible_rolls.max_resistance.len(), crafting_info.possible_rolls.max_simultaneous_resistances as usize);
 
-    let (modifier_costs, cost) = execute_craft_roll_modifier_costs(game, crafting_info);
+    let (modifier_costs, cost) = execute_craft_roll_modifier_costs(random_generator_state, crafting_info);
 
-    let modifier_gain = execute_craft_roll_modifier_benefits(game, crafting_info, cost, minimum_elements, maximum_elements);
+    let modifier_gain = execute_craft_roll_modifier_benefits(random_generator_state, crafting_info, cost, minimum_elements, maximum_elements);
 
-    let new_item_modifier = ItemModifier {
+    ItemModifier {
         costs: modifier_costs,
         gains: modifier_gain,
-    };
-    new_item_modifier
+    }
 }
 
-fn execute_craft_roll_modifier_costs(game: &mut Game, crafting_info: &CraftingInfo) -> (Vec<ModifierCost>, u64) {
+fn execute_craft_roll_modifier_costs(random_generator_state: &mut Lcg64Xsh32, crafting_info: &CraftingInfo) -> (Vec<ModifierCost>, u64) {
     let mut modifier_costs = Vec::new();
     let mut accumulated_cost = 0;
     let max_cost = crafting_info.possible_rolls.max_resistance.values().sum::<u64>() / crafting_info.possible_rolls.max_simultaneous_resistances as u64;
 
-    //TODO unblocked damage will applay unique effect
+    //TODO unblocked damage will apply unique effect
 
-    let number_of_costs = game.random_generator_state.gen_range(0..crafting_info.possible_rolls.max_simultaneous_resistances.add(1));
+    let number_of_costs = random_generator_state.gen_range(0..crafting_info.possible_rolls.max_simultaneous_resistances.add(1));
 
     for _i in 0..number_of_costs {
         if accumulated_cost < max_cost {
-            match game.random_generator_state.gen_range(0..14) {
+            match random_generator_state.gen_range(0..14) {
                 0 => {
-                    let attack_type = get_random_attack_type_from_unlocked(game, &Some(&crafting_info.possible_rolls));
+                    let attack_type = get_random_attack_type_from_unlocked(random_generator_state, &crafting_info.possible_rolls.min_resistance);
 
                     let minimum_value = *crafting_info.possible_rolls.min_resistance.get(&attack_type).unwrap();
                     let maximum_value = *crafting_info.possible_rolls.max_resistance.get(&attack_type).unwrap();
-                    let value = min(max_cost - accumulated_cost, game.random_generator_state.gen_range(minimum_value..=maximum_value));
+                    let value = min(max_cost - accumulated_cost, random_generator_state.gen_range(minimum_value..=maximum_value));
 
                     modifier_costs.push(ModifierCost::FlatMinAttackRequirement(attack_type, value.clone()));
                     accumulated_cost += value;
                 }
                 1 => {
-                    let attack_type = get_random_attack_type_from_unlocked(game, &Some(&crafting_info.possible_rolls));
+                    let attack_type = get_random_attack_type_from_unlocked(random_generator_state, &crafting_info.possible_rolls.min_resistance);
 
                     let minimum_value = *crafting_info.possible_rolls.min_resistance.get(&attack_type).unwrap();
                     let maximum_value = *crafting_info.possible_rolls.max_resistance.get(&attack_type).unwrap();
-                    let value = min(max_cost - accumulated_cost, game.random_generator_state.gen_range(minimum_value..=maximum_value));
+                    let value = min(max_cost - accumulated_cost, random_generator_state.gen_range(minimum_value..=maximum_value));
 
                     modifier_costs.push(ModifierCost::FlatMaxAttackRequirement(attack_type, value.clone()));
                     accumulated_cost += maximum_value - value;
                 }
                 2 => {
-                    let max_modulus = min(usize::from(u8::MAX), game.places.len()); //TODO Make dependent on item possible rolls instead, store the number of places there
+                    let max_modulus = min(usize::from(u8::MAX), crafting_info.places_count);
                     let max_modulus = max(3, max_modulus);
-                    let modulus = u8::try_from(game.random_generator_state.gen_range(2..max_modulus)).unwrap();
-                    let number_of_valid_values = game.random_generator_state.gen_range(1..modulus);
+                    let modulus = u8::try_from(random_generator_state.gen_range(2..max_modulus)).unwrap();
+                    let number_of_valid_values = random_generator_state.gen_range(1..modulus);
 
                     let valid_numbers = (0..number_of_valid_values).into_iter()
-                        .map(|_| game.random_generator_state.gen_range(0..modulus))
+                        .map(|_| random_generator_state.gen_range(0..modulus))
                         .map(|value| u8::try_from(value).unwrap())
                         .collect::<HashSet<u8>>().into_iter()
                         .collect();
 
                     modifier_costs.push(ModifierCost::PlaceLimitedByIndexModulus(modulus, valid_numbers));
 
-                    accumulated_cost += (game.places.len() * ((modulus / number_of_valid_values) as usize)) as u64;
+                    accumulated_cost += (crafting_info.places_count * ((modulus / number_of_valid_values) as usize)) as u64;
                 }
                 3 => {
                     let minimum_value = crafting_info.possible_rolls.min_resistance.values().sum::<u64>();
                     let maximum_value = crafting_info.possible_rolls.max_resistance.values().sum::<u64>();
-                    let value = min(max_cost - accumulated_cost, game.random_generator_state.gen_range(minimum_value..=maximum_value));
+                    let value = min(max_cost - accumulated_cost, random_generator_state.gen_range(minimum_value..=maximum_value));
 
                     modifier_costs.push(ModifierCost::FlatSumMinAttackRequirement(value.clone()));
                     accumulated_cost += value;
@@ -89,37 +86,37 @@ fn execute_craft_roll_modifier_costs(game: &mut Game, crafting_info: &CraftingIn
                 4 => {
                     let minimum_value = crafting_info.possible_rolls.min_resistance.values().sum::<u64>();
                     let maximum_value = crafting_info.possible_rolls.max_resistance.values().sum::<u64>();
-                    let value = min(max_cost - accumulated_cost, game.random_generator_state.gen_range(minimum_value..=maximum_value));
+                    let value = min(max_cost - accumulated_cost, random_generator_state.gen_range(minimum_value..=maximum_value));
 
                     modifier_costs.push(ModifierCost::FlatSumMaxAttackRequirement(value.clone()));
                     accumulated_cost += maximum_value - value;
                 }
                 5 => {
-                    let cost = game.random_generator_state.gen_range(1..max(2, max_cost - accumulated_cost));
+                    let cost = random_generator_state.gen_range(1..max(2, max_cost - accumulated_cost));
                     modifier_costs.push(ModifierCost::FlatMinItemResourceRequirement(ItemResourceType::Mana, cost));
                     accumulated_cost += cost; //TODO Better cost
                 }
                 6 => {
-                    let cost = game.random_generator_state.gen_range(1..max(2, max_cost - accumulated_cost));
+                    let cost = random_generator_state.gen_range(1..max(2, max_cost - accumulated_cost));
                     modifier_costs.push(ModifierCost::FlatMaxItemResourceRequirement(ItemResourceType::Mana, cost));
                     accumulated_cost += (max_cost - accumulated_cost) - cost; //TODO Better cost
                 }
                 7 => {
-                    let attack_type = get_random_attack_type_from_unlocked(game, &Some(&crafting_info.possible_rolls));
+                    let attack_type = get_random_attack_type_from_unlocked(random_generator_state, &crafting_info.possible_rolls.min_resistance);
 
                     let minimum_value = *crafting_info.possible_rolls.min_resistance.get(&attack_type).unwrap();
                     let maximum_value = *crafting_info.possible_rolls.max_resistance.get(&attack_type).unwrap();
-                    let value = min(max_cost - accumulated_cost, game.random_generator_state.gen_range(minimum_value..=maximum_value));
+                    let value = min(max_cost - accumulated_cost, random_generator_state.gen_range(minimum_value..=maximum_value));
 
                     modifier_costs.push(ModifierCost::FlatMinResistanceRequirement(attack_type, value.clone()));
                     accumulated_cost += value;
                 }
                 8 => {
-                    let attack_type = get_random_attack_type_from_unlocked(game, &Some(&crafting_info.possible_rolls));
+                    let attack_type = get_random_attack_type_from_unlocked(random_generator_state, &crafting_info.possible_rolls.min_resistance);
 
                     let minimum_value = *crafting_info.possible_rolls.min_resistance.get(&attack_type).unwrap();
                     let maximum_value = *crafting_info.possible_rolls.max_resistance.get(&attack_type).unwrap();
-                    let value = min(max_cost - accumulated_cost, game.random_generator_state.gen_range(minimum_value..=maximum_value));
+                    let value = min(max_cost - accumulated_cost, random_generator_state.gen_range(minimum_value..=maximum_value));
 
                     modifier_costs.push(ModifierCost::FlatMaxResistanceRequirement(attack_type, value.clone()));
                     accumulated_cost += maximum_value - value;
@@ -127,7 +124,7 @@ fn execute_craft_roll_modifier_costs(game: &mut Game, crafting_info: &CraftingIn
                 9 => {
                     let minimum_value = crafting_info.possible_rolls.min_resistance.values().sum::<u64>();
                     let maximum_value = crafting_info.possible_rolls.max_resistance.values().sum::<u64>();
-                    let value = min(max_cost - accumulated_cost, game.random_generator_state.gen_range(minimum_value..=maximum_value));
+                    let value = min(max_cost - accumulated_cost, random_generator_state.gen_range(minimum_value..=maximum_value));
 
                     modifier_costs.push(ModifierCost::FlatMinSumResistanceRequirement(value.clone()));
                     accumulated_cost += value;
@@ -135,29 +132,29 @@ fn execute_craft_roll_modifier_costs(game: &mut Game, crafting_info: &CraftingIn
                 10 => {
                     let minimum_value = crafting_info.possible_rolls.min_resistance.values().sum::<u64>();
                     let maximum_value = crafting_info.possible_rolls.max_resistance.values().sum::<u64>();
-                    let value = min(max_cost - accumulated_cost, game.random_generator_state.gen_range(minimum_value..=maximum_value));
+                    let value = min(max_cost - accumulated_cost, random_generator_state.gen_range(minimum_value..=maximum_value));
 
                     modifier_costs.push(ModifierCost::FlatMaxSumResistanceRequirement(value.clone()));
                     accumulated_cost += maximum_value - value;
                 }
                 11 => {
-                    let value = u8::try_from(min(usize::from(u8::MAX), game.places.len() * 2)).unwrap();
+                    let value = u8::try_from(min(usize::from(u8::MAX), crafting_info.places_count * 2)).unwrap();
                     let value = max(2, value);
-                    let value = game.random_generator_state.gen_range(1..value);
+                    let value = random_generator_state.gen_range(1..value);
 
                     modifier_costs.push(ModifierCost::MinWinsInARow(value.clone()));
                     accumulated_cost += u64::from(value);
                 }
                 12 => {
-                    let max_value = u8::try_from(min(usize::from(u8::MAX), game.places.len() * 2)).unwrap();
+                    let max_value = u8::try_from(min(usize::from(u8::MAX), crafting_info.places_count * 2)).unwrap();
                     let value = max(1, max_value);
-                    let value = game.random_generator_state.gen_range(0..value);
+                    let value = random_generator_state.gen_range(0..value);
 
                     modifier_costs.push(ModifierCost::MaxWinsInARow(value.clone()));
                     accumulated_cost += u64::from(max_value - value);
                 }
                 _ => {
-                    let cost = game.random_generator_state.gen_range(1..max(2, max_cost - accumulated_cost));
+                    let cost = random_generator_state.gen_range(1..max(2, max_cost - accumulated_cost));
                     modifier_costs.push(ModifierCost::FlatItemResource(ItemResourceType::Mana, cost));
                     accumulated_cost += cost;
                 }
@@ -168,7 +165,7 @@ fn execute_craft_roll_modifier_costs(game: &mut Game, crafting_info: &CraftingIn
     (modifier_costs, accumulated_cost)
 }
 
-fn execute_craft_roll_modifier_benefits(game: &mut Game, crafting_info: &CraftingInfo, cost: u64, minimum_elements: usize, maximum_elements: usize) -> Vec<ModifierGain> {
+fn execute_craft_roll_modifier_benefits(random_generator_state: &mut Lcg64Xsh32, crafting_info: &CraftingInfo, cost: u64, minimum_elements: usize, maximum_elements: usize) -> Vec<ModifierGain> {
     let attack_types = AttackType::get_all().iter()
         .filter(|attack_type| crafting_info.possible_rolls.min_resistance.contains_key(attack_type))
         .map(|attack_type| attack_type.clone())
@@ -182,18 +179,18 @@ fn execute_craft_roll_modifier_benefits(game: &mut Game, crafting_info: &Craftin
         let cost_bonus = if i == maximum_elements {
             leftover_cost
         } else {
-            game.random_generator_state.gen_range(1..=leftover_cost)
+            random_generator_state.gen_range(1..=leftover_cost)
         };
         leftover_cost -= cost_bonus;
 
         let gain_seize = all_modifier_gain_options.len();
-        let modifier_index = game.random_generator_state.gen_range(0..gain_seize);
+        let modifier_index = random_generator_state.gen_range(0..gain_seize);
         modifier_gain.push(
             match &all_modifier_gain_options[modifier_index] { //TODO do the same with costs.
                 FlatDamage(attack_type, _) => {
                     let min_damage = *crafting_info.possible_rolls.min_resistance.get(attack_type).unwrap_or(&0);
                     let max_damage = *crafting_info.possible_rolls.max_resistance.get(attack_type).unwrap_or(&1);
-                    let damage = game.random_generator_state.gen_range(min_damage..=max_damage);
+                    let damage = random_generator_state.gen_range(min_damage..=max_damage);
                     let damage = damage / 2;
                     let damage = max(1, damage);
                     let damage = damage + cost_bonus * 2;
@@ -209,7 +206,7 @@ fn execute_craft_roll_modifier_benefits(game: &mut Game, crafting_info: &Craftin
                 FlatResistanceReduction(attack_type, _) => {
                     let min_damage = *crafting_info.possible_rolls.min_resistance.get(attack_type).unwrap_or(&0);
                     let max_damage = *crafting_info.possible_rolls.max_resistance.get(attack_type).unwrap_or(&1);
-                    let damage = game.random_generator_state.gen_range(min_damage..=max_damage);
+                    let damage = random_generator_state.gen_range(min_damage..=max_damage);
                     let damage = damage / 2;
                     let damage = max(1, damage);
                     let damage = damage + cost_bonus * 2;
@@ -246,7 +243,7 @@ fn execute_craft_roll_modifier_benefits(game: &mut Game, crafting_info: &Craftin
 #[cfg(test)]
 mod tests_int {
     use std::collections::HashMap;
-    use crate::game_generator::{generate_new_game, generate_testing_game};
+    use crate::game_generator::{generate_testing_game};
     use crate::item_resource::ItemResourceType;
     use crate::modifier_cost::ModifierCost;
     use crate::modifier_gain::ModifierGain;
@@ -256,19 +253,18 @@ mod tests_int {
 
     #[test]
     fn basic_test() {
-        let mut game = generate_new_game(Some([1; 16]));
-        game.inventory.push(Some(game.equipped_items[0].clone()));
-        execute_craft_roll_modifier(&mut game, 0);
+        let mut game = generate_testing_game(Some([1; 16]));
+        execute_craft_roll_modifier(&mut game.random_generator_state, &game.inventory[0].as_ref().unwrap().crafting_info);
     }
 
     #[test]
     fn seeding_test() {
         let mut game = generate_testing_game(Some([1; 16]));
-        let original_game = execute_craft_roll_modifier(&mut game, 0);
+        let original_game = execute_craft_roll_modifier(&mut game.random_generator_state, &game.inventory[0].as_ref().unwrap().crafting_info);
 
         for _i in 1..1000 {
             let mut game = generate_testing_game(Some([1; 16]));
-            let result = execute_craft_roll_modifier(&mut game, 0);
+            let result = execute_craft_roll_modifier(&mut game.random_generator_state, &game.inventory[0].as_ref().unwrap().crafting_info);
             assert_eq!(original_game, result);
         }
     }
@@ -280,7 +276,7 @@ mod tests_int {
         let mut gain_modifiers: HashMap<ModifierGain, u32> = HashMap::new();
 
         for _i in 1..1000 {
-            let result = execute_craft_roll_modifier(&mut game, 0);
+            let result = execute_craft_roll_modifier(&mut game.random_generator_state, &game.inventory[0].as_ref().unwrap().crafting_info);
 
             for cost in result.costs {
                 match cost {
@@ -385,7 +381,7 @@ mod tests_int {
                         let token = ModifierGain::PercentageIncreaseTreasure(treasure_type, 0);
                         *gain_modifiers.entry(token).or_insert(0) += 1;
                     }
-                    ModifierGain::FlatIncreaseRewardedItems( _) => {
+                    ModifierGain::FlatIncreaseRewardedItems(_) => {
                         let token = ModifierGain::FlatIncreaseRewardedItems(0);
                         *gain_modifiers.entry(token).or_insert(0) += 1;
                     }

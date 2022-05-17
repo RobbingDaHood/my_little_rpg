@@ -51,7 +51,7 @@ pub fn execute_craft_reroll_modifier(game: &mut Game, inventory_index: usize, mo
     }
 
     //Create item
-    let new_item_modifier = execute_craft_roll_modifier(game, inventory_index);
+    let new_item_modifier = execute_craft_roll_modifier(&mut game.random_generator_state, &game.inventory[inventory_index].as_ref().unwrap().crafting_info);
     game.inventory[inventory_index].as_mut().unwrap().modifiers[modifier_index] = new_item_modifier;
 
     Ok(ExecuteCraftRerollModifierReport {
@@ -92,7 +92,8 @@ mod tests_int {
                 },
             ],
             crafting_info: CraftingInfo {
-                possible_rolls: game.difficulty.clone()
+                possible_rolls: game.difficulty.clone(),
+                places_count: game.places.len(),
             },
         }));
 
@@ -144,7 +145,8 @@ mod tests_int {
                 },
             ],
             crafting_info: CraftingInfo {
-                possible_rolls: game.difficulty.clone()
+                possible_rolls: game.difficulty.clone(),
+                places_count: game.places.len(),
             },
         }));
 
@@ -184,7 +186,8 @@ mod tests_int {
                 },
             ],
             crafting_info: CraftingInfo {
-                possible_rolls: game.difficulty.clone()
+                possible_rolls: game.difficulty.clone(),
+                places_count: game.places.len(),
             },
         }));
 
@@ -224,7 +227,8 @@ mod tests_int {
                 },
             ],
             crafting_info: CraftingInfo {
-                possible_rolls: game.difficulty.clone()
+                possible_rolls: game.difficulty.clone(),
+                places_count: game.places.len(),
             },
         }));
 
@@ -277,7 +281,8 @@ mod tests_int {
                     },
                 ],
                 crafting_info: CraftingInfo {
-                    possible_rolls: game.difficulty.clone()
+                    possible_rolls: game.difficulty.clone(),
+                    places_count: game.places.len(),
                 },
             }));
             assert!(execute_craft_reroll_modifier(&mut game, 0, 0, vec![index_specifier::IndexSpecifier::Absolute(i)]).is_ok());
