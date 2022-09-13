@@ -27,7 +27,7 @@ pub struct Game {
     pub(crate) game_statistics: GameStatistics,
 }
 
-pub fn get_random_attack_type_from_unlocked(random_generator_state: &mut Lcg64Xsh32, unlocks: &HashMap<attack_types::AttackType, u64>) -> AttackType {
+pub fn get_random_attack_type_from_unlocked(random_generator_state: &mut Lcg64Xsh32, unlocks: &HashMap<AttackType, u64>) -> AttackType {
     let attack_type = AttackType::get_all().into_iter()
         .filter(|attack_type| unlocks.contains_key(attack_type))
         .collect::<Vec<AttackType>>()

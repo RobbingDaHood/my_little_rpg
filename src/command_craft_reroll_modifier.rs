@@ -75,6 +75,7 @@ mod tests_int {
     use crate::command_craft_reroll_modifier::{execute_craft_reroll_modifier, execute_craft_reroll_modifier_calculate_cost};
     use crate::game_generator::generate_testing_game;
     use crate::item::{CraftingInfo, Item};
+    use crate::item::test_util::create_item;
     use crate::item_modifier::ItemModifier;
 
     #[test]
@@ -169,25 +170,6 @@ mod tests_int {
 
         assert_eq!(Err("index_specifier: RelativeNegative(1) did not find any items in inventory from relative point 10 until start of inventory.".to_string()), execute_craft_reroll_modifier(&mut game, 9, 0, vec![index_specifier::IndexSpecifier::RelativeNegative(1), index_specifier::IndexSpecifier::RelativeNegative(1)]));
         assert_eq!(2, game.inventory.iter().filter(|i| i.is_some()).count());
-    }
-
-    fn create_item(game: &Game) -> Option<Item> {
-        Some(Item {
-            modifiers: vec![
-                ItemModifier {
-                    costs: Vec::new(),
-                    gains: Vec::new(),
-                },
-                ItemModifier {
-                    costs: Vec::new(),
-                    gains: Vec::new(),
-                },
-            ],
-            crafting_info: CraftingInfo {
-                possible_rolls: game.difficulty.clone(),
-                places_count: game.places.len(),
-            },
-        })
     }
 
     #[test]

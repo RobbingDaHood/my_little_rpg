@@ -52,6 +52,7 @@ mod tests_int {
     use crate::command_expand_equipment_slots::execute_expand_equipment_slots;
     use crate::game_generator::generate_new_game;
     use crate::item::{CraftingInfo, Item};
+    use crate::item::test_util::create_item;
     use crate::item_modifier::ItemModifier;
     use crate::treasure_types::TreasureType::Gold;
 
@@ -63,18 +64,7 @@ mod tests_int {
         assert_eq!(Err("No item in inventory to equip in new item slot.".to_string()), execute_expand_equipment_slots(&mut game));
         assert_eq!(1, game.equipped_items.len());
 
-        let item = Item {
-            modifiers: vec![
-                ItemModifier {
-                    costs: Vec::new(),
-                    gains: Vec::new(),
-                }
-            ],
-            crafting_info: CraftingInfo {
-                possible_rolls: game.difficulty.clone(),
-                places_count: game.places.len(),
-            },
-        };
+        let item = create_item(&game).unwrap();
         game.inventory.push( Some(item.clone()));
         game.inventory.push( Some(item.clone()));
         game.inventory.push( Some(item.clone()));

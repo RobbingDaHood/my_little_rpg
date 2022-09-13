@@ -15,7 +15,7 @@ pub enum AttackType {
     Holy,
 }
 
-//TODO: COuld also create a ressource if more than half damage goes through; Then that ressource could be used in crafting and modifiers.
+//TODO: Could also create a resource if more than half damage goes through; Then that resource could be used in crafting and modifiers.
 
 impl AttackType {
     pub fn get_all() -> Vec<AttackType> {

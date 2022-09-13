@@ -82,15 +82,8 @@ pub fn execute_move_command(game: &mut Game, index: usize) -> Result<ExecuteMove
                 .map(|(treasure_type, treasure_amount)|
                     match treasure_bonus.get(treasure_type) {
                         None => (treasure_type.clone(), *treasure_amount),
-                        Some(percentage) => {
-                            let multiplied_treasure_value = treasure_amount
-                                .checked_mul(*percentage as u64)
-                                .unwrap_or(u64::MAX)
-                                .checked_div(100)
-                                .unwrap_or(1)
-                                .max(1)
-                                .checked_add(*treasure_amount)
-                                .unwrap_or(u64::MAX);
+                        Some(multiplier_as_percentage) => {
+                            let multiplied_treasure_value = add_multiplier_to_base(multiplier_as_percentage, treasure_amount);
                             (treasure_type.clone(), multiplied_treasure_value)
                         }
                     }
@@ -154,66 +147,17 @@ fn update_gain_effect(current_damage: &mut HashMap<AttackType, u64>, current_res
         for gain in &modifier.gains {
             match gain {
                 ModifierGain::FlatDamage(attack_type, amount) => *current_damage.entry(attack_type.clone()).or_insert(0) += amount,
-                ModifierGain::PercentageIncreaseDamage(attack_type, percentage) => {
-                    match current_damage.get(attack_type) {
-                        None => {}
-                        Some(attack_value) => {
-                            let multiplied_attack_value = attack_value
-                                .checked_mul(*percentage as u64)
-                                .unwrap_or(u64::MAX)
-                                .checked_div(100)
-                                .unwrap_or(1)
-                                .max(1)
-                                .checked_add(*attack_value)
-                                .unwrap_or(u64::MAX);
-                            current_damage.insert(attack_type.clone(), multiplied_attack_value);
-                        }
-                    }
-                }
+                ModifierGain::PercentageIncreaseDamage(attack_type, multiplier_as_percentage) => add_multiplier_to_attack_type_base(current_damage, attack_type, multiplier_as_percentage),
                 ModifierGain::FlatItemResource(item_resource_type, amount) => *current_item_resources.entry(item_resource_type.clone()).or_insert(0) += amount,
                 ModifierGain::FlatResistanceReduction(attack_type, amount) => *current_resistance_reduction.entry(attack_type.clone()).or_insert(0) += amount,
-                ModifierGain::PercentageIncreaseResistanceReduction(attack_type, percentage) => {
-                    match current_resistance_reduction.get(attack_type) {
-                        None => {}
-                        Some(resistance_reduction_amount) => {
-                            let multiplied_attack_value = resistance_reduction_amount
-                                .checked_mul(*percentage as u64)
-                                .unwrap_or(u64::MAX)
-                                .checked_div(100)
-                                .unwrap_or(1)
-                                .max(1)
-                                .checked_add(*resistance_reduction_amount)
-                                .unwrap_or(u64::MAX);
-                            current_resistance_reduction.insert(attack_type.clone(), multiplied_attack_value);
-                        }
-                    }
-                }
+                ModifierGain::PercentageIncreaseResistanceReduction(attack_type, multiplier_as_percentage) => add_multiplier_to_attack_type_base(current_resistance_reduction, attack_type, multiplier_as_percentage),
                 ModifierGain::FlatDamageAgainstHighestResistance(amount) => {
-                    let attack_type_with_max_resistance = AttackType::order_map(&place.resistance).into_iter()
-                        .max_by(|(_, a_attack_amount), (_, b_attack_amount)| a_attack_amount.cmp(b_attack_amount))
-                        .map(|(attack_type, _)| attack_type)
-                        .unwrap();
+                    let attack_type_with_max_resistance = get_attack_type_with_max_amount(&place);
                     *current_damage.entry(attack_type_with_max_resistance.clone()).or_insert(0) += amount;
                 }
-                ModifierGain::PercentageIncreaseDamageAgainstHighestResistance(amount) => {
-                    let attack_type_with_max_resistance = AttackType::order_map(&place.resistance).into_iter()
-                        .max_by(|(_, a_attack_amount), (_, b_attack_amount)| a_attack_amount.cmp(b_attack_amount))
-                        .map(|(attack_type, _)| attack_type)
-                        .unwrap();
-                    match current_damage.get(&attack_type_with_max_resistance) {
-                        None => {}
-                        Some(attack_value) => {
-                            let multiplied_attack_value = attack_value
-                                .checked_mul(*amount as u64)
-                                .unwrap_or(u64::MAX)
-                                .checked_div(100)
-                                .unwrap_or(1)
-                                .max(1)
-                                .checked_add(*attack_value)
-                                .unwrap_or(u64::MAX);
-                            current_damage.insert(attack_type_with_max_resistance.clone(), multiplied_attack_value);
-                        }
-                    }
+                ModifierGain::PercentageIncreaseDamageAgainstHighestResistance(multiplier_as_percentage) => {
+                    let attack_type_with_max_resistance = get_attack_type_with_max_amount(&place);
+                    add_multiplier_to_attack_type_base(current_damage, &attack_type_with_max_resistance, multiplier_as_percentage);
                 }
                 ModifierGain::FlatDamageAgainstLowestResistance(amount) => {
                     let attack_type_with_min_resistance = AttackType::order_map(&place.resistance).into_iter()
@@ -222,31 +166,46 @@ fn update_gain_effect(current_damage: &mut HashMap<AttackType, u64>, current_res
                         .unwrap();
                     *current_damage.entry(attack_type_with_min_resistance.clone()).or_insert(0) += amount;
                 }
-                ModifierGain::PercentageIncreaseDamageAgainstLowestResistance(amount) => {
+                ModifierGain::PercentageIncreaseDamageAgainstLowestResistance(multiplier_as_percentage) => {
                     let attack_type_with_min_resistance = AttackType::order_map(&place.resistance).into_iter()
                         .min_by(|(_, a_attack_amount), (_, b_attack_amount)| a_attack_amount.cmp(b_attack_amount))
                         .map(|(attack_type, _)| attack_type)
                         .unwrap();
-                    match current_damage.get(&attack_type_with_min_resistance) {
-                        None => {}
-                        Some(attack_value) => {
-                            let multiplied_attack_value = attack_value
-                                .checked_mul(*amount as u64)
-                                .unwrap_or(u64::MAX)
-                                .checked_div(100)
-                                .unwrap_or(1)
-                                .max(1)
-                                .checked_add(*attack_value)
-                                .unwrap_or(u64::MAX);
-                            current_damage.insert(attack_type_with_min_resistance.clone(), multiplied_attack_value);
-                        }
-                    }
+                    add_multiplier_to_attack_type_base(current_damage, &attack_type_with_min_resistance, multiplier_as_percentage);
                 }
                 ModifierGain::PercentageIncreaseTreasure(treasure_type, amount) => *treasure_bonus.entry(treasure_type.clone()).or_insert(0) += amount,
                 ModifierGain::FlatIncreaseRewardedItems(amount) => *item_gain = item_gain.checked_add(*amount).unwrap_or(u16::MAX),
             }
         }
     }
+}
+
+fn get_attack_type_with_max_amount(place: &&Place) -> AttackType {
+    AttackType::order_map(&place.resistance).into_iter()
+        .max_by(|(_, a_attack_amount), (_, b_attack_amount)| a_attack_amount.cmp(b_attack_amount))
+        .map(|(attack_type, _)| attack_type)
+        .unwrap()
+}
+
+fn add_multiplier_to_attack_type_base(attack_type_base: &mut HashMap<AttackType, u64>, attack_type: &AttackType, multiplier_as_percentage: &u16) {
+    match attack_type_base.get(attack_type) {
+        None => {}
+        Some(attack_value) => {
+            let multiplied_attack_value = add_multiplier_to_base(multiplier_as_percentage, attack_value);
+            attack_type_base.insert(attack_type.clone(), multiplied_attack_value);
+        }
+    }
+}
+
+fn add_multiplier_to_base(multiplier_as_percentage: &u16, base_value: &u64) -> u64 {
+    base_value
+        .checked_mul(*multiplier_as_percentage as u64)
+        .unwrap_or(u64::MAX)
+        .checked_div(100)
+        .unwrap_or(1)
+        .max(1)
+        .checked_add(*base_value)
+        .unwrap_or(u64::MAX)
 }
 
 fn update_cost_effect(current_item_resources: &mut HashMap<ItemResourceType, u64>, item_resource_cost: &HashMap<ItemResourceType, u64>) {
@@ -383,7 +342,7 @@ mod tests_int {
     fn test_execute_move_command() {
         let mut game = generate_testing_game(Some([1; 16]));
         let place = game.places[0].clone();
-        assert_eq!(None, game.treasure.get(&TreasureType::Gold));
+        assert_eq!(None, game.treasure.get(&Gold));
         assert_eq!(None, game.item_resources.get(&ItemResourceType::Mana));
         assert_eq!(9, game.inventory.len());
         assert_eq!(0, game.game_statistics.moves_count);
@@ -400,7 +359,7 @@ mod tests_int {
 
         assert_eq!("You did not deal enough damage to overcome the challenges in this place.".to_string(), result.result);
         assert_eq!(2, result.item_report.len());
-        assert_eq!(None, game.treasure.get(&TreasureType::Gold));
+        assert_eq!(None, game.treasure.get(&Gold));
         assert_eq!(Some(&5), game.item_resources.get(&ItemResourceType::Mana));
         assert_eq!(9, game.inventory.len());
         assert_eq!(1, game.game_statistics.moves_count);
@@ -417,8 +376,8 @@ mod tests_int {
         assert_eq!("You won and got a new item in the inventory.".to_string(), result.result);
         assert_eq!(2, result.item_report.len());
         assert_ne!(place, game.places[0]);
-        assert_eq!(place.reward.get(&TreasureType::Gold), game.treasure.get(&TreasureType::Gold));
-        assert_ne!(&0, game.treasure.get(&TreasureType::Gold).unwrap());
+        assert_eq!(place.reward.get(&Gold), game.treasure.get(&Gold));
+        assert_ne!(&0, game.treasure.get(&Gold).unwrap());
         assert_eq!(Some(&1), game.item_resources.get(&ItemResourceType::Mana));
         assert_eq!(10, game.inventory.len());
         assert_eq!(2, game.game_statistics.moves_count);
@@ -440,7 +399,7 @@ mod tests_int {
 
         assert_eq!("Error: execute_move_command: Index 11 is out of range of places, places is 10 long.".to_string(), result.result);
         assert_eq!(0, result.item_report.len());
-        assert_eq!(None, game.treasure.get(&TreasureType::Gold));
+        assert_eq!(None, game.treasure.get(&Gold));
     }
 
     #[test]
@@ -456,14 +415,14 @@ mod tests_int {
 
         assert_eq!("You did not deal enough damage to overcome the challenges in this place.".to_string(), result.result);
         assert_eq!(0, result.item_report.len());
-        assert_eq!(None, game.treasure.get(&TreasureType::Gold));
+        assert_eq!(None, game.treasure.get(&Gold));
     }
 
     #[test]
     fn test_execute_move_command_item_after_claim_does_not_activate() {
         let mut game = generate_testing_game(Some([1; 16]));
         let place = game.places[0].clone();
-        assert_eq!(None, game.treasure.get(&TreasureType::Gold));
+        assert_eq!(None, game.treasure.get(&Gold));
         assert_eq!(None, game.item_resources.get(&ItemResourceType::Mana));
 
         let power_item = Item {
@@ -490,8 +449,8 @@ mod tests_int {
         assert_eq!("You won and got a new item in the inventory.".to_string(), result.result);
         assert_eq!(1, result.item_report.len()); //Only the first item got activated, because that were enough.
         assert_ne!(place, game.places[0]);
-        assert_eq!(place.reward.get(&TreasureType::Gold), game.treasure.get(&TreasureType::Gold));
-        assert_ne!(&0, game.treasure.get(&TreasureType::Gold).unwrap());
+        assert_eq!(place.reward.get(&Gold), game.treasure.get(&Gold));
+        assert_ne!(&0, game.treasure.get(&Gold).unwrap());
         assert_eq!(None, game.item_resources.get(&ItemResourceType::Mana));
 
         //Putting the power item at the end
@@ -506,7 +465,7 @@ mod tests_int {
         assert_eq!("You won and got a new item in the inventory.".to_string(), result.result);
         assert_eq!(3, result.item_report.len()); //Now all three have a report.
         assert_ne!(place, game.places[0]);
-        assert!(place.reward.get(&TreasureType::Gold).unwrap() < game.treasure.get(&TreasureType::Gold).unwrap());
+        assert!(place.reward.get(&Gold).unwrap() < game.treasure.get(&Gold).unwrap());
         assert_eq!(Some(&5), game.item_resources.get(&ItemResourceType::Mana));
     }
 
@@ -1464,8 +1423,8 @@ mod tests_int {
         assert_eq!("Costs paid and all gains executed.".to_string(), result.item_report[0].effect_description);
         assert_eq!(500, *result.item_report[1].treasure_bonus.get(&Gold).unwrap());
 
-        assert_eq!(old_place.reward.get(&TreasureType::Gold).unwrap() * 6, *game.treasure.get(&TreasureType::Gold).unwrap());
-        assert_ne!(&0, game.treasure.get(&TreasureType::Gold).unwrap());
+        assert_eq!(old_place.reward.get(&Gold).unwrap() * 6, *game.treasure.get(&Gold).unwrap());
+        assert_ne!(&0, game.treasure.get(&Gold).unwrap());
     }
 
     #[test]
