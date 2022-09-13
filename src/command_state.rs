@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 use crate::place::Place;
 use serde::{Deserialize, Serialize};
-use crate::command_craft_rerol_modifier::execute_craft_rerol_modifier_calculate_cost;
+use crate::command_craft_reroll_modifier::execute_craft_reroll_modifier_calculate_cost;
 use crate::command_expand_elements::execute_expand_elements_calculate_cost;
 use crate::command_expand_equipment_slots::execute_expand_equipment_slots_calculate_cost;
 use crate::command_expand_max_element::execute_expand_max_element_calculate_cost;
@@ -59,7 +59,7 @@ pub struct PresentationItem {
 
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
 pub struct ItemCosts {
-    rerol_modifier: u16,
+    reroll_modifier: u16,
     add_modifier: usize,
 }
 
@@ -117,6 +117,6 @@ pub fn execute_state(game: &mut Game) -> PresentationGameState {
 
 fn calculate_item_cost(game: &Game, item_index: usize) -> ItemCosts {
     let add_modifier = execute_craft_expand_modifiers_calculate_cost(game, item_index);
-    let rerol_modifier = execute_craft_rerol_modifier_calculate_cost(game, item_index);
-    ItemCosts { rerol_modifier, add_modifier }
+    let reroll_modifier = execute_craft_reroll_modifier_calculate_cost(game, item_index);
+    ItemCosts { reroll_modifier, add_modifier }
 }
