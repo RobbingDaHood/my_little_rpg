@@ -32,7 +32,7 @@ pub fn execute_craft_expand_modifiers(game: &mut Game, inventory_index: usize, m
 
     let cost = execute_craft_expand_modifiers_calculate_cost(game, inventory_index);
     if sacrifice_item_indexes.len() < cost.into() {
-        return Err(format!("craft_reroll_modifier needs {} items to be sacrificed but you only provided {}", cost, sacrifice_item_indexes.len()));
+        return Err(format!("craft_rerol_modifier needs {} items to be sacrificed but you only provided {}", cost, sacrifice_item_indexes.len()));
     }
 
     //Only need to cost amount of items
@@ -86,7 +86,7 @@ mod tests_int {
         let mut game = generate_testing_game(Some([1; 16]));
         assert_eq!(1, game.inventory[0].as_ref().unwrap().modifiers.len());
 
-        assert_eq!(Err("craft_reroll_modifier needs 2 items to be sacrificed but you only provided 1".to_string()), execute_craft_expand_modifiers(&mut game, 0, vec![IndexSpecifier::Absolute(0)]));
+        assert_eq!(Err("craft_rerol_modifier needs 2 items to be sacrificed but you only provided 1".to_string()), execute_craft_expand_modifiers(&mut game, 0, vec![IndexSpecifier::Absolute(0)]));
         assert_eq!(1, game.inventory[0].as_ref().unwrap().modifiers.len());
 
 
