@@ -5,7 +5,7 @@ use crate::treasure_types::TreasureType;
 use serde::{Deserialize, Serialize};
 use crate::difficulty::Difficulty;
 
-#[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
+#[derive(Clone, PartialEq, Eq, Debug, Serialize, Deserialize)]
 pub struct Place {
     pub(crate) resistance: HashMap<attack_types::AttackType, u64>,
     pub(crate) reward: HashMap<TreasureType, u64>,
@@ -110,7 +110,7 @@ mod tests_int {
 
         let place = Place {
             resistance: resistance.clone(),
-            reward: reward.clone(),
+            reward,
             item_reward_possible_rolls,
         };
 

@@ -40,7 +40,7 @@ impl ModifierGain {
             result.push(FlatResistanceReduction(attack_type, 0));
         }
 
-        for attack_type in attack_types.clone() {
+        for attack_type in attack_types {
             result.push(PercentageIncreaseResistanceReduction(attack_type, 0));
         }
 

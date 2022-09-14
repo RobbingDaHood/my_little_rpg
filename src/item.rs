@@ -8,7 +8,7 @@ pub struct Item {
     pub(crate) crafting_info: CraftingInfo,
 }
 
-#[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
+#[derive(Clone, PartialEq, Eq, Debug, Serialize, Deserialize)]
 pub struct CraftingInfo {
     pub(crate) possible_rolls: Difficulty,
     pub(crate) places_count: usize,

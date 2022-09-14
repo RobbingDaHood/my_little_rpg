@@ -31,7 +31,7 @@ fn get_file_path(save_name: String, save_path: Option<String>) -> Result<String,
         None => "./save_games/".to_string()
     };
 
-    return match create_dir_all(&save_path) {
+    match create_dir_all(&save_path) {
         Err(error_message) => Err(format!("Failed creating the folder for the save games, Reason: {}", error_message)),
         Ok(_) => Ok(format!("{}{}.json", save_path, save_name))
     }

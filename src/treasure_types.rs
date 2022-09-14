@@ -1,5 +1,7 @@
 use std::collections::HashMap;
+
 use serde::{Deserialize, Serialize};
+
 use crate::Game;
 use crate::treasure_types::TreasureType::Gold;
 
@@ -17,8 +19,8 @@ impl TreasureType {
 }
 
 pub fn pay_crafting_cost(game: &mut Game, crafting_cost: &HashMap<TreasureType, u64>) -> Result<(), String> {
-    if calculate_are_all_treasure_payable(&game.treasure, &crafting_cost) {
-        update_all_treasure(&mut game.treasure, &crafting_cost);
+    if calculate_are_all_treasure_payable(&game.treasure, crafting_cost) {
+        update_all_treasure(&mut game.treasure, crafting_cost);
     } else {
         return Err(format!("Cant pay the crafting cost, the cost is {:?} and you only have {:?}", crafting_cost, game.treasure));
     }
@@ -34,7 +36,7 @@ fn calculate_are_all_treasure_payable(current_treasure: &HashMap<TreasureType, u
                     stored_amount >= amount
                 }
             }
-        ).clone()
+        )
 }
 
 fn update_all_treasure(current_treasure: &mut HashMap<TreasureType, u64>, treasure_cost: &HashMap<TreasureType, u64>) {

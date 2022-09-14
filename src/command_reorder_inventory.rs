@@ -35,7 +35,7 @@ mod tests_int {
             },
         });
 
-        game.inventory = vec![item.clone(), None, item.clone(), None, None, item.clone()];
+        game.inventory = vec![item.clone(), None, item.clone(), None, None, item];
 
         assert_eq!(Ok("Inventory is reordered.".to_string()), execute_reorder_inventory(&mut game));
 

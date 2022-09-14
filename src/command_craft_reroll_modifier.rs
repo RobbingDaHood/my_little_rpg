@@ -74,9 +74,7 @@ mod tests_int {
     use crate::{Game, index_specifier};
     use crate::command_craft_reroll_modifier::{execute_craft_reroll_modifier, execute_craft_reroll_modifier_calculate_cost};
     use crate::game_generator::generate_testing_game;
-    use crate::item::{CraftingInfo, Item};
     use crate::item::test_util::create_item;
-    use crate::item_modifier::ItemModifier;
 
     #[test]
     fn test_execute_craft_item() {
@@ -95,14 +93,14 @@ mod tests_int {
         assert_eq!(old_item, game.inventory[0]);
         assert_eq!(10, game.inventory.len());
 
-        assert_eq!(2, execute_craft_reroll_modifier_calculate_cost(&mut game, 0));
+        assert_eq!(2, execute_craft_reroll_modifier_calculate_cost(&game, 0));
         assert_eq!(Err("craft_reroll_modifier needs 2 items to be sacrificed but you only provided 1".to_string()), execute_craft_reroll_modifier(&mut game, 0, 0, vec![index_specifier::IndexSpecifier::Absolute(1)]));
         assert_eq!(old_item, game.inventory[0]);
         assert_eq!(10, game.inventory.len());
 
         let result = execute_craft_reroll_modifier(&mut game, 0, 0, vec![index_specifier::IndexSpecifier::Absolute(1), index_specifier::IndexSpecifier::Absolute(2)]);
         assert!(result.is_ok());
-        assert_ne!(old_item.unwrap(), result.clone().unwrap().new_item);
+        assert_ne!(old_item.unwrap(), result.unwrap().new_item);
         let old_item = game.inventory[0].clone();
         assert_eq!(8, game.inventory.iter().filter(|i| i.is_some()).count());
 
@@ -143,7 +141,7 @@ mod tests_int {
     }
 
     fn insert_game_in_inventory(game: &mut Game) {
-        game.inventory.insert(0, create_item(&game));
+        game.inventory.insert(0, create_item(game));
     }
 
     #[test]

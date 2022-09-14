@@ -1,9 +1,12 @@
 use std::cmp::{max, min};
 use std::collections::HashSet;
 use std::ops::Add;
+
 use rand::Rng;
 use rand_pcg::Lcg64Xsh32;
+
 use crate::attack_types::AttackType;
+use crate::game::get_random_attack_type_from_unlocked;
 use crate::item::CraftingInfo;
 use crate::item_modifier::ItemModifier;
 use crate::item_resource::ItemResourceType;
@@ -11,7 +14,6 @@ use crate::modifier_cost::ModifierCost;
 use crate::modifier_gain::ModifierGain::{FlatDamageAgainstHighestResistance, FlatDamageAgainstLowestResistance, FlatIncreaseRewardedItems, FlatItemResource, FlatResistanceReduction, PercentageIncreaseDamage, PercentageIncreaseDamageAgainstHighestResistance, PercentageIncreaseDamageAgainstLowestResistance, PercentageIncreaseResistanceReduction, PercentageIncreaseTreasure};
 use crate::modifier_gain::ModifierGain;
 use crate::modifier_gain::ModifierGain::FlatDamage;
-use crate::game::get_random_attack_type_from_unlocked;
 
 pub fn execute_craft_roll_modifier(random_generator_state: &mut Lcg64Xsh32, crafting_info: &CraftingInfo) -> ItemModifier {
     let minimum_elements = min(crafting_info.possible_rolls.min_resistance.len(), crafting_info.possible_rolls.min_simultaneous_resistances as usize);
@@ -46,7 +48,7 @@ fn execute_craft_roll_modifier_costs(random_generator_state: &mut Lcg64Xsh32, cr
                     let maximum_value = *crafting_info.possible_rolls.max_resistance.get(&attack_type).unwrap();
                     let value = min(max_cost - accumulated_cost, random_generator_state.gen_range(minimum_value..=maximum_value));
 
-                    modifier_costs.push(ModifierCost::FlatMinAttackRequirement(attack_type, value.clone()));
+                    modifier_costs.push(ModifierCost::FlatMinAttackRequirement(attack_type, value));
                     accumulated_cost += value;
                 }
                 1 => {
@@ -56,7 +58,7 @@ fn execute_craft_roll_modifier_costs(random_generator_state: &mut Lcg64Xsh32, cr
                     let maximum_value = *crafting_info.possible_rolls.max_resistance.get(&attack_type).unwrap();
                     let value = min(max_cost - accumulated_cost, random_generator_state.gen_range(minimum_value..=maximum_value));
 
-                    modifier_costs.push(ModifierCost::FlatMaxAttackRequirement(attack_type, value.clone()));
+                    modifier_costs.push(ModifierCost::FlatMaxAttackRequirement(attack_type, value));
                     accumulated_cost += maximum_value - value;
                 }
                 2 => {
@@ -67,7 +69,6 @@ fn execute_craft_roll_modifier_costs(random_generator_state: &mut Lcg64Xsh32, cr
 
                     let valid_numbers = (0..number_of_valid_values).into_iter()
                         .map(|_| random_generator_state.gen_range(0..modulus))
-                        .map(|value| u8::try_from(value).unwrap())
                         .collect::<HashSet<u8>>().into_iter()
                         .collect();
 
@@ -80,7 +81,7 @@ fn execute_craft_roll_modifier_costs(random_generator_state: &mut Lcg64Xsh32, cr
                     let maximum_value = crafting_info.possible_rolls.max_resistance.values().sum::<u64>();
                     let value = min(max_cost - accumulated_cost, random_generator_state.gen_range(minimum_value..=maximum_value));
 
-                    modifier_costs.push(ModifierCost::FlatSumMinAttackRequirement(value.clone()));
+                    modifier_costs.push(ModifierCost::FlatSumMinAttackRequirement(value));
                     accumulated_cost += value;
                 }
                 4 => {
@@ -88,7 +89,7 @@ fn execute_craft_roll_modifier_costs(random_generator_state: &mut Lcg64Xsh32, cr
                     let maximum_value = crafting_info.possible_rolls.max_resistance.values().sum::<u64>();
                     let value = min(max_cost - accumulated_cost, random_generator_state.gen_range(minimum_value..=maximum_value));
 
-                    modifier_costs.push(ModifierCost::FlatSumMaxAttackRequirement(value.clone()));
+                    modifier_costs.push(ModifierCost::FlatSumMaxAttackRequirement(value));
                     accumulated_cost += maximum_value - value;
                 }
                 5 => {
@@ -108,7 +109,7 @@ fn execute_craft_roll_modifier_costs(random_generator_state: &mut Lcg64Xsh32, cr
                     let maximum_value = *crafting_info.possible_rolls.max_resistance.get(&attack_type).unwrap();
                     let value = min(max_cost - accumulated_cost, random_generator_state.gen_range(minimum_value..=maximum_value));
 
-                    modifier_costs.push(ModifierCost::FlatMinResistanceRequirement(attack_type, value.clone()));
+                    modifier_costs.push(ModifierCost::FlatMinResistanceRequirement(attack_type, value));
                     accumulated_cost += value;
                 }
                 8 => {
@@ -118,7 +119,7 @@ fn execute_craft_roll_modifier_costs(random_generator_state: &mut Lcg64Xsh32, cr
                     let maximum_value = *crafting_info.possible_rolls.max_resistance.get(&attack_type).unwrap();
                     let value = min(max_cost - accumulated_cost, random_generator_state.gen_range(minimum_value..=maximum_value));
 
-                    modifier_costs.push(ModifierCost::FlatMaxResistanceRequirement(attack_type, value.clone()));
+                    modifier_costs.push(ModifierCost::FlatMaxResistanceRequirement(attack_type, value));
                     accumulated_cost += maximum_value - value;
                 }
                 9 => {
@@ -126,7 +127,7 @@ fn execute_craft_roll_modifier_costs(random_generator_state: &mut Lcg64Xsh32, cr
                     let maximum_value = crafting_info.possible_rolls.max_resistance.values().sum::<u64>();
                     let value = min(max_cost - accumulated_cost, random_generator_state.gen_range(minimum_value..=maximum_value));
 
-                    modifier_costs.push(ModifierCost::FlatMinSumResistanceRequirement(value.clone()));
+                    modifier_costs.push(ModifierCost::FlatMinSumResistanceRequirement(value));
                     accumulated_cost += value;
                 }
                 10 => {
@@ -134,7 +135,7 @@ fn execute_craft_roll_modifier_costs(random_generator_state: &mut Lcg64Xsh32, cr
                     let maximum_value = crafting_info.possible_rolls.max_resistance.values().sum::<u64>();
                     let value = min(max_cost - accumulated_cost, random_generator_state.gen_range(minimum_value..=maximum_value));
 
-                    modifier_costs.push(ModifierCost::FlatMaxSumResistanceRequirement(value.clone()));
+                    modifier_costs.push(ModifierCost::FlatMaxSumResistanceRequirement(value));
                     accumulated_cost += maximum_value - value;
                 }
                 11 => {
@@ -142,7 +143,7 @@ fn execute_craft_roll_modifier_costs(random_generator_state: &mut Lcg64Xsh32, cr
                     let value = max(2, value);
                     let value = random_generator_state.gen_range(1..value);
 
-                    modifier_costs.push(ModifierCost::MinWinsInARow(value.clone()));
+                    modifier_costs.push(ModifierCost::MinWinsInARow(value));
                     accumulated_cost += u64::from(value);
                 }
                 12 => {
@@ -150,7 +151,7 @@ fn execute_craft_roll_modifier_costs(random_generator_state: &mut Lcg64Xsh32, cr
                     let value = max(1, max_value);
                     let value = random_generator_state.gen_range(0..value);
 
-                    modifier_costs.push(ModifierCost::MaxWinsInARow(value.clone()));
+                    modifier_costs.push(ModifierCost::MaxWinsInARow(value));
                     accumulated_cost += u64::from(max_value - value);
                 }
                 _ => {
@@ -168,7 +169,7 @@ fn execute_craft_roll_modifier_costs(random_generator_state: &mut Lcg64Xsh32, cr
 fn execute_craft_roll_modifier_benefits(random_generator_state: &mut Lcg64Xsh32, crafting_info: &CraftingInfo, cost: u64, minimum_elements: usize, maximum_elements: usize) -> Vec<ModifierGain> {
     let attack_types = AttackType::get_all().iter()
         .filter(|attack_type| crafting_info.possible_rolls.min_resistance.contains_key(attack_type))
-        .map(|attack_type| attack_type.clone())
+        .cloned()
         .collect::<Vec<AttackType>>();
 
     let mut leftover_cost = cost;
@@ -195,7 +196,7 @@ fn execute_craft_roll_modifier_benefits(random_generator_state: &mut Lcg64Xsh32,
                     let damage = max(1, damage);
                     let damage = damage + cost_bonus * 2;
 
-                    FlatDamage(attack_type.clone(), damage.clone())
+                    FlatDamage(attack_type.clone(), damage)
                 }
                 PercentageIncreaseDamage(attack_type, _) => {
                     PercentageIncreaseDamage(attack_type.clone(), u16::try_from(cost_bonus).unwrap_or(u16::MAX).max(1))
@@ -211,7 +212,7 @@ fn execute_craft_roll_modifier_benefits(random_generator_state: &mut Lcg64Xsh32,
                     let damage = max(1, damage);
                     let damage = damage + cost_bonus * 2;
 
-                    FlatResistanceReduction(attack_type.clone(), damage.clone())
+                    FlatResistanceReduction(attack_type.clone(), damage)
                 }
                 PercentageIncreaseResistanceReduction(attack_type, _) => {
                     PercentageIncreaseResistanceReduction(attack_type.clone(), u16::try_from(cost_bonus).unwrap_or(u16::MAX).max(1))
@@ -243,13 +244,13 @@ fn execute_craft_roll_modifier_benefits(random_generator_state: &mut Lcg64Xsh32,
 #[cfg(test)]
 mod tests_int {
     use std::collections::HashMap;
-    use crate::game_generator::{generate_testing_game};
+
+    use crate::game_generator::generate_testing_game;
     use crate::item_resource::ItemResourceType;
     use crate::modifier_cost::ModifierCost;
     use crate::modifier_gain::ModifierGain;
     use crate::roll_modifier::execute_craft_roll_modifier;
     use crate::treasure_types::TreasureType;
-
 
     #[test]
     fn basic_test() {
@@ -390,12 +391,12 @@ mod tests_int {
         }
 
         assert_eq!(0, game.difficulty.min_resistance.keys()
-            .map(|attack_type| attack_type.clone())
+            .cloned()
             .filter(|attack_type| cost_modifiers.get(&ModifierCost::FlatMinAttackRequirement(attack_type.clone(), 0)).unwrap() == &0)
             .count());
 
         assert_eq!(0, game.difficulty.min_resistance.keys()
-            .map(|attack_type| attack_type.clone())
+            .cloned()
             .filter(|attack_type| cost_modifiers.get(&ModifierCost::FlatMaxAttackRequirement(attack_type.clone(), 0)).unwrap() == &0)
             .count());
 
@@ -417,12 +418,12 @@ mod tests_int {
             .count());
 
         assert_eq!(0, game.difficulty.min_resistance.keys()
-            .map(|attack_type| attack_type.clone())
+            .cloned()
             .filter(|attack_type| cost_modifiers.get(&ModifierCost::FlatMinResistanceRequirement(attack_type.clone(), 0)).unwrap() == &0)
             .count());
 
         assert_eq!(0, game.difficulty.min_resistance.keys()
-            .map(|attack_type| attack_type.clone())
+            .cloned()
             .filter(|attack_type| cost_modifiers.get(&ModifierCost::FlatMaxResistanceRequirement(attack_type.clone(), 0)).unwrap() == &0)
             .count());
 
@@ -432,7 +433,7 @@ mod tests_int {
         assert_ne!(0, *cost_modifiers.get(&ModifierCost::MaxWinsInARow(0)).unwrap());
 
         assert_eq!(0, game.difficulty.min_resistance.keys()
-            .map(|attack_type| attack_type.clone())
+            .cloned()
             .filter(|attack_type| gain_modifiers.get(&ModifierGain::FlatDamage(attack_type.clone(), 0)).unwrap() == &0)
             .count());
 
@@ -441,17 +442,17 @@ mod tests_int {
             .count());
 
         assert_eq!(0, game.difficulty.min_resistance.keys()
-            .map(|attack_type| attack_type.clone())
+            .cloned()
             .filter(|attack_type| gain_modifiers.get(&ModifierGain::PercentageIncreaseDamage(attack_type.clone(), 0)).unwrap() == &0)
             .count());
 
         assert_eq!(0, game.difficulty.min_resistance.keys()
-            .map(|attack_type| attack_type.clone())
+            .cloned()
             .filter(|attack_type| gain_modifiers.get(&ModifierGain::FlatResistanceReduction(attack_type.clone(), 0)).unwrap() == &0)
             .count());
 
         assert_eq!(0, game.difficulty.min_resistance.keys()
-            .map(|attack_type| attack_type.clone())
+            .cloned()
             .filter(|attack_type| gain_modifiers.get(&ModifierGain::PercentageIncreaseResistanceReduction(attack_type.clone(), 0)).unwrap() == &0)
             .count());
 

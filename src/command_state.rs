@@ -1,6 +1,8 @@
 use std::collections::HashMap;
-use crate::place::Place;
+
 use serde::{Deserialize, Serialize};
+
+use crate::command_craft_expand_modifier::execute_craft_expand_modifiers_calculate_cost;
 use crate::command_craft_reroll_modifier::execute_craft_reroll_modifier_calculate_cost;
 use crate::command_expand_elements::execute_expand_elements_calculate_cost;
 use crate::command_expand_equipment_slots::execute_expand_equipment_slots_calculate_cost;
@@ -8,15 +10,15 @@ use crate::command_expand_max_element::execute_expand_max_element_calculate_cost
 use crate::command_expand_max_simultaneous_element::execute_expand_max_simultaneous_element_calculate_cost;
 use crate::command_expand_min_element::execute_expand_min_element_calculate_cost;
 use crate::command_expand_min_simultanius_element::execute_expand_min_simultaneous_element_calculate_cost;
-use crate::command_craft_expand_modifier::execute_craft_expand_modifiers_calculate_cost;
 use crate::command_expand_places::execute_expand_places_calculate_cost;
-use crate::command_reduce_difficulty::{execute_execute_reduce_difficulty_cost};
+use crate::command_reduce_difficulty::execute_execute_reduce_difficulty_cost;
 use crate::difficulty::Difficulty;
 use crate::Game;
 use crate::game_statistics::GameStatistics;
 use crate::hex_encoder::encode_hex;
 use crate::item::Item;
 use crate::item_resource::ItemResourceType;
+use crate::place::Place;
 use crate::treasure_types::TreasureType;
 
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
@@ -32,7 +34,7 @@ pub struct PresentationGameState {
     pub(crate) game_statistics: GameStatistics,
 }
 
-#[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
+#[derive(Clone, PartialEq, Eq, Debug, Serialize, Deserialize)]
 pub struct PlaceCosts {
     expand_places: HashMap<TreasureType, u64>,
     expand_elements: HashMap<TreasureType, u64>,
@@ -57,7 +59,7 @@ pub struct PresentationItem {
     crafting_action_costs: Result<ItemCosts, String>, //TODO Insert this into items, in a way where we do not need to maintain a second item model
 }
 
-#[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
+#[derive(Clone, PartialEq, Eq, Debug, Serialize, Deserialize)]
 pub struct ItemCosts {
     reroll_modifier: u16,
     add_modifier: usize,
@@ -65,19 +67,19 @@ pub struct ItemCosts {
 
 pub fn execute_state(game: &mut Game) -> PresentationGameState {
     let places: Vec<PresentationPlace> = game.places.iter()
-        .map(|item| item.clone())
+        .cloned()
         .enumerate()
         .map(|(index, place)| PresentationPlace {
             index,
-            place: place.clone(),
+            place,
         })
         .collect();
     let equipped_items: Vec<PresentationItem> = game.equipped_items.iter()
-        .map(|item| item.clone())
+        .cloned()
         .enumerate()
         .map(|(index, item)| PresentationItem {
             index,
-            item: item.clone(),
+            item,
             crafting_action_costs: Err("Equipped items cannot be crafted on.".to_string()),
         })
         .collect();
@@ -111,7 +113,7 @@ pub fn execute_state(game: &mut Game) -> PresentationGameState {
         item_resources: game.item_resources.clone(),
         crafting_action_costs: crafting_actions,
         seed: encode_hex(&game.seed),
-        game_statistics: game.game_statistics.clone()
+        game_statistics: game.game_statistics.clone(),
     }
 }
 

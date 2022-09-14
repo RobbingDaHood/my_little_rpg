@@ -5,7 +5,7 @@ use crate::treasure_types::{pay_crafting_cost, TreasureType};
 use crate::treasure_types::TreasureType::Gold;
 use serde::{Deserialize, Serialize};
 
-#[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
+#[derive(Clone, PartialEq, Eq, Debug, Serialize, Deserialize)]
 pub struct ExecuteExpandElementsReport {
     new_element_type: AttackType,
     paid_cost: HashMap<TreasureType, u64>,
@@ -30,7 +30,7 @@ pub fn execute_expand_elements(game: &mut Game) -> Result<ExecuteExpandElementsR
     game.difficulty.min_resistance.insert(new_element.clone(), 1);
 
     Ok(ExecuteExpandElementsReport {
-        new_element_type: new_element.clone(),
+        new_element_type: new_element,
         paid_cost: crafting_cost.clone(),
         new_cost: execute_expand_elements_calculate_cost(game),
         leftover_spending_treasure: game.treasure.clone(),

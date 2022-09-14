@@ -52,7 +52,7 @@ pub struct Settings {
 
 fn parse_seed(src: &str) -> Result<[u8; 16], String> {
     Ok(decode_hex(src)
-        .expect(format!("Could not parse the given seed {} to hexidecimals", src).as_str())
+        .unwrap_or_else(|_| panic!("Could not parse the given seed {} to hexidecimals", src))
         .try_into()
         .unwrap_or_else(|v: Vec<u8>| panic!("Seed need exactly 16 hexidecimals; It got {:?}", v)))
 }

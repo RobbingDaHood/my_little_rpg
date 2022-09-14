@@ -31,7 +31,7 @@ pub fn execute_craft_expand_modifiers(game: &mut Game, inventory_index: usize, m
     }
 
     let cost = execute_craft_expand_modifiers_calculate_cost(game, inventory_index);
-    if sacrifice_item_indexes.len() < cost.into() {
+    if sacrifice_item_indexes.len() < cost {
         return Err(format!("craft_reroll_modifier needs {} items to be sacrificed but you only provided {}", cost, sacrifice_item_indexes.len()));
     }
 
@@ -61,7 +61,7 @@ pub fn execute_craft_expand_modifiers(game: &mut Game, inventory_index: usize, m
 
     Ok(ExecuteExpandModifiersReport {
         new_item: game.inventory[inventory_index].as_ref().unwrap().clone(),
-        paid_cost: cost.clone(),
+        paid_cost: cost,
         new_cost: execute_craft_expand_modifiers_calculate_cost(game, inventory_index),
         leftover_spending_treasure: game.treasure.clone(),
     })

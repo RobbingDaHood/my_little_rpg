@@ -73,6 +73,7 @@ fn create_random_generator(seed: Option<[u8; 16]>) -> ([u8; 16], Lcg64Xsh32) {
     (seed, random_generator)
 }
 
+#[allow(dead_code)]
 pub fn generate_testing_game(seed: Option<[u8; 16]>) -> Game {
     let mut min_resistance = HashMap::new();
     min_resistance.insert(AttackType::Fire, 2);

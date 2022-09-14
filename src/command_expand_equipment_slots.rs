@@ -1,10 +1,12 @@
 use std::collections::HashMap;
 use std::mem;
+
+use serde::{Deserialize, Serialize};
+
 use crate::Game;
 use crate::item::Item;
-use crate::treasure_types::TreasureType::Gold;
-use serde::{Deserialize, Serialize};
 use crate::treasure_types::{pay_crafting_cost, TreasureType};
+use crate::treasure_types::TreasureType::Gold;
 
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
 pub struct ExecuteExpandEquipmentSlotsReport {
@@ -33,7 +35,7 @@ pub fn execute_expand_equipment_slots(game: &mut Game) -> Result<ExecuteExpandEq
 
     //Pick first item in inventory or
     let item = mem::replace(&mut game.inventory[first_item_index], None);
-    game.equipped_items.push(item.unwrap().clone());
+    game.equipped_items.push(item.unwrap());
 
     Ok(ExecuteExpandEquipmentSlotsReport {
         new_equipped_items: game.equipped_items.clone(),
@@ -51,9 +53,7 @@ pub fn execute_expand_equipment_slots_calculate_cost(game: &mut Game) -> HashMap
 mod tests_int {
     use crate::command_expand_equipment_slots::execute_expand_equipment_slots;
     use crate::game_generator::generate_new_game;
-    use crate::item::{CraftingInfo, Item};
     use crate::item::test_util::create_item;
-    use crate::item_modifier::ItemModifier;
     use crate::treasure_types::TreasureType::Gold;
 
     #[test]
@@ -65,9 +65,9 @@ mod tests_int {
         assert_eq!(1, game.equipped_items.len());
 
         let item = create_item(&game).unwrap();
-        game.inventory.push( Some(item.clone()));
-        game.inventory.push( Some(item.clone()));
-        game.inventory.push( Some(item.clone()));
+        game.inventory.push(Some(item.clone()));
+        game.inventory.push(Some(item.clone()));
+        game.inventory.push(Some(item.clone()));
 
         assert_eq!(Err("Cant pay the crafting cost, the cost is {Gold: 32} and you only have {}".to_string()), execute_expand_equipment_slots(&mut game));
 
@@ -85,7 +85,7 @@ mod tests_int {
         assert_eq!(4, game.equipped_items.len());
 
         assert_eq!(Err("No item in inventory to equip in new item slot. Whole inventory is empty.".to_string()), execute_expand_equipment_slots(&mut game));
-        game.inventory.push( Some(item.clone()));
+        game.inventory.push(Some(item));
         assert_eq!(Err("Cant pay the crafting cost, the cost is {Gold: 3125} and you only have {Gold: 1}".to_string()), execute_expand_equipment_slots(&mut game));
     }
 }

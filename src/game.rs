@@ -1,16 +1,16 @@
 use std::collections::HashMap;
-use rand_pcg::Lcg64Xsh32;
-use crate::place::Place;
 
-use serde::{Deserialize, Serialize};
-use crate::attack_types::AttackType;
-use crate::treasure_types::TreasureType;
-use crate::item::Item;
-use crate::item_resource::ItemResourceType;
 use rand::prelude::SliceRandom;
-use crate::attack_types;
+use rand_pcg::Lcg64Xsh32;
+use serde::{Deserialize, Serialize};
+
+use crate::attack_types::AttackType;
 use crate::difficulty::Difficulty;
 use crate::game_statistics::GameStatistics;
+use crate::item::Item;
+use crate::item_resource::ItemResourceType;
+use crate::place::Place;
+use crate::treasure_types::TreasureType;
 
 //TODO SaveTheWorld
 

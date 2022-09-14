@@ -1,5 +1,7 @@
 use std::collections::{HashMap, HashSet};
+
 use serde::{Deserialize, Serialize};
+
 use crate::attack_types::AttackType::{Corruption, Darkness, Fire, Frost, Holy, Light, Lightning, Nature, Physical};
 
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize, Eq, Hash)]
@@ -32,14 +34,14 @@ impl AttackType {
         ]
     }
 
-    pub fn order_set(collection: &HashSet<&AttackType> ) -> Vec<AttackType> {
+    pub fn order_set(collection: &HashSet<&AttackType>) -> Vec<AttackType> {
         AttackType::get_all().iter()
             .filter(|attack_type| collection.contains(attack_type))
-            .map(|attack_type| attack_type.clone())
+            .cloned()
             .collect::<Vec<AttackType>>()
     }
 
-    pub fn order_map(collection: &HashMap<AttackType, u64> ) -> Vec<(AttackType, u64)> {
+    pub fn order_map(collection: &HashMap<AttackType, u64>) -> Vec<(AttackType, u64)> {
         AttackType::get_all().iter()
             .filter(|attack_type| collection.contains_key(attack_type))
             .map(|attack_type| (attack_type.clone(), *collection.get(attack_type).unwrap()))

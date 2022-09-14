@@ -50,17 +50,35 @@ pub fn execute_move_command(game: &mut Game, index: usize) -> Result<ExecuteMove
     let mut item_report = Vec::new();
 
     for item in &game.equipped_items {
-        let item_resource_cost = match evaluate_item_costs(&item, &current_damage, &game, index) {
+        let item_resource_cost = match evaluate_item_costs(&item, &current_damage, game, index) {
             Ok(costs) => costs,
-            Err((message, item_resource_cost)) => {
-                update_item_report(&current_damage, &current_resistance_reduction, &treasure_bonus, &item_gain, &game.item_resources, &mut item_report, item, &item_resource_cost, message.as_str());
+            Err(message) => {
+                item_report.push(ItemReport {
+                    item: item.clone(),
+                    current_damage: current_damage.clone(),
+                    current_resistance_reduction: current_resistance_reduction.clone(),
+                    treasure_bonus: treasure_bonus.clone(),
+                    item_gain,
+                    effect_description: message.to_string(),
+                    item_resource_costs: None,
+                    current_item_resources: game.item_resources.clone(),
+                });
                 continue;
             }
         };
 
         update_cost_effect(&mut game.item_resources, &item_resource_cost);
         update_gain_effect(&mut current_damage, &mut current_resistance_reduction, &mut treasure_bonus, &mut item_gain, &mut game.item_resources, &item, game.places.get(index).unwrap());
-        update_item_report(&current_damage, &current_resistance_reduction, &treasure_bonus, &item_gain, &game.item_resources, &mut item_report, item, &Some(item_resource_cost), "Costs paid and all gains executed.");
+        item_report.push(ItemReport {
+            item: item.clone(),
+            current_damage: current_damage.clone(),
+            current_resistance_reduction: current_resistance_reduction.clone(),
+            treasure_bonus: treasure_bonus.clone(),
+            item_gain,
+            effect_description: "Costs paid and all gains executed.".to_string(),
+            item_resource_costs: Some(item_resource_cost),
+            current_item_resources: game.item_resources.clone(),
+        });
 
         //For the calculation of claiming the rewards we can merge the attack damage and flat resistance reduction into damage;
         let merged_damage_and_reduced_resistance = current_damage.keys().chain(current_resistance_reduction.keys())
@@ -124,10 +142,10 @@ pub fn execute_move_command(game: &mut Game, index: usize) -> Result<ExecuteMove
 //TODO Save stack of events, expose events and load events (Last part likely requires to be able to load files)
 
 fn report_place_does_not_exist(game: &mut Game, index: usize) -> Result<ExecuteMoveCommandReport, ExecuteMoveCommandErrorReport> {
-    return Err(ExecuteMoveCommandErrorReport {
+    Err(ExecuteMoveCommandErrorReport {
         item_report: Vec::new(),
         result: format!("Error: execute_move_command: Index {} is out of range of places, places is {} long.", index, game.places.len()),
-    });
+    })
 }
 
 fn update_claim_place_effect(game: &mut Game, index: usize, item_report: Vec<ItemReport>, rewards: HashMap<TreasureType, u64>) -> Result<ExecuteMoveCommandReport, ExecuteMoveCommandErrorReport> {
@@ -137,11 +155,11 @@ fn update_claim_place_effect(game: &mut Game, index: usize, item_report: Vec<Ite
 
     game.places[index] = generate_place(game);
 
-    return Ok(ExecuteMoveCommandReport {
+    Ok(ExecuteMoveCommandReport {
         item_report,
         result: "You won and got a new item in the inventory.".to_string(),
         new_place: game.places[index].clone(),
-    });
+    })
 }
 
 fn update_gain_effect(current_damage: &mut HashMap<AttackType, u64>, current_resistance_reduction: &mut HashMap<AttackType, u64>, treasure_bonus: &mut HashMap<TreasureType, u16>, item_gain: &mut u16, current_item_resources: &mut HashMap<ItemResourceType, u64>, item: &&Item, place: &Place) {
@@ -217,19 +235,6 @@ fn update_cost_effect(current_item_resources: &mut HashMap<ItemResourceType, u64
     }
 }
 
-fn update_item_report(current_damage: &HashMap<AttackType, u64>, current_resistance_reduction: &HashMap<AttackType, u64>, treasure_bonus: &HashMap<TreasureType, u16>, item_gain: &u16, current_item_resources: &HashMap<ItemResourceType, u64>, item_report: &mut Vec<ItemReport>, item: &Item, item_resource_cost: &Option<HashMap<ItemResourceType, u64>>, effect_description: &str) {
-    item_report.push(ItemReport {
-        item: item.clone(),
-        current_damage: current_damage.clone(),
-        current_resistance_reduction: current_resistance_reduction.clone(),
-        treasure_bonus: treasure_bonus.clone(),
-        item_gain: item_gain.clone(),
-        effect_description: effect_description.to_string(),
-        item_resource_costs: item_resource_cost.clone(),
-        current_item_resources: current_item_resources.clone(),
-    });
-}
-
 fn calculate_are_all_costs_payable(current_item_resources: &HashMap<ItemResourceType, u64>, item_resource_cost: &HashMap<ItemResourceType, u64>) -> bool {
     let are_all_costs_payable = item_resource_cost.iter()
         .all(|(item_resource_type, amount)|
@@ -239,11 +244,11 @@ fn calculate_are_all_costs_payable(current_item_resources: &HashMap<ItemResource
                     stored_amount >= amount
                 }
             }
-        ).clone();
+        );
     are_all_costs_payable
 }
 
-fn evaluate_item_costs(item: &&Item, current_damage: &HashMap<AttackType, u64>, game: &Game, index: usize) -> Result<HashMap<ItemResourceType, u64>, (String, Option<HashMap<ItemResourceType, u64>>)> {
+fn evaluate_item_costs(item: &&Item, current_damage: &HashMap<AttackType, u64>, game: &Game, index: usize) -> Result<HashMap<ItemResourceType, u64>, String> {
     let mut item_resource_cost = HashMap::new();
     for modifier in &item.modifiers {
         for cost in &modifier.costs {
@@ -251,70 +256,70 @@ fn evaluate_item_costs(item: &&Item, current_damage: &HashMap<AttackType, u64>, 
                 ModifierCost::FlatItemResource(item_resource_type, amount) => *item_resource_cost.entry(item_resource_type.clone()).or_insert(0) += amount,
                 ModifierCost::FlatMinItemResourceRequirement(item_resource_type, amount) => {
                     if *game.item_resources.get(item_resource_type).unwrap_or(&0) < *amount {
-                        return Err((format!("Did not fulfill the FlatMinItemResourceRequirement of {} {:?}, only had {:?}.", amount, item_resource_type, game.item_resources.clone()), None));
+                        return Err(format!("Did not fulfill the FlatMinItemResourceRequirement of {} {:?}, only had {:?}.", amount, item_resource_type, game.item_resources.clone()));
                     } else {}
                 }
                 ModifierCost::FlatMaxItemResourceRequirement(item_resource_type, amount) => {
                     if *game.item_resources.get(item_resource_type).unwrap_or(&0) > *amount {
-                        return Err((format!("Did not fulfill the FlatMaxItemResourceRequirement of {} {:?}, had {:?} and that is too much.", amount, item_resource_type, game.item_resources.clone()), None));
+                        return Err(format!("Did not fulfill the FlatMaxItemResourceRequirement of {} {:?}, had {:?} and that is too much.", amount, item_resource_type, game.item_resources.clone()));
                     } else {}
                 }
                 ModifierCost::FlatMinAttackRequirement(attack_type, amount) => {
                     if current_damage.get(attack_type).unwrap_or(&0) < amount {
-                        return Err((format!("Did not fulfill the FlatMinAttackRequirement of {} {:?} damage, only did {:?} damage.", amount, attack_type, current_damage), None));
+                        return Err(format!("Did not fulfill the FlatMinAttackRequirement of {} {:?} damage, only did {:?} damage.", amount, attack_type, current_damage));
                     } else {}
                 }
                 ModifierCost::FlatMaxAttackRequirement(attack_type, amount) => {
                     if current_damage.get(attack_type).unwrap_or(&0) > amount {
-                        return Err((format!("Did not fulfill the FlatMaxAttackRequirement of {} {:?} damage, did {:?} damage and that is too much.", amount, attack_type, current_damage), None));
+                        return Err(format!("Did not fulfill the FlatMaxAttackRequirement of {} {:?} damage, did {:?} damage and that is too much.", amount, attack_type, current_damage));
                     } else {}
                 }
                 ModifierCost::FlatSumMinAttackRequirement(amount) => {
                     if current_damage.values().sum::<u64>() < *amount {
-                        return Err((format!("Did not fulfill the FlatSumMinAttackRequirement of {} damage, only did {:?} damage.", amount, current_damage), None));
+                        return Err(format!("Did not fulfill the FlatSumMinAttackRequirement of {} damage, only did {:?} damage.", amount, current_damage));
                     } else {}
                 }
                 ModifierCost::FlatSumMaxAttackRequirement(amount) => {
                     if current_damage.values().sum::<u64>() > *amount {
-                        return Err((format!("Did not fulfill the FlatSumMaxAttackRequirement of {} damage, did {:?} damage damage and that is too much.", amount, current_damage), None));
+                        return Err(format!("Did not fulfill the FlatSumMaxAttackRequirement of {} damage, did {:?} damage damage and that is too much.", amount, current_damage));
                     } else {}
                 }
                 ModifierCost::PlaceLimitedByIndexModulus(modulus, valid_values) => {
                     let modulus_value = index.rem_euclid(usize::from(*modulus));
                     if !valid_values.contains(&u8::try_from(modulus_value).unwrap()) {
-                        return Err((format!("Did not fulfill the PlaceLimitedByIndexModulus: {} % {} = {} and that is not contained in {:?}.", index, modulus, modulus_value, valid_values), None));
+                        return Err(format!("Did not fulfill the PlaceLimitedByIndexModulus: {} % {} = {} and that is not contained in {:?}.", index, modulus, modulus_value, valid_values));
                     } else {}
                 }
                 ModifierCost::FlatMinResistanceRequirement(attack_type, amount) => {
                     if game.places[index].resistance.get(attack_type).unwrap_or(&0) < amount {
-                        return Err((format!("Did not fulfill the FlatMinResistanceRequirement of {} {:?} damage, place only has {:?} damage.", amount, attack_type, AttackType::order_map(&game.places[index].resistance)), None));
+                        return Err(format!("Did not fulfill the FlatMinResistanceRequirement of {} {:?} damage, place only has {:?} damage.", amount, attack_type, AttackType::order_map(&game.places[index].resistance)));
                     } else {}
                 }
                 ModifierCost::FlatMaxResistanceRequirement(attack_type, amount) => {
                     if game.places[index].resistance.get(attack_type).unwrap_or(&0) > amount {
-                        return Err((format!("Did not fulfill the FlatMaxResistanceRequirement of {} {:?} damage, place has {:?} damage and that is too much.", amount, attack_type, AttackType::order_map(&game.places[index].resistance)), None));
+                        return Err(format!("Did not fulfill the FlatMaxResistanceRequirement of {} {:?} damage, place has {:?} damage and that is too much.", amount, attack_type, AttackType::order_map(&game.places[index].resistance)));
                     } else {}
                 }
                 ModifierCost::FlatMinSumResistanceRequirement(amount) => {
                     let damage_sum = game.places[index].resistance.values().sum::<u64>();
                     if damage_sum < *amount {
-                        return Err((format!("Did not fulfill the FlatMinSumResistanceRequirement of {} damage, place only has {:?} damage.", amount, damage_sum), None));
+                        return Err(format!("Did not fulfill the FlatMinSumResistanceRequirement of {} damage, place only has {:?} damage.", amount, damage_sum));
                     } else {}
                 }
                 ModifierCost::FlatMaxSumResistanceRequirement(amount) => {
                     let damage_sum = game.places[index].resistance.values().sum::<u64>();
                     if damage_sum > *amount {
-                        return Err((format!("Did not fulfill the FlatMaxSumResistanceRequirement of {} damage, place has {:?} damage and that is too much.", amount, damage_sum), None));
+                        return Err(format!("Did not fulfill the FlatMaxSumResistanceRequirement of {} damage, place has {:?} damage and that is too much.", amount, damage_sum));
                     } else {}
                 }
                 ModifierCost::MinWinsInARow(amount) => {
                     if game.game_statistics.wins_in_a_row < u64::from(*amount) {
-                        return Err((format!("Did not fulfill the MinWinsInARow of {} win, only hase {:?} wins in a row.", amount, game.game_statistics.wins_in_a_row), None));
+                        return Err(format!("Did not fulfill the MinWinsInARow of {} win, only hase {:?} wins in a row.", amount, game.game_statistics.wins_in_a_row));
                     } else {}
                 }
                 ModifierCost::MaxWinsInARow(amount) => {
                     if game.game_statistics.wins_in_a_row > u64::from(*amount) {
-                        return Err((format!("Did not fulfill the MaxWinsInARow of {} win, have {:?} wins in a row and that is too much.", amount, game.game_statistics.wins_in_a_row), None));
+                        return Err(format!("Did not fulfill the MaxWinsInARow of {} win, have {:?} wins in a row and that is too much.", amount, game.game_statistics.wins_in_a_row));
                     } else {}
                 }
             }
@@ -322,7 +327,7 @@ fn evaluate_item_costs(item: &&Item, current_damage: &HashMap<AttackType, u64>, 
     }
 
     if !calculate_are_all_costs_payable(&game.item_resources, &item_resource_cost) {
-        return Err((format!("Were not able to pay all the costs. Had to pay {:?}, but only had {:?} available.", item_resource_cost, game.item_resources), None));
+        return Err(format!("Were not able to pay all the costs. Had to pay {:?}, but only had {:?} available.", item_resource_cost, game.item_resources));
     }
 
     Ok(item_resource_cost)
@@ -335,12 +340,10 @@ mod tests_int {
     use crate::Game;
     use crate::game_generator::generate_testing_game;
     use crate::item::{CraftingInfo, Item};
-    use crate::item::test_util::create_item;
     use crate::item_modifier::ItemModifier;
     use crate::item_resource::ItemResourceType;
     use crate::modifier_cost::ModifierCost;
     use crate::modifier_gain::ModifierGain;
-    use crate::treasure_types::TreasureType;
     use crate::treasure_types::TreasureType::Gold;
 
     #[test]
@@ -510,8 +513,8 @@ mod tests_int {
         };
 
         game.equipped_items.push(first_item_cannot_pay.clone());
-        game.equipped_items.push(second_item_generates_needed_resource.clone());
-        game.equipped_items.push(first_item_cannot_pay.clone());
+        game.equipped_items.push(second_item_generates_needed_resource);
+        game.equipped_items.push(first_item_cannot_pay);
 
 
         let result = execute_move_command(&mut game, 0);
@@ -561,8 +564,8 @@ mod tests_int {
         };
 
         game.equipped_items.push(first_item_cannot_pay.clone());
-        game.equipped_items.push(second_item_generates_needed_resource.clone());
-        game.equipped_items.push(first_item_cannot_pay.clone());
+        game.equipped_items.push(second_item_generates_needed_resource);
+        game.equipped_items.push(first_item_cannot_pay);
 
 
         let result = execute_move_command(&mut game, 0);
@@ -596,7 +599,7 @@ mod tests_int {
             },
         };
 
-        game.equipped_items.push(first_item_cannot_pay.clone());
+        game.equipped_items.push(first_item_cannot_pay);
         assert_eq!("Did not fulfill the PlaceLimitedByIndexModulus: 0 % 6 = 0 and that is not contained in [1, 3, 4].".to_string(), execute_move_command(&mut game, 0).unwrap_err().item_report[0].effect_description);
         assert_eq!("Costs paid and all gains executed.".to_string(), execute_move_command(&mut game, 1).unwrap_err().item_report[0].effect_description);
         assert_eq!("Did not fulfill the PlaceLimitedByIndexModulus: 2 % 6 = 2 and that is not contained in [1, 3, 4].".to_string(), execute_move_command(&mut game, 2).unwrap_err().item_report[0].effect_description);
@@ -632,8 +635,8 @@ mod tests_int {
         let second_item_generates_needed_resource = item_with_gains(&mut game);
 
         game.equipped_items.push(first_item_cannot_pay.clone());
-        game.equipped_items.push(second_item_generates_needed_resource.clone());
-        game.equipped_items.push(first_item_cannot_pay.clone());
+        game.equipped_items.push(second_item_generates_needed_resource);
+        game.equipped_items.push(first_item_cannot_pay);
 
 
         let result = execute_move_command(&mut game, 0);
@@ -702,8 +705,8 @@ mod tests_int {
         game.equipped_items.push(first_item_cannot_pay.clone());
         game.equipped_items.push(second_item_generates_needed_resource.clone());
         game.equipped_items.push(first_item_cannot_pay.clone());
-        game.equipped_items.push(second_item_generates_needed_resource.clone());
-        game.equipped_items.push(first_item_cannot_pay.clone());
+        game.equipped_items.push(second_item_generates_needed_resource);
+        game.equipped_items.push(first_item_cannot_pay);
 
 
         let result = execute_move_command(&mut game, 0);
@@ -757,8 +760,8 @@ mod tests_int {
         game.equipped_items.push(first_item_cannot_pay.clone());
         game.equipped_items.push(second_item_generates_needed_resource.clone());
         game.equipped_items.push(first_item_cannot_pay.clone());
-        game.equipped_items.push(second_item_generates_needed_resource.clone());
-        game.equipped_items.push(first_item_cannot_pay.clone());
+        game.equipped_items.push(second_item_generates_needed_resource);
+        game.equipped_items.push(first_item_cannot_pay);
 
 
         let result = execute_move_command(&mut game, 0);
@@ -799,8 +802,8 @@ mod tests_int {
         let second_item_generates_needed_resource = item_with_gains(&mut game);
 
         game.equipped_items.push(first_item_cannot_pay.clone());
-        game.equipped_items.push(second_item_generates_needed_resource.clone());
-        game.equipped_items.push(first_item_cannot_pay.clone());
+        game.equipped_items.push(second_item_generates_needed_resource);
+        game.equipped_items.push(first_item_cannot_pay);
 
 
         let result = execute_move_command(&mut game, 0);
@@ -839,8 +842,8 @@ mod tests_int {
         game.equipped_items.push(first_item_cannot_pay.clone());
         game.equipped_items.push(second_item_generates_needed_resource.clone());
         game.equipped_items.push(first_item_cannot_pay.clone());
-        game.equipped_items.push(second_item_generates_needed_resource.clone());
-        game.equipped_items.push(first_item_cannot_pay.clone());
+        game.equipped_items.push(second_item_generates_needed_resource);
+        game.equipped_items.push(first_item_cannot_pay);
 
         let result = execute_move_command(&mut game, 0);
 
@@ -875,7 +878,7 @@ mod tests_int {
             },
         };
 
-        game.equipped_items.push(first_item_cannot_pay.clone());
+        game.equipped_items.push(first_item_cannot_pay);
 
         let result = execute_move_command(&mut game, 0);
 
@@ -914,7 +917,7 @@ mod tests_int {
             },
         };
 
-        game.equipped_items.push(first_item_cannot_pay.clone());
+        game.equipped_items.push(first_item_cannot_pay);
 
         let result = execute_move_command(&mut game, 0);
 
@@ -953,7 +956,7 @@ mod tests_int {
             },
         };
 
-        game.equipped_items.push(first_item_cannot_pay.clone());
+        game.equipped_items.push(first_item_cannot_pay);
 
         let result = execute_move_command(&mut game, 9);
 
@@ -992,7 +995,7 @@ mod tests_int {
             },
         };
 
-        game.equipped_items.push(first_item_cannot_pay.clone());
+        game.equipped_items.push(first_item_cannot_pay);
 
         let result = execute_move_command(&mut game, 9);
 
@@ -1030,7 +1033,7 @@ mod tests_int {
             },
         };
 
-        game.equipped_items.insert(0, first_item_cannot_pay.clone());
+        game.equipped_items.insert(0, first_item_cannot_pay);
 
         let result = execute_move_command(&mut game, 0);
 
@@ -1079,7 +1082,7 @@ mod tests_int {
             },
         };
 
-        game.equipped_items.insert(0, first_item_cannot_pay.clone());
+        game.equipped_items.insert(0, first_item_cannot_pay);
 
         let result = execute_move_command(&mut game, 0);
 
@@ -1130,7 +1133,7 @@ mod tests_int {
             },
         };
 
-        game.equipped_items.push(item.clone());
+        game.equipped_items.push(item);
 
 
         let result = execute_move_command(&mut game, 0);
@@ -1163,7 +1166,7 @@ mod tests_int {
             },
         };
 
-        game.equipped_items.push(item.clone());
+        game.equipped_items.push(item);
 
 
         let result = execute_move_command(&mut game, 0);
@@ -1197,7 +1200,7 @@ mod tests_int {
             },
         };
 
-        game.equipped_items.push(item.clone());
+        game.equipped_items.push(item);
 
 
         let result = execute_move_command(&mut game, 0);
@@ -1230,7 +1233,7 @@ mod tests_int {
             },
         };
 
-        game.equipped_items.push(item.clone());
+        game.equipped_items.push(item);
 
 
         let result = execute_move_command(&mut game, 0);
@@ -1264,7 +1267,7 @@ mod tests_int {
             },
         };
 
-        game.equipped_items.push(item.clone());
+        game.equipped_items.push(item);
 
 
         let result = execute_move_command(&mut game, 0);
@@ -1297,7 +1300,7 @@ mod tests_int {
             },
         };
 
-        game.equipped_items.push(item.clone());
+        game.equipped_items.push(item);
 
 
         let result = execute_move_command(&mut game, 0);
@@ -1331,7 +1334,7 @@ mod tests_int {
             },
         };
 
-        game.equipped_items.push(item.clone());
+        game.equipped_items.push(item);
 
 
         let result = execute_move_command(&mut game, 0);
@@ -1345,7 +1348,7 @@ mod tests_int {
     }
 
     #[test]
-    fn test_percentage_increase_damage_gainst_lowest_resistance() {
+    fn test_percentage_increase_damage_against_lowest_resistance() {
         let mut game = generate_testing_game(Some([1; 16]));
         game.equipped_items = Vec::new();
 
@@ -1365,7 +1368,7 @@ mod tests_int {
             },
         };
 
-        game.equipped_items.push(item.clone());
+        game.equipped_items.push(item);
 
 
         let result = execute_move_command(&mut game, 0);
