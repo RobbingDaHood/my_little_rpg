@@ -1,14 +1,16 @@
 use std::collections::HashMap;
+
+use serde::{Deserialize, Serialize};
+
 use crate::attack_types::AttackType;
 use crate::Game;
 use crate::item::{CraftingInfo, Item};
-use crate::modifier_gain::ModifierGain;
-use crate::place_generator::generate_place;
-use serde::{Deserialize, Serialize};
 use crate::item_modifier::ItemModifier;
 use crate::item_resource::ItemResourceType;
 use crate::modifier_cost::ModifierCost;
+use crate::modifier_gain::ModifierGain;
 use crate::place::Place;
+use crate::place_generator::generate_place;
 use crate::treasure_types::TreasureType;
 
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
@@ -160,17 +162,11 @@ fn update_gain_effect(current_damage: &mut HashMap<AttackType, u64>, current_res
                     add_multiplier_to_attack_type_base(current_damage, &attack_type_with_max_resistance, multiplier_as_percentage);
                 }
                 ModifierGain::FlatDamageAgainstLowestResistance(amount) => {
-                    let attack_type_with_min_resistance = AttackType::order_map(&place.resistance).into_iter()
-                        .min_by(|(_, a_attack_amount), (_, b_attack_amount)| a_attack_amount.cmp(b_attack_amount))
-                        .map(|(attack_type, _)| attack_type)
-                        .unwrap();
+                    let attack_type_with_min_resistance = get_attack_type_with_min_amount(&place);
                     *current_damage.entry(attack_type_with_min_resistance.clone()).or_insert(0) += amount;
                 }
                 ModifierGain::PercentageIncreaseDamageAgainstLowestResistance(multiplier_as_percentage) => {
-                    let attack_type_with_min_resistance = AttackType::order_map(&place.resistance).into_iter()
-                        .min_by(|(_, a_attack_amount), (_, b_attack_amount)| a_attack_amount.cmp(b_attack_amount))
-                        .map(|(attack_type, _)| attack_type)
-                        .unwrap();
+                    let attack_type_with_min_resistance = get_attack_type_with_min_amount(&place);
                     add_multiplier_to_attack_type_base(current_damage, &attack_type_with_min_resistance, multiplier_as_percentage);
                 }
                 ModifierGain::PercentageIncreaseTreasure(treasure_type, amount) => *treasure_bonus.entry(treasure_type.clone()).or_insert(0) += amount,
@@ -178,6 +174,13 @@ fn update_gain_effect(current_damage: &mut HashMap<AttackType, u64>, current_res
             }
         }
     }
+}
+
+fn get_attack_type_with_min_amount(place: &&Place) -> AttackType {
+    AttackType::order_map(&place.resistance).into_iter()
+        .min_by(|(_, a_attack_amount), (_, b_attack_amount)| a_attack_amount.cmp(b_attack_amount))
+        .map(|(attack_type, _)| attack_type)
+        .unwrap()
 }
 
 fn get_attack_type_with_max_amount(place: &&Place) -> AttackType {
@@ -329,8 +332,10 @@ fn evaluate_item_costs(item: &&Item, current_damage: &HashMap<AttackType, u64>, 
 mod tests_int {
     use crate::attack_types::AttackType;
     use crate::command_move::execute_move_command;
+    use crate::Game;
     use crate::game_generator::generate_testing_game;
     use crate::item::{CraftingInfo, Item};
+    use crate::item::test_util::create_item;
     use crate::item_modifier::ItemModifier;
     use crate::item_resource::ItemResourceType;
     use crate::modifier_cost::ModifierCost;
@@ -624,20 +629,7 @@ mod tests_int {
             },
         };
 
-        let second_item_generates_needed_resource = Item {
-            modifiers: vec![
-                ItemModifier {
-                    costs: Vec::new(),
-                    gains: vec![
-                        ModifierGain::FlatItemResource(ItemResourceType::Mana, 20)
-                    ],
-                }
-            ],
-            crafting_info: CraftingInfo {
-                possible_rolls: game.difficulty.clone(),
-                places_count: game.places.len(),
-            },
-        };
+        let second_item_generates_needed_resource = item_with_gains(&mut game);
 
         game.equipped_items.push(first_item_cannot_pay.clone());
         game.equipped_items.push(second_item_generates_needed_resource.clone());
@@ -653,6 +645,23 @@ mod tests_int {
         assert_eq!("Were not able to pay all the costs. Had to pay {Mana: 20}, but only had {} available.".to_string(), result.item_report[0].effect_description);
         assert_eq!("Costs paid and all gains executed.".to_string(), result.item_report[1].effect_description);
         assert_eq!("Costs paid and all gains executed.".to_string(), result.item_report[2].effect_description);
+    }
+
+    fn item_with_gains(game: &mut Game) -> Item {
+        Item {
+            modifiers: vec![
+                ItemModifier {
+                    costs: Vec::new(),
+                    gains: vec![
+                        ModifierGain::FlatItemResource(ItemResourceType::Mana, 20)
+                    ],
+                }
+            ],
+            crafting_info: CraftingInfo {
+                possible_rolls: game.difficulty.clone(),
+                places_count: game.places.len(),
+            },
+        }
     }
 
     #[test]
@@ -787,20 +796,7 @@ mod tests_int {
             },
         };
 
-        let second_item_generates_needed_resource = Item {
-            modifiers: vec![
-                ItemModifier {
-                    costs: Vec::new(),
-                    gains: vec![
-                        ModifierGain::FlatItemResource(ItemResourceType::Mana, 20)
-                    ],
-                }
-            ],
-            crafting_info: CraftingInfo {
-                possible_rolls: game.difficulty.clone(),
-                places_count: game.places.len(),
-            },
-        };
+        let second_item_generates_needed_resource = item_with_gains(&mut game);
 
         game.equipped_items.push(first_item_cannot_pay.clone());
         game.equipped_items.push(second_item_generates_needed_resource.clone());
@@ -838,27 +834,13 @@ mod tests_int {
             },
         };
 
-        let second_item_generates_needed_resource = Item {
-            modifiers: vec![
-                ItemModifier {
-                    costs: Vec::new(),
-                    gains: vec![
-                        ModifierGain::FlatItemResource(ItemResourceType::Mana, 20)
-                    ],
-                }
-            ],
-            crafting_info: CraftingInfo {
-                possible_rolls: game.difficulty.clone(),
-                places_count: game.places.len(),
-            },
-        };
+        let second_item_generates_needed_resource = item_with_gains(&mut game);
 
         game.equipped_items.push(first_item_cannot_pay.clone());
         game.equipped_items.push(second_item_generates_needed_resource.clone());
         game.equipped_items.push(first_item_cannot_pay.clone());
         game.equipped_items.push(second_item_generates_needed_resource.clone());
         game.equipped_items.push(first_item_cannot_pay.clone());
-
 
         let result = execute_move_command(&mut game, 0);
 

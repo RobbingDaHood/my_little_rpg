@@ -89,17 +89,17 @@ impl TryFrom<&String> for Command {
         }
 
         return match command_parts[0] {
-            "State" => Ok(Command::State),
-            "ExpandPlaces" => Ok(Command::ExpandPlaces),
-            "ExpandElements" => Ok(Command::ExpandElements),
-            "ExpandMaxElement" => Ok(Command::ExpandMaxElement),
-            "ExpandMinElement" => Ok(Command::ExpandMinElement),
-            "ExpandEquipmentSlots" => Ok(Command::ExpandEquipmentSlots),
-            "ReduceDifficulty" => Ok(Command::ReduceDifficulty),
-            "ExpandMaxSimultaneousElement" => Ok(Command::ExpandMaxSimultaneousElement),
-            "ExpandMinSimultaneousElement" => Ok(Command::ExpandMinSimultaneousElement),
-            "Help" => Ok(Command::Help),
-            "ReorderInventory" => Ok(Command::ReorderInventory),
+            "State" => Ok(State),
+            "ExpandPlaces" => Ok(ExpandPlaces),
+            "ExpandElements" => Ok(ExpandElements),
+            "ExpandMaxElement" => Ok(ExpandMaxElement),
+            "ExpandMinElement" => Ok(ExpandMinElement),
+            "ExpandEquipmentSlots" => Ok(ExpandEquipmentSlots),
+            "ReduceDifficulty" => Ok(ReduceDifficulty),
+            "ExpandMaxSimultaneousElement" => Ok(ExpandMaxSimultaneousElement),
+            "ExpandMinSimultaneousElement" => Ok(ExpandMinSimultaneousElement),
+            "Help" => Ok(Help),
+            "ReorderInventory" => Ok(ReorderInventory),
             "Move" => {
                 if command_parts.len() < 2 {
                     return Err(format!("Trouble parsing move command, it needs the index of the place. Got {:?}", command_parts));

@@ -1,14 +1,16 @@
 use std::cmp::{max, min};
 use std::collections::HashMap;
 use std::ops::Div;
-use crate::Game;
-use crate::treasure_types::{TreasureType};
-use crate::treasure_types::TreasureType::Gold;
-use serde::{Deserialize, Serialize};
+
 use rand::prelude::SliceRandom;
+use serde::{Deserialize, Serialize};
+
 use crate::difficulty::Difficulty;
+use crate::Game;
 use crate::game::get_random_attack_type_from_unlocked;
-use crate::place_generator::{generate_place};
+use crate::place_generator::generate_place;
+use crate::treasure_types::TreasureType;
+use crate::treasure_types::TreasureType::Gold;
 
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
 pub struct ReduceDifficultyReport {
@@ -61,10 +63,12 @@ pub fn execute_execute_reduce_difficulty_cost() -> HashMap<TreasureType, u64> {
 #[cfg(test)]
 mod tests_int {
     use std::collections::HashMap;
+
     use crate::attack_types::AttackType;
     use crate::command_reduce_difficulty::execute_reduce_difficulty;
     use crate::difficulty::Difficulty;
-    use crate::game_generator::{generate_testing_game};
+    use crate::Game;
+    use crate::game_generator::generate_testing_game;
     use crate::treasure_types::TreasureType::Gold;
 
     #[test]
@@ -95,10 +99,7 @@ mod tests_int {
         assert_eq!(11, *game.difficulty.max_resistance.get(&AttackType::Physical).unwrap());
         assert_eq!(5, *game.difficulty.max_resistance.get(&AttackType::Fire).unwrap());
 
-        assert_eq!(1, game.places.iter()
-            .map(|place| place.item_reward_possible_rolls.clone())
-            .filter(|roll| roll.eq(&game.difficulty))
-            .count());
+        assert_eq!(1, count_places_possible_rolls_equal_difficulty(&game));
 
         assert!(execute_reduce_difficulty(&mut game).is_ok());
 
@@ -111,10 +112,7 @@ mod tests_int {
         assert_eq!(5, *game.difficulty.max_resistance.get(&AttackType::Physical).unwrap());
         assert_eq!(5, *game.difficulty.max_resistance.get(&AttackType::Fire).unwrap());
 
-        assert_eq!(1, game.places.iter()
-            .map(|place| place.item_reward_possible_rolls.clone())
-            .filter(|roll| roll.eq(&game.difficulty))
-            .count());
+        assert_eq!(1, count_places_possible_rolls_equal_difficulty(&game));
 
         assert!(execute_reduce_difficulty(&mut game).is_ok());
 
@@ -127,10 +125,7 @@ mod tests_int {
         assert_eq!(None, game.difficulty.max_resistance.get(&AttackType::Physical));
         assert_eq!(5, *game.difficulty.max_resistance.get(&AttackType::Fire).unwrap());
 
-        assert_eq!(1, game.places.iter()
-            .map(|place| place.item_reward_possible_rolls.clone())
-            .filter(|roll| roll.eq(&game.difficulty))
-            .count());
+        assert_eq!(1, count_places_possible_rolls_equal_difficulty(&game));
 
         assert!(execute_reduce_difficulty(&mut game).is_ok());
 
@@ -143,10 +138,7 @@ mod tests_int {
         assert_eq!(None, game.difficulty.max_resistance.get(&AttackType::Physical));
         assert_eq!(2, *game.difficulty.max_resistance.get(&AttackType::Fire).unwrap());
 
-        assert_eq!(1, game.places.iter()
-            .map(|place| place.item_reward_possible_rolls.clone())
-            .filter(|roll| roll.eq(&game.difficulty))
-            .count());
+        assert_eq!(1, count_places_possible_rolls_equal_difficulty(&game));
 
         assert!(execute_reduce_difficulty(&mut game).is_ok());
 
@@ -163,6 +155,13 @@ mod tests_int {
             .map(|place| place.item_reward_possible_rolls.clone())
             .filter(|roll| roll.eq(&game.difficulty))
             .count());
+    }
+
+    fn count_places_possible_rolls_equal_difficulty(game: &Game) -> usize {
+        game.places.iter()
+            .map(|place| place.item_reward_possible_rolls.clone())
+            .filter(|roll| roll.eq(&game.difficulty))
+            .count()
     }
 
     #[test]

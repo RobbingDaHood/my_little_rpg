@@ -195,13 +195,13 @@ fn execute_craft_roll_modifier_benefits(random_generator_state: &mut Lcg64Xsh32,
                     let damage = max(1, damage);
                     let damage = damage + cost_bonus * 2;
 
-                    ModifierGain::FlatDamage(attack_type.clone(), damage.clone())
+                    FlatDamage(attack_type.clone(), damage.clone())
                 }
                 PercentageIncreaseDamage(attack_type, _) => {
-                    ModifierGain::PercentageIncreaseDamage(attack_type.clone(), u16::try_from(cost_bonus).unwrap_or(u16::MAX).max(1))
+                    PercentageIncreaseDamage(attack_type.clone(), u16::try_from(cost_bonus).unwrap_or(u16::MAX).max(1))
                 }
                 FlatItemResource(item_resource_type, _) => {
-                    ModifierGain::FlatItemResource(item_resource_type.clone(), max(1, cost_bonus * 2))
+                    FlatItemResource(item_resource_type.clone(), max(1, cost_bonus * 2))
                 }
                 FlatResistanceReduction(attack_type, _) => {
                     let min_damage = *crafting_info.possible_rolls.min_resistance.get(attack_type).unwrap_or(&0);
@@ -211,28 +211,28 @@ fn execute_craft_roll_modifier_benefits(random_generator_state: &mut Lcg64Xsh32,
                     let damage = max(1, damage);
                     let damage = damage + cost_bonus * 2;
 
-                    ModifierGain::FlatResistanceReduction(attack_type.clone(), damage.clone())
+                    FlatResistanceReduction(attack_type.clone(), damage.clone())
                 }
                 PercentageIncreaseResistanceReduction(attack_type, _) => {
-                    ModifierGain::PercentageIncreaseResistanceReduction(attack_type.clone(), u16::try_from(cost_bonus).unwrap_or(u16::MAX).max(1))
+                    PercentageIncreaseResistanceReduction(attack_type.clone(), u16::try_from(cost_bonus).unwrap_or(u16::MAX).max(1))
                 }
                 FlatDamageAgainstHighestResistance(_) => {
-                    ModifierGain::FlatDamageAgainstHighestResistance(cost_bonus.checked_div(2).unwrap_or(1).max(1))
+                    FlatDamageAgainstHighestResistance(cost_bonus.checked_div(2).unwrap_or(1).max(1))
                 }
                 PercentageIncreaseDamageAgainstHighestResistance(_) => {
-                    ModifierGain::PercentageIncreaseDamageAgainstHighestResistance(u16::try_from(cost_bonus.checked_div(2).unwrap_or(1).max(1)).unwrap_or(u16::MAX))
+                    PercentageIncreaseDamageAgainstHighestResistance(u16::try_from(cost_bonus.checked_div(2).unwrap_or(1).max(1)).unwrap_or(u16::MAX))
                 }
                 FlatDamageAgainstLowestResistance(_) => {
-                    ModifierGain::FlatDamageAgainstLowestResistance(cost_bonus.checked_div(4).unwrap_or(1).max(1))
+                    FlatDamageAgainstLowestResistance(cost_bonus.checked_div(4).unwrap_or(1).max(1))
                 }
                 PercentageIncreaseDamageAgainstLowestResistance(_) => {
-                    ModifierGain::PercentageIncreaseDamageAgainstLowestResistance(u16::try_from(cost_bonus.checked_div(4).unwrap_or(1).max(1)).unwrap_or(u16::MAX))
+                    PercentageIncreaseDamageAgainstLowestResistance(u16::try_from(cost_bonus.checked_div(4).unwrap_or(1).max(1)).unwrap_or(u16::MAX))
                 }
                 PercentageIncreaseTreasure(treasure_type, _) => {
-                    ModifierGain::PercentageIncreaseTreasure(treasure_type.clone(), u16::try_from(cost_bonus).unwrap_or(u16::MAX).max(1))
+                    PercentageIncreaseTreasure(treasure_type.clone(), u16::try_from(cost_bonus).unwrap_or(u16::MAX).max(1))
                 }
                 FlatIncreaseRewardedItems(_) => {
-                    ModifierGain::FlatIncreaseRewardedItems(u16::try_from(cost_bonus.checked_div(10).unwrap_or(1).max(1)).unwrap_or(u16::MAX))
+                    FlatIncreaseRewardedItems(u16::try_from(cost_bonus.checked_div(10).unwrap_or(1).max(1)).unwrap_or(u16::MAX))
                 }
             }
         )
