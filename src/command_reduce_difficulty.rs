@@ -12,7 +12,7 @@ use crate::place_generator::generate_place;
 use crate::treasure_types::TreasureType;
 use crate::treasure_types::TreasureType::Gold;
 
-#[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
+#[derive(Clone, PartialEq, Eq, Debug, Serialize, Deserialize)]
 pub struct ReduceDifficultyReport {
     new_difficulty: Difficulty,
     paid_cost: HashMap<TreasureType, u64>,
@@ -20,7 +20,7 @@ pub struct ReduceDifficultyReport {
     leftover_spending_treasure: HashMap<TreasureType, u64>,
 }
 
-pub fn execute_reduce_difficulty(game: &mut Game) -> Result<ReduceDifficultyReport, String> {
+pub fn execute_reduce_difficulty(game: &mut Game) -> ReduceDifficultyReport {
     //Add new element
     let attack_type = get_random_attack_type_from_unlocked(&mut game.random_generator_state, &game.difficulty.min_resistance);
 
@@ -48,12 +48,12 @@ pub fn execute_reduce_difficulty(game: &mut Game) -> Result<ReduceDifficultyRepo
     let new_place = generate_place(game);
     *game.places.choose_mut(&mut game.random_generator_state).unwrap() = new_place;
 
-    Ok(ReduceDifficultyReport {
+    ReduceDifficultyReport {
         new_difficulty: game.difficulty.clone(),
         paid_cost: execute_execute_reduce_difficulty_cost(),
         new_cost: execute_execute_reduce_difficulty_cost(),
         leftover_spending_treasure: game.treasure.clone(),
-    })
+    }
 }
 
 pub fn execute_execute_reduce_difficulty_cost() -> HashMap<TreasureType, u64> {
@@ -88,7 +88,7 @@ mod tests_int {
             max_simultaneous_resistances: 7,
         };
 
-        assert!(execute_reduce_difficulty(&mut game).is_ok());
+        execute_reduce_difficulty(&mut game);
 
         assert_eq!(15, game.difficulty.min_simultaneous_resistances);
         assert_eq!(7, game.difficulty.max_simultaneous_resistances);
@@ -101,7 +101,7 @@ mod tests_int {
 
         assert_eq!(1, count_places_possible_rolls_equal_difficulty(&game));
 
-        assert!(execute_reduce_difficulty(&mut game).is_ok());
+        execute_reduce_difficulty(&mut game);
 
         assert_eq!(15, game.difficulty.min_simultaneous_resistances);
         assert_eq!(7, game.difficulty.max_simultaneous_resistances);
@@ -114,7 +114,7 @@ mod tests_int {
 
         assert_eq!(1, count_places_possible_rolls_equal_difficulty(&game));
 
-        assert!(execute_reduce_difficulty(&mut game).is_ok());
+        execute_reduce_difficulty(&mut game);
 
         assert_eq!(1, game.difficulty.min_simultaneous_resistances);
         assert_eq!(1, game.difficulty.max_simultaneous_resistances);
@@ -127,7 +127,7 @@ mod tests_int {
 
         assert_eq!(1, count_places_possible_rolls_equal_difficulty(&game));
 
-        assert!(execute_reduce_difficulty(&mut game).is_ok());
+        execute_reduce_difficulty(&mut game);
 
         assert_eq!(1, game.difficulty.min_simultaneous_resistances);
         assert_eq!(1, game.difficulty.max_simultaneous_resistances);
@@ -140,7 +140,7 @@ mod tests_int {
 
         assert_eq!(1, count_places_possible_rolls_equal_difficulty(&game));
 
-        assert!(execute_reduce_difficulty(&mut game).is_ok());
+        execute_reduce_difficulty(&mut game);
 
         assert_eq!(1, game.difficulty.min_simultaneous_resistances);
         assert_eq!(1, game.difficulty.max_simultaneous_resistances);

@@ -6,7 +6,7 @@ use crate::treasure_types::TreasureType::Gold;
 use serde::{Deserialize, Serialize};
 use crate::treasure_types::{pay_crafting_cost, TreasureType};
 
-#[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
+#[derive(Clone, PartialEq, Eq, Debug, Serialize, Deserialize)]
 pub struct ExecuteExpandPlacesReport {
     new_place: Place,
     paid_cost: HashMap<TreasureType, u64>,
@@ -26,7 +26,7 @@ pub fn execute_expand_places(game: &mut Game) -> Result<ExecuteExpandPlacesRepor
     game.places.push(new_place.clone());
 
     Ok(ExecuteExpandPlacesReport {
-        new_place: new_place.clone(),
+        new_place,
         paid_cost: crafting_cost.clone(),
         new_cost: execute_expand_places_calculate_cost(game),
         leftover_spending_treasure: game.treasure.clone(),
@@ -79,10 +79,10 @@ mod tests_int {
     #[test]
     fn many_runs_test() {
         let mut game = generate_testing_game(Some([1; 16]));
-        game.treasure.insert(Gold, 999999);
+        game.treasure.insert(Gold, 999_999);
 
         for _i in 1..438 {
-            assert!(execute_expand_places(&mut game).is_ok())
+            assert!(execute_expand_places(&mut game).is_ok());
         }
     }
 }

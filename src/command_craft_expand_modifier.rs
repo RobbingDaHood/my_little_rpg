@@ -1,12 +1,12 @@
 use std::collections::{HashMap};
 use crate::Game;
 use crate::item::Item;
-use crate::roll_modifier::execute_craft_roll_modifier;
+use crate::roll_modifier::execute_craft;
 use serde::{Deserialize, Serialize};
 use crate::index_specifier::{calculate_absolute_item_indexes, IndexSpecifier};
 use crate::treasure_types::{TreasureType};
 
-#[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
+#[derive(Clone, PartialEq, Eq, Debug, Serialize, Deserialize)]
 pub struct ExecuteExpandModifiersReport {
     new_item: Item,
     paid_cost: usize,
@@ -38,7 +38,7 @@ pub fn execute_craft_expand_modifiers(game: &mut Game, inventory_index: usize, m
     //Only need to cost amount of items
     sacrifice_item_indexes.truncate(cost);
 
-    let calculated_sacrifice_item_indexes = match calculate_absolute_item_indexes(game, &inventory_index, &sacrifice_item_indexes) {
+    let calculated_sacrifice_item_indexes = match calculate_absolute_item_indexes(game, inventory_index, &sacrifice_item_indexes) {
         Err(error_message) => return Err(error_message),
         Ok(indexes) => indexes
     };
@@ -56,7 +56,7 @@ pub fn execute_craft_expand_modifiers(game: &mut Game, inventory_index: usize, m
     }
 
     //Create item
-    let new_item_modifier = execute_craft_roll_modifier(&mut game.random_generator_state, &game.inventory[inventory_index].as_ref().unwrap().crafting_info);
+    let new_item_modifier = execute_craft(&mut game.random_generator_state, &game.inventory[inventory_index].as_ref().unwrap().crafting_info);
     game.inventory[inventory_index].as_mut().unwrap().modifiers.push(new_item_modifier);
 
     Ok(ExecuteExpandModifiersReport {

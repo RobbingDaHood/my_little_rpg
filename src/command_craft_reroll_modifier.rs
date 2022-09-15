@@ -3,9 +3,9 @@ use serde::{Deserialize, Serialize};
 use crate::Game;
 use crate::index_specifier::{calculate_absolute_item_indexes, IndexSpecifier};
 use crate::item::Item;
-use crate::roll_modifier::execute_craft_roll_modifier;
+use crate::roll_modifier::execute_craft;
 
-#[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
+#[derive(Clone, PartialEq, Eq, Debug, Serialize, Deserialize)]
 pub struct ExecuteCraftRerollModifierReport {
     new_item: Item,
     paid_cost: u16,
@@ -34,7 +34,7 @@ pub fn execute_craft_reroll_modifier(game: &mut Game, inventory_index: usize, mo
     //Only need to cost amount of items
     sacrifice_item_indexes.truncate(usize::from(cost));
 
-    let calculated_sacrifice_item_indexes = match calculate_absolute_item_indexes(game, &inventory_index, &sacrifice_item_indexes) {
+    let calculated_sacrifice_item_indexes = match calculate_absolute_item_indexes(game, inventory_index, &sacrifice_item_indexes) {
         Err(error_message) => return Err(error_message),
         Ok(indexes) => indexes
     };
@@ -52,7 +52,7 @@ pub fn execute_craft_reroll_modifier(game: &mut Game, inventory_index: usize, mo
     }
 
     //Create item
-    let new_item_modifier = execute_craft_roll_modifier(&mut game.random_generator_state, &game.inventory[inventory_index].as_ref().unwrap().crafting_info);
+    let new_item_modifier = execute_craft(&mut game.random_generator_state, &game.inventory[inventory_index].as_ref().unwrap().crafting_info);
     game.inventory[inventory_index].as_mut().unwrap().modifiers[modifier_index] = new_item_modifier;
 
     Ok(ExecuteCraftRerollModifierReport {
@@ -64,6 +64,7 @@ pub fn execute_craft_reroll_modifier(game: &mut Game, inventory_index: usize, mo
 
 pub fn execute_craft_reroll_modifier_calculate_cost(game: &Game, inventory_index: usize) -> u16 {
     match game.inventory[inventory_index].clone() {
+        #[allow(clippy::cast_possible_truncation)]
         Some(item) => item.modifiers.len() as u16,
         None => 0
     }
@@ -141,14 +142,14 @@ mod tests_int {
     }
 
     fn insert_game_in_inventory(game: &mut Game) {
-        game.inventory.insert(0, create_item(game));
+        game.inventory.insert(0, Some(create_item(game)));
     }
 
     #[test]
     fn test_execute_craft_item_negative() {
         let mut game = generate_testing_game(Some([1; 16]));
 
-        game.inventory.push(create_item(&game));
+        game.inventory.push(Some(create_item(&game)));
 
         let result = execute_craft_reroll_modifier(&mut game, 9, 0, vec![index_specifier::IndexSpecifier::RelativeNegative(1), index_specifier::IndexSpecifier::RelativeNegative(2)]);
         assert!(result.is_ok());
@@ -174,7 +175,7 @@ mod tests_int {
     fn test_execute_craft_item_mixed() {
         let mut game = generate_testing_game(Some([1; 16]));
 
-        game.inventory.insert(5, create_item(&game));
+        game.inventory.insert(5, Some(create_item(&game)));
 
         let result = execute_craft_reroll_modifier(&mut game, 5, 0, vec![index_specifier::IndexSpecifier::RelativeNegative(1), index_specifier::IndexSpecifier::RelativePositive(2)]);
         assert!(result.is_ok());
@@ -217,7 +218,7 @@ mod tests_int {
         let mut game = generate_testing_game(Some([1; 16]));
 
         for i in 1..438 {
-            game.inventory.push(create_item(&game));
+            game.inventory.push(Some(create_item(&game)));
             assert!(execute_craft_reroll_modifier(&mut game, 0, 0, vec![index_specifier::IndexSpecifier::Absolute(i)]).is_ok());
         }
     }

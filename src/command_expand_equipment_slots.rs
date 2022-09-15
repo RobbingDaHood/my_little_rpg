@@ -8,7 +8,7 @@ use crate::item::Item;
 use crate::treasure_types::{pay_crafting_cost, TreasureType};
 use crate::treasure_types::TreasureType::Gold;
 
-#[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
+#[derive(Clone, PartialEq, Eq, Debug, Serialize, Deserialize)]
 pub struct ExecuteExpandEquipmentSlotsReport {
     new_equipped_items: Vec<Item>,
     paid_cost: HashMap<TreasureType, u64>,
@@ -22,7 +22,7 @@ pub fn execute_expand_equipment_slots(game: &mut Game) -> Result<ExecuteExpandEq
     }
 
     let first_item_index = match game.inventory.iter()
-        .position(|item| item.is_some()) {
+        .position(Option::is_some) {
         Some(index) => index,
         None => return Err("No item in inventory to equip in new item slot. Whole inventory is empty.".to_string())
     };
@@ -64,7 +64,7 @@ mod tests_int {
         assert_eq!(Err("No item in inventory to equip in new item slot.".to_string()), execute_expand_equipment_slots(&mut game));
         assert_eq!(1, game.equipped_items.len());
 
-        let item = create_item(&game).unwrap();
+        let item = create_item(&game);
         game.inventory.push(Some(item.clone()));
         game.inventory.push(Some(item.clone()));
         game.inventory.push(Some(item.clone()));

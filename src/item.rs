@@ -1,10 +1,11 @@
-use crate::item_modifier::ItemModifier;
 use serde::{Deserialize, Serialize};
-use crate::difficulty::Difficulty;
 
-#[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
+use crate::difficulty::Difficulty;
+use crate::item_modifier::Modifier;
+
+#[derive(Clone, PartialEq, Eq, Debug, Serialize, Deserialize)]
 pub struct Item {
-    pub(crate) modifiers: Vec<ItemModifier>,
+    pub(crate) modifiers: Vec<Modifier>,
     pub(crate) crafting_info: CraftingInfo,
 }
 
@@ -18,16 +19,16 @@ pub struct CraftingInfo {
 pub mod test_util {
     use crate::Game;
     use crate::item::{CraftingInfo, Item};
-    use crate::item_modifier::ItemModifier;
+    use crate::item_modifier::Modifier;
 
-    pub fn create_item(game: &Game) -> Option<Item> {
-        Some(Item {
+    pub fn create_item(game: &Game) -> Item {
+        Item {
             modifiers: vec![
-                ItemModifier {
+                Modifier {
                     costs: Vec::new(),
                     gains: Vec::new(),
                 },
-                ItemModifier {
+                Modifier {
                     costs: Vec::new(),
                     gains: Vec::new(),
                 },
@@ -36,6 +37,6 @@ pub mod test_util {
                 possible_rolls: game.difficulty.clone(),
                 places_count: game.places.len(),
             },
-        })
+        }
     }
 }

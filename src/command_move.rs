@@ -5,15 +5,15 @@ use serde::{Deserialize, Serialize};
 use crate::attack_types::AttackType;
 use crate::Game;
 use crate::item::{CraftingInfo, Item};
-use crate::item_modifier::ItemModifier;
-use crate::item_resource::ItemResourceType;
-use crate::modifier_cost::ModifierCost;
-use crate::modifier_gain::ModifierGain;
+use crate::item_modifier::Modifier;
+use crate::item_resource::Type;
+use crate::modifier_cost::Cost;
+use crate::modifier_gain::Gain;
 use crate::place::Place;
 use crate::place_generator::generate_place;
 use crate::treasure_types::TreasureType;
 
-#[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
+#[derive(Clone, PartialEq, Eq, Debug, Serialize, Deserialize)]
 pub struct ItemReport {
     item: Item,
     current_damage: HashMap<AttackType, u64>,
@@ -21,18 +21,18 @@ pub struct ItemReport {
     treasure_bonus: HashMap<TreasureType, u16>,
     item_gain: u16,
     effect_description: String,
-    item_resource_costs: Option<HashMap<ItemResourceType, u64>>,
-    current_item_resources: HashMap<ItemResourceType, u64>,
+    item_resource_costs: Option<HashMap<Type, u64>>,
+    current_item_resources: HashMap<Type, u64>,
 }
 
-#[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
+#[derive(Clone, PartialEq, Eq, Debug, Serialize, Deserialize)]
 pub struct ExecuteMoveCommandReport {
     item_report: Vec<ItemReport>,
     result: String,
     new_place: Place,
 }
 
-#[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
+#[derive(Clone, PartialEq, Eq, Debug, Serialize, Deserialize)]
 pub struct ExecuteMoveCommandErrorReport {
     item_report: Vec<ItemReport>,
     result: String,
@@ -50,7 +50,7 @@ pub fn execute_move_command(game: &mut Game, index: usize) -> Result<ExecuteMove
     let mut item_report = Vec::new();
 
     for item in &game.equipped_items {
-        let item_resource_cost = match evaluate_item_costs(&item, &current_damage, game, index) {
+        let item_resource_cost = match evaluate_item_costs(item, &current_damage, game, index) {
             Ok(costs) => costs,
             Err(message) => {
                 item_report.push(ItemReport {
@@ -68,7 +68,7 @@ pub fn execute_move_command(game: &mut Game, index: usize) -> Result<ExecuteMove
         };
 
         update_cost_effect(&mut game.item_resources, &item_resource_cost);
-        update_gain_effect(&mut current_damage, &mut current_resistance_reduction, &mut treasure_bonus, &mut item_gain, &mut game.item_resources, &item, game.places.get(index).unwrap());
+        update_gain_effect(&mut current_damage, &mut current_resistance_reduction, &mut treasure_bonus, &mut item_gain, &mut game.item_resources, item, game.places.get(index).unwrap());
         item_report.push(ItemReport {
             item: item.clone(),
             current_damage: current_damage.clone(),
@@ -103,7 +103,7 @@ pub fn execute_move_command(game: &mut Game, index: usize) -> Result<ExecuteMove
                     match treasure_bonus.get(treasure_type) {
                         None => (treasure_type.clone(), *treasure_amount),
                         Some(multiplier_as_percentage) => {
-                            let multiplied_treasure_value = add_multiplier_to_base(multiplier_as_percentage, treasure_amount);
+                            let multiplied_treasure_value = add_multiplier_to_base(*multiplier_as_percentage, *treasure_amount);
                             (treasure_type.clone(), multiplied_treasure_value)
                         }
                     }
@@ -117,7 +117,7 @@ pub fn execute_move_command(game: &mut Game, index: usize) -> Result<ExecuteMove
                         places_count: game.places.len(),
                     },
                     modifiers: vec![
-                        ItemModifier {
+                        Modifier {
                             costs: Vec::new(),
                             gains: Vec::new(),
                         }
@@ -125,7 +125,7 @@ pub fn execute_move_command(game: &mut Game, index: usize) -> Result<ExecuteMove
                 }));
             }
 
-            return update_claim_place_effect(game, index, item_report, modified_rewards);
+            return Ok(update_claim_place_effect(game, index, item_report, modified_rewards));
         }
     }
 
@@ -148,94 +148,94 @@ fn report_place_does_not_exist(game: &mut Game, index: usize) -> Result<ExecuteM
     })
 }
 
-fn update_claim_place_effect(game: &mut Game, index: usize, item_report: Vec<ItemReport>, rewards: HashMap<TreasureType, u64>) -> Result<ExecuteMoveCommandReport, ExecuteMoveCommandErrorReport> {
+fn update_claim_place_effect(game: &mut Game, index: usize, item_report: Vec<ItemReport>, rewards: HashMap<TreasureType, u64>) -> ExecuteMoveCommandReport {
     for (treasure_type, amount) in rewards {
         *game.treasure.entry(treasure_type).or_insert(0) += amount;
     }
 
     game.places[index] = generate_place(game);
 
-    Ok(ExecuteMoveCommandReport {
+    ExecuteMoveCommandReport {
         item_report,
         result: "You won and got a new item in the inventory.".to_string(),
         new_place: game.places[index].clone(),
-    })
+    }
 }
 
-fn update_gain_effect(current_damage: &mut HashMap<AttackType, u64>, current_resistance_reduction: &mut HashMap<AttackType, u64>, treasure_bonus: &mut HashMap<TreasureType, u16>, item_gain: &mut u16, current_item_resources: &mut HashMap<ItemResourceType, u64>, item: &&Item, place: &Place) {
+fn update_gain_effect(current_damage: &mut HashMap<AttackType, u64>, current_resistance_reduction: &mut HashMap<AttackType, u64>, treasure_bonus: &mut HashMap<TreasureType, u16>, item_gain: &mut u16, current_item_resources: &mut HashMap<Type, u64>, item: &Item, place: &Place) {
     for modifier in &item.modifiers {
         for gain in &modifier.gains {
             match gain {
-                ModifierGain::FlatDamage(attack_type, amount) => *current_damage.entry(attack_type.clone()).or_insert(0) += amount,
-                ModifierGain::PercentageIncreaseDamage(attack_type, multiplier_as_percentage) => add_multiplier_to_attack_type_base(current_damage, attack_type, multiplier_as_percentage),
-                ModifierGain::FlatItemResource(item_resource_type, amount) => *current_item_resources.entry(item_resource_type.clone()).or_insert(0) += amount,
-                ModifierGain::FlatResistanceReduction(attack_type, amount) => *current_resistance_reduction.entry(attack_type.clone()).or_insert(0) += amount,
-                ModifierGain::PercentageIncreaseResistanceReduction(attack_type, multiplier_as_percentage) => add_multiplier_to_attack_type_base(current_resistance_reduction, attack_type, multiplier_as_percentage),
-                ModifierGain::FlatDamageAgainstHighestResistance(amount) => {
-                    let attack_type_with_max_resistance = get_attack_type_with_max_amount(&place);
+                Gain::FlatDamage(attack_type, amount) => *current_damage.entry(attack_type.clone()).or_insert(0) += amount,
+                Gain::PercentageIncreaseDamage(attack_type, multiplier_as_percentage) => add_multiplier_to_attack_type_base(current_damage, attack_type, *multiplier_as_percentage),
+                Gain::FlatItemResource(item_resource_type, amount) => *current_item_resources.entry(item_resource_type.clone()).or_insert(0) += amount,
+                Gain::FlatResistanceReduction(attack_type, amount) => *current_resistance_reduction.entry(attack_type.clone()).or_insert(0) += amount,
+                Gain::PercentageIncreaseResistanceReduction(attack_type, multiplier_as_percentage) => add_multiplier_to_attack_type_base(current_resistance_reduction, attack_type, *multiplier_as_percentage),
+                Gain::FlatDamageAgainstHighestResistance(amount) => {
+                    let attack_type_with_max_resistance = get_attack_type_with_max_amount(place);
                     *current_damage.entry(attack_type_with_max_resistance.clone()).or_insert(0) += amount;
                 }
-                ModifierGain::PercentageIncreaseDamageAgainstHighestResistance(multiplier_as_percentage) => {
-                    let attack_type_with_max_resistance = get_attack_type_with_max_amount(&place);
-                    add_multiplier_to_attack_type_base(current_damage, &attack_type_with_max_resistance, multiplier_as_percentage);
+                Gain::PercentageIncreaseDamageAgainstHighestResistance(multiplier_as_percentage) => {
+                    let attack_type_with_max_resistance = get_attack_type_with_max_amount(place);
+                    add_multiplier_to_attack_type_base(current_damage, &attack_type_with_max_resistance, *multiplier_as_percentage);
                 }
-                ModifierGain::FlatDamageAgainstLowestResistance(amount) => {
-                    let attack_type_with_min_resistance = get_attack_type_with_min_amount(&place);
+                Gain::FlatDamageAgainstLowestResistance(amount) => {
+                    let attack_type_with_min_resistance = get_attack_type_with_min_amount(place);
                     *current_damage.entry(attack_type_with_min_resistance.clone()).or_insert(0) += amount;
                 }
-                ModifierGain::PercentageIncreaseDamageAgainstLowestResistance(multiplier_as_percentage) => {
-                    let attack_type_with_min_resistance = get_attack_type_with_min_amount(&place);
-                    add_multiplier_to_attack_type_base(current_damage, &attack_type_with_min_resistance, multiplier_as_percentage);
+                Gain::PercentageIncreaseDamageAgainstLowestResistance(multiplier_as_percentage) => {
+                    let attack_type_with_min_resistance = get_attack_type_with_min_amount(place);
+                    add_multiplier_to_attack_type_base(current_damage, &attack_type_with_min_resistance, *multiplier_as_percentage);
                 }
-                ModifierGain::PercentageIncreaseTreasure(treasure_type, amount) => *treasure_bonus.entry(treasure_type.clone()).or_insert(0) += amount,
-                ModifierGain::FlatIncreaseRewardedItems(amount) => *item_gain = item_gain.checked_add(*amount).unwrap_or(u16::MAX),
+                Gain::PercentageIncreaseTreasure(treasure_type, amount) => *treasure_bonus.entry(treasure_type.clone()).or_insert(0) += amount,
+                Gain::FlatIncreaseRewardedItems(amount) => *item_gain = item_gain.checked_add(*amount).unwrap_or(u16::MAX),
             }
         }
     }
 }
 
-fn get_attack_type_with_min_amount(place: &&Place) -> AttackType {
+fn get_attack_type_with_min_amount(place: &Place) -> AttackType {
     AttackType::order_map(&place.resistance).into_iter()
         .min_by(|(_, a_attack_amount), (_, b_attack_amount)| a_attack_amount.cmp(b_attack_amount))
         .map(|(attack_type, _)| attack_type)
         .unwrap()
 }
 
-fn get_attack_type_with_max_amount(place: &&Place) -> AttackType {
+fn get_attack_type_with_max_amount(place: &Place) -> AttackType {
     AttackType::order_map(&place.resistance).into_iter()
         .max_by(|(_, a_attack_amount), (_, b_attack_amount)| a_attack_amount.cmp(b_attack_amount))
         .map(|(attack_type, _)| attack_type)
         .unwrap()
 }
 
-fn add_multiplier_to_attack_type_base(attack_type_base: &mut HashMap<AttackType, u64>, attack_type: &AttackType, multiplier_as_percentage: &u16) {
+fn add_multiplier_to_attack_type_base(attack_type_base: &mut HashMap<AttackType, u64>, attack_type: &AttackType, multiplier_as_percentage: u16) {
     match attack_type_base.get(attack_type) {
         None => {}
         Some(attack_value) => {
-            let multiplied_attack_value = add_multiplier_to_base(multiplier_as_percentage, attack_value);
+            let multiplied_attack_value = add_multiplier_to_base(multiplier_as_percentage, *attack_value);
             attack_type_base.insert(attack_type.clone(), multiplied_attack_value);
         }
     }
 }
 
-fn add_multiplier_to_base(multiplier_as_percentage: &u16, base_value: &u64) -> u64 {
+fn add_multiplier_to_base(multiplier_as_percentage: u16, base_value: u64) -> u64 {
     base_value
-        .checked_mul(*multiplier_as_percentage as u64)
+        .checked_mul(u64::from(multiplier_as_percentage))
         .unwrap_or(u64::MAX)
         .checked_div(100)
         .unwrap_or(1)
         .max(1)
-        .checked_add(*base_value)
+        .checked_add(base_value)
         .unwrap_or(u64::MAX)
 }
 
-fn update_cost_effect(current_item_resources: &mut HashMap<ItemResourceType, u64>, item_resource_cost: &HashMap<ItemResourceType, u64>) {
+fn update_cost_effect(current_item_resources: &mut HashMap<Type, u64>, item_resource_cost: &HashMap<Type, u64>) {
     for (item_resource_cost_type, amount) in item_resource_cost {
         current_item_resources.entry(item_resource_cost_type.clone()).and_modify(|current_amount| *current_amount -= amount);
     }
 }
 
-fn calculate_are_all_costs_payable(current_item_resources: &HashMap<ItemResourceType, u64>, item_resource_cost: &HashMap<ItemResourceType, u64>) -> bool {
+fn calculate_are_all_costs_payable(current_item_resources: &HashMap<Type, u64>, item_resource_cost: &HashMap<Type, u64>) -> bool {
     let are_all_costs_payable = item_resource_cost.iter()
         .all(|(item_resource_type, amount)|
             match current_item_resources.get(item_resource_type) {
@@ -248,79 +248,79 @@ fn calculate_are_all_costs_payable(current_item_resources: &HashMap<ItemResource
     are_all_costs_payable
 }
 
-fn evaluate_item_costs(item: &&Item, current_damage: &HashMap<AttackType, u64>, game: &Game, index: usize) -> Result<HashMap<ItemResourceType, u64>, String> {
+fn evaluate_item_costs(item: &Item, current_damage: &HashMap<AttackType, u64>, game: &Game, index: usize) -> Result<HashMap<Type, u64>, String> {
     let mut item_resource_cost = HashMap::new();
     for modifier in &item.modifiers {
         for cost in &modifier.costs {
             match cost {
-                ModifierCost::FlatItemResource(item_resource_type, amount) => *item_resource_cost.entry(item_resource_type.clone()).or_insert(0) += amount,
-                ModifierCost::FlatMinItemResourceRequirement(item_resource_type, amount) => {
+                Cost::FlatItemResource(item_resource_type, amount) => *item_resource_cost.entry(item_resource_type.clone()).or_insert(0) += amount,
+                Cost::FlatMinItemResourceRequirement(item_resource_type, amount) => {
                     if *game.item_resources.get(item_resource_type).unwrap_or(&0) < *amount {
                         return Err(format!("Did not fulfill the FlatMinItemResourceRequirement of {} {:?}, only had {:?}.", amount, item_resource_type, game.item_resources.clone()));
-                    } else {}
+                    }
                 }
-                ModifierCost::FlatMaxItemResourceRequirement(item_resource_type, amount) => {
+                Cost::FlatMaxItemResourceRequirement(item_resource_type, amount) => {
                     if *game.item_resources.get(item_resource_type).unwrap_or(&0) > *amount {
                         return Err(format!("Did not fulfill the FlatMaxItemResourceRequirement of {} {:?}, had {:?} and that is too much.", amount, item_resource_type, game.item_resources.clone()));
-                    } else {}
+                    }
                 }
-                ModifierCost::FlatMinAttackRequirement(attack_type, amount) => {
+                Cost::FlatMinAttackRequirement(attack_type, amount) => {
                     if current_damage.get(attack_type).unwrap_or(&0) < amount {
                         return Err(format!("Did not fulfill the FlatMinAttackRequirement of {} {:?} damage, only did {:?} damage.", amount, attack_type, current_damage));
-                    } else {}
+                    }
                 }
-                ModifierCost::FlatMaxAttackRequirement(attack_type, amount) => {
+                Cost::FlatMaxAttackRequirement(attack_type, amount) => {
                     if current_damage.get(attack_type).unwrap_or(&0) > amount {
                         return Err(format!("Did not fulfill the FlatMaxAttackRequirement of {} {:?} damage, did {:?} damage and that is too much.", amount, attack_type, current_damage));
-                    } else {}
+                    }
                 }
-                ModifierCost::FlatSumMinAttackRequirement(amount) => {
+                Cost::FlatSumMinAttackRequirement(amount) => {
                     if current_damage.values().sum::<u64>() < *amount {
                         return Err(format!("Did not fulfill the FlatSumMinAttackRequirement of {} damage, only did {:?} damage.", amount, current_damage));
-                    } else {}
+                    }
                 }
-                ModifierCost::FlatSumMaxAttackRequirement(amount) => {
+                Cost::FlatSumMaxAttackRequirement(amount) => {
                     if current_damage.values().sum::<u64>() > *amount {
                         return Err(format!("Did not fulfill the FlatSumMaxAttackRequirement of {} damage, did {:?} damage damage and that is too much.", amount, current_damage));
-                    } else {}
+                    }
                 }
-                ModifierCost::PlaceLimitedByIndexModulus(modulus, valid_values) => {
+                Cost::PlaceLimitedByIndexModulus(modulus, valid_values) => {
                     let modulus_value = index.rem_euclid(usize::from(*modulus));
                     if !valid_values.contains(&u8::try_from(modulus_value).unwrap()) {
                         return Err(format!("Did not fulfill the PlaceLimitedByIndexModulus: {} % {} = {} and that is not contained in {:?}.", index, modulus, modulus_value, valid_values));
-                    } else {}
+                    }
                 }
-                ModifierCost::FlatMinResistanceRequirement(attack_type, amount) => {
+                Cost::FlatMinResistanceRequirement(attack_type, amount) => {
                     if game.places[index].resistance.get(attack_type).unwrap_or(&0) < amount {
                         return Err(format!("Did not fulfill the FlatMinResistanceRequirement of {} {:?} damage, place only has {:?} damage.", amount, attack_type, AttackType::order_map(&game.places[index].resistance)));
-                    } else {}
+                    }
                 }
-                ModifierCost::FlatMaxResistanceRequirement(attack_type, amount) => {
+                Cost::FlatMaxResistanceRequirement(attack_type, amount) => {
                     if game.places[index].resistance.get(attack_type).unwrap_or(&0) > amount {
                         return Err(format!("Did not fulfill the FlatMaxResistanceRequirement of {} {:?} damage, place has {:?} damage and that is too much.", amount, attack_type, AttackType::order_map(&game.places[index].resistance)));
-                    } else {}
+                    }
                 }
-                ModifierCost::FlatMinSumResistanceRequirement(amount) => {
+                Cost::FlatMinSumResistanceRequirement(amount) => {
                     let damage_sum = game.places[index].resistance.values().sum::<u64>();
                     if damage_sum < *amount {
                         return Err(format!("Did not fulfill the FlatMinSumResistanceRequirement of {} damage, place only has {:?} damage.", amount, damage_sum));
-                    } else {}
+                    }
                 }
-                ModifierCost::FlatMaxSumResistanceRequirement(amount) => {
+                Cost::FlatMaxSumResistanceRequirement(amount) => {
                     let damage_sum = game.places[index].resistance.values().sum::<u64>();
                     if damage_sum > *amount {
                         return Err(format!("Did not fulfill the FlatMaxSumResistanceRequirement of {} damage, place has {:?} damage and that is too much.", amount, damage_sum));
-                    } else {}
+                    }
                 }
-                ModifierCost::MinWinsInARow(amount) => {
+                Cost::MinWinsInARow(amount) => {
                     if game.game_statistics.wins_in_a_row < u64::from(*amount) {
                         return Err(format!("Did not fulfill the MinWinsInARow of {} win, only hase {:?} wins in a row.", amount, game.game_statistics.wins_in_a_row));
-                    } else {}
+                    }
                 }
-                ModifierCost::MaxWinsInARow(amount) => {
+                Cost::MaxWinsInARow(amount) => {
                     if game.game_statistics.wins_in_a_row > u64::from(*amount) {
                         return Err(format!("Did not fulfill the MaxWinsInARow of {} win, have {:?} wins in a row and that is too much.", amount, game.game_statistics.wins_in_a_row));
-                    } else {}
+                    }
                 }
             }
         }
@@ -340,10 +340,10 @@ mod tests_int {
     use crate::Game;
     use crate::game_generator::generate_testing_game;
     use crate::item::{CraftingInfo, Item};
-    use crate::item_modifier::ItemModifier;
-    use crate::item_resource::ItemResourceType;
-    use crate::modifier_cost::ModifierCost;
-    use crate::modifier_gain::ModifierGain;
+    use crate::item_modifier::Modifier;
+    use crate::item_resource::Type;
+    use crate::modifier_cost::Cost;
+    use crate::modifier_gain::Gain;
     use crate::treasure_types::TreasureType::Gold;
 
     #[test]
@@ -351,7 +351,7 @@ mod tests_int {
         let mut game = generate_testing_game(Some([1; 16]));
         let place = game.places[0].clone();
         assert_eq!(None, game.treasure.get(&Gold));
-        assert_eq!(None, game.item_resources.get(&ItemResourceType::Mana));
+        assert_eq!(None, game.item_resources.get(&Type::Mana));
         assert_eq!(9, game.inventory.len());
         assert_eq!(0, game.game_statistics.moves_count);
         assert_eq!(0, game.game_statistics.wins);
@@ -368,7 +368,7 @@ mod tests_int {
         assert_eq!("You did not deal enough damage to overcome the challenges in this place.".to_string(), result.result);
         assert_eq!(2, result.item_report.len());
         assert_eq!(None, game.treasure.get(&Gold));
-        assert_eq!(Some(&5), game.item_resources.get(&ItemResourceType::Mana));
+        assert_eq!(Some(&5), game.item_resources.get(&Type::Mana));
         assert_eq!(9, game.inventory.len());
         assert_eq!(1, game.game_statistics.moves_count);
         assert_eq!(0, game.game_statistics.wins);
@@ -386,7 +386,7 @@ mod tests_int {
         assert_ne!(place, game.places[0]);
         assert_eq!(place.reward.get(&Gold), game.treasure.get(&Gold));
         assert_ne!(&0, game.treasure.get(&Gold).unwrap());
-        assert_eq!(Some(&1), game.item_resources.get(&ItemResourceType::Mana));
+        assert_eq!(Some(&1), game.item_resources.get(&Type::Mana));
         assert_eq!(10, game.inventory.len());
         assert_eq!(2, game.game_statistics.moves_count);
         assert_eq!(1, game.game_statistics.wins);
@@ -431,14 +431,14 @@ mod tests_int {
         let mut game = generate_testing_game(Some([1; 16]));
         let place = game.places[0].clone();
         assert_eq!(None, game.treasure.get(&Gold));
-        assert_eq!(None, game.item_resources.get(&ItemResourceType::Mana));
+        assert_eq!(None, game.item_resources.get(&Type::Mana));
 
         let power_item = Item {
             modifiers: vec![
-                ItemModifier {
+                Modifier {
                     costs: Vec::new(),
                     gains: AttackType::get_all().iter()
-                        .map(|attack_type| ModifierGain::FlatDamage(attack_type.clone(), 100))
+                        .map(|attack_type| Gain::FlatDamage(attack_type.clone(), 100))
                         .collect(),
                 }
             ],
@@ -459,7 +459,7 @@ mod tests_int {
         assert_ne!(place, game.places[0]);
         assert_eq!(place.reward.get(&Gold), game.treasure.get(&Gold));
         assert_ne!(&0, game.treasure.get(&Gold).unwrap());
-        assert_eq!(None, game.item_resources.get(&ItemResourceType::Mana));
+        assert_eq!(None, game.item_resources.get(&Type::Mana));
 
         //Putting the power item at the end
         game.equipped_items.swap(0, 2);
@@ -474,7 +474,7 @@ mod tests_int {
         assert_eq!(3, result.item_report.len()); //Now all three have a report.
         assert_ne!(place, game.places[0]);
         assert!(place.reward.get(&Gold).unwrap() < game.treasure.get(&Gold).unwrap());
-        assert_eq!(Some(&5), game.item_resources.get(&ItemResourceType::Mana));
+        assert_eq!(Some(&5), game.item_resources.get(&Type::Mana));
     }
 
     #[test]
@@ -484,9 +484,9 @@ mod tests_int {
 
         let first_item_cannot_pay = Item {
             modifiers: vec![
-                ItemModifier {
+                Modifier {
                     costs: vec![
-                        ModifierCost::FlatMinAttackRequirement(AttackType::Physical, 20)
+                        Cost::FlatMinAttackRequirement(AttackType::Physical, 20)
                     ],
                     gains: Vec::new(),
                 }
@@ -499,10 +499,10 @@ mod tests_int {
 
         let second_item_generates_needed_resource = Item {
             modifiers: vec![
-                ItemModifier {
+                Modifier {
                     costs: Vec::new(),
                     gains: vec![
-                        ModifierGain::FlatDamage(AttackType::Physical, 20)
+                        Gain::FlatDamage(AttackType::Physical, 20)
                     ],
                 }
             ],
@@ -535,9 +535,9 @@ mod tests_int {
 
         let first_item_cannot_pay = Item {
             modifiers: vec![
-                ItemModifier {
+                Modifier {
                     costs: vec![
-                        ModifierCost::FlatMaxAttackRequirement(AttackType::Physical, 1)
+                        Cost::FlatMaxAttackRequirement(AttackType::Physical, 1)
                     ],
                     gains: Vec::new(),
                 }
@@ -550,10 +550,10 @@ mod tests_int {
 
         let second_item_generates_needed_resource = Item {
             modifiers: vec![
-                ItemModifier {
+                Modifier {
                     costs: Vec::new(),
                     gains: vec![
-                        ModifierGain::FlatDamage(AttackType::Physical, 3)
+                        Gain::FlatDamage(AttackType::Physical, 3)
                     ],
                 }
             ],
@@ -586,9 +586,9 @@ mod tests_int {
 
         let first_item_cannot_pay = Item {
             modifiers: vec![
-                ItemModifier {
+                Modifier {
                     costs: vec![
-                        ModifierCost::PlaceLimitedByIndexModulus(6, vec![1, 3, 4])
+                        Cost::PlaceLimitedByIndexModulus(6, vec![1, 3, 4])
                     ],
                     gains: Vec::new(),
                 }
@@ -619,9 +619,9 @@ mod tests_int {
 
         let first_item_cannot_pay = Item {
             modifiers: vec![
-                ItemModifier {
+                Modifier {
                     costs: vec![
-                        ModifierCost::FlatItemResource(ItemResourceType::Mana, 20)
+                        Cost::FlatItemResource(Type::Mana, 20)
                     ],
                     gains: Vec::new(),
                 }
@@ -653,10 +653,10 @@ mod tests_int {
     fn item_with_gains(game: &mut Game) -> Item {
         Item {
             modifiers: vec![
-                ItemModifier {
+                Modifier {
                     costs: Vec::new(),
                     gains: vec![
-                        ModifierGain::FlatItemResource(ItemResourceType::Mana, 20)
+                        Gain::FlatItemResource(Type::Mana, 20)
                     ],
                 }
             ],
@@ -674,9 +674,9 @@ mod tests_int {
 
         let first_item_cannot_pay = Item {
             modifiers: vec![
-                ItemModifier {
+                Modifier {
                     costs: vec![
-                        ModifierCost::FlatSumMinAttackRequirement(20)
+                        Cost::FlatSumMinAttackRequirement(20)
                     ],
                     gains: Vec::new(),
                 }
@@ -689,10 +689,10 @@ mod tests_int {
 
         let second_item_generates_needed_resource = Item {
             modifiers: vec![
-                ItemModifier {
+                Modifier {
                     costs: Vec::new(),
                     gains: vec![
-                        ModifierGain::FlatDamage(AttackType::Physical, 10)
+                        Gain::FlatDamage(AttackType::Physical, 10)
                     ],
                 }
             ],
@@ -729,9 +729,9 @@ mod tests_int {
 
         let first_item_cannot_pay = Item {
             modifiers: vec![
-                ItemModifier {
+                Modifier {
                     costs: vec![
-                        ModifierCost::FlatSumMaxAttackRequirement(20)
+                        Cost::FlatSumMaxAttackRequirement(20)
                     ],
                     gains: Vec::new(),
                 }
@@ -744,10 +744,10 @@ mod tests_int {
 
         let second_item_generates_needed_resource = Item {
             modifiers: vec![
-                ItemModifier {
+                Modifier {
                     costs: Vec::new(),
                     gains: vec![
-                        ModifierGain::FlatDamage(AttackType::Physical, 11)
+                        Gain::FlatDamage(AttackType::Physical, 11)
                     ],
                 }
             ],
@@ -786,9 +786,9 @@ mod tests_int {
 
         let first_item_cannot_pay = Item {
             modifiers: vec![
-                ItemModifier {
+                Modifier {
                     costs: vec![
-                        ModifierCost::FlatMinItemResourceRequirement(ItemResourceType::Mana, 20)
+                        Cost::FlatMinItemResourceRequirement(Type::Mana, 20)
                     ],
                     gains: Vec::new(),
                 }
@@ -824,9 +824,9 @@ mod tests_int {
 
         let first_item_cannot_pay = Item {
             modifiers: vec![
-                ItemModifier {
+                Modifier {
                     costs: vec![
-                        ModifierCost::FlatMaxItemResourceRequirement(ItemResourceType::Mana, 20)
+                        Cost::FlatMaxItemResourceRequirement(Type::Mana, 20)
                     ],
                     gains: Vec::new(),
                 }
@@ -865,9 +865,9 @@ mod tests_int {
 
         let first_item_cannot_pay = Item {
             modifiers: vec![
-                ItemModifier {
+                Modifier {
                     costs: vec![
-                        ModifierCost::FlatMinResistanceRequirement(AttackType::Fire, 18)
+                        Cost::FlatMinResistanceRequirement(AttackType::Fire, 18)
                     ],
                     gains: Vec::new(),
                 }
@@ -904,9 +904,9 @@ mod tests_int {
 
         let first_item_cannot_pay = Item {
             modifiers: vec![
-                ItemModifier {
+                Modifier {
                     costs: vec![
-                        ModifierCost::FlatMaxResistanceRequirement(AttackType::Fire, 17)
+                        Cost::FlatMaxResistanceRequirement(AttackType::Fire, 17)
                     ],
                     gains: Vec::new(),
                 }
@@ -943,9 +943,9 @@ mod tests_int {
 
         let first_item_cannot_pay = Item {
             modifiers: vec![
-                ItemModifier {
+                Modifier {
                     costs: vec![
-                        ModifierCost::FlatMinSumResistanceRequirement(195)
+                        Cost::FlatMinSumResistanceRequirement(195)
                     ],
                     gains: Vec::new(),
                 }
@@ -982,9 +982,9 @@ mod tests_int {
 
         let first_item_cannot_pay = Item {
             modifiers: vec![
-                ItemModifier {
+                Modifier {
                     costs: vec![
-                        ModifierCost::FlatMaxSumResistanceRequirement(194)
+                        Cost::FlatMaxSumResistanceRequirement(194)
                     ],
                     gains: Vec::new(),
                 }
@@ -1020,9 +1020,9 @@ mod tests_int {
 
         let first_item_cannot_pay = Item {
             modifiers: vec![
-                ItemModifier {
+                Modifier {
                     costs: vec![
-                        ModifierCost::MinWinsInARow(1)
+                        Cost::MinWinsInARow(1)
                     ],
                     gains: Vec::new(),
                 }
@@ -1069,9 +1069,9 @@ mod tests_int {
 
         let first_item_cannot_pay = Item {
             modifiers: vec![
-                ItemModifier {
+                Modifier {
                     costs: vec![
-                        ModifierCost::MaxWinsInARow(0)
+                        Cost::MaxWinsInARow(0)
                     ],
                     gains: Vec::new(),
                 }
@@ -1119,11 +1119,11 @@ mod tests_int {
 
         let item = Item {
             modifiers: vec![
-                ItemModifier {
+                Modifier {
                     costs: Vec::new(),
                     gains: vec![
-                        ModifierGain::FlatDamage(AttackType::Physical, 200),
-                        ModifierGain::PercentageIncreaseDamage(AttackType::Physical, 200),
+                        Gain::FlatDamage(AttackType::Physical, 200),
+                        Gain::PercentageIncreaseDamage(AttackType::Physical, 200),
                     ],
                 }
             ],
@@ -1153,10 +1153,10 @@ mod tests_int {
 
         let item = Item {
             modifiers: vec![
-                ItemModifier {
+                Modifier {
                     costs: Vec::new(),
                     gains: vec![
-                        ModifierGain::FlatResistanceReduction(AttackType::Physical, 200),
+                        Gain::FlatResistanceReduction(AttackType::Physical, 200),
                     ],
                 }
             ],
@@ -1186,11 +1186,11 @@ mod tests_int {
 
         let item = Item {
             modifiers: vec![
-                ItemModifier {
+                Modifier {
                     costs: Vec::new(),
                     gains: vec![
-                        ModifierGain::FlatResistanceReduction(AttackType::Physical, 200),
-                        ModifierGain::PercentageIncreaseResistanceReduction(AttackType::Physical, 200),
+                        Gain::FlatResistanceReduction(AttackType::Physical, 200),
+                        Gain::PercentageIncreaseResistanceReduction(AttackType::Physical, 200),
                     ],
                 }
             ],
@@ -1220,10 +1220,10 @@ mod tests_int {
 
         let item = Item {
             modifiers: vec![
-                ItemModifier {
+                Modifier {
                     costs: Vec::new(),
                     gains: vec![
-                        ModifierGain::FlatDamageAgainstHighestResistance(200),
+                        Gain::FlatDamageAgainstHighestResistance(200),
                     ],
                 }
             ],
@@ -1253,11 +1253,11 @@ mod tests_int {
 
         let item = Item {
             modifiers: vec![
-                ItemModifier {
+                Modifier {
                     costs: Vec::new(),
                     gains: vec![
-                        ModifierGain::FlatDamageAgainstHighestResistance(200),
-                        ModifierGain::PercentageIncreaseDamageAgainstHighestResistance(200),
+                        Gain::FlatDamageAgainstHighestResistance(200),
+                        Gain::PercentageIncreaseDamageAgainstHighestResistance(200),
                     ],
                 }
             ],
@@ -1287,10 +1287,10 @@ mod tests_int {
 
         let item = Item {
             modifiers: vec![
-                ItemModifier {
+                Modifier {
                     costs: Vec::new(),
                     gains: vec![
-                        ModifierGain::FlatDamageAgainstLowestResistance(200),
+                        Gain::FlatDamageAgainstLowestResistance(200),
                     ],
                 }
             ],
@@ -1320,11 +1320,11 @@ mod tests_int {
 
         let item = Item {
             modifiers: vec![
-                ItemModifier {
+                Modifier {
                     costs: Vec::new(),
                     gains: vec![
-                        ModifierGain::FlatDamageAgainstLowestResistance(200),
-                        ModifierGain::FlatDamageAgainstLowestResistance(200),
+                        Gain::FlatDamageAgainstLowestResistance(200),
+                        Gain::FlatDamageAgainstLowestResistance(200),
                     ],
                 }
             ],
@@ -1354,11 +1354,11 @@ mod tests_int {
 
         let item = Item {
             modifiers: vec![
-                ItemModifier {
+                Modifier {
                     costs: Vec::new(),
                     gains: vec![
-                        ModifierGain::FlatDamageAgainstLowestResistance(200),
-                        ModifierGain::PercentageIncreaseDamageAgainstLowestResistance(200),
+                        Gain::FlatDamageAgainstLowestResistance(200),
+                        Gain::PercentageIncreaseDamageAgainstLowestResistance(200),
                     ],
                 }
             ],
@@ -1392,10 +1392,10 @@ mod tests_int {
 
         game.equipped_items[1]
             .modifiers[0]
-            .gains.push(ModifierGain::PercentageIncreaseTreasure(Gold, 200));
+            .gains.push(Gain::PercentageIncreaseTreasure(Gold, 200));
         game.equipped_items[1]
             .modifiers[0]
-            .gains.push(ModifierGain::PercentageIncreaseTreasure(Gold, 300));
+            .gains.push(Gain::PercentageIncreaseTreasure(Gold, 300));
 
         let old_place = game.places[0].clone();
 
@@ -1423,7 +1423,7 @@ mod tests_int {
 
         game.equipped_items[1]
             .modifiers[0]
-            .gains.push(ModifierGain::FlatIncreaseRewardedItems(200));
+            .gains.push(Gain::FlatIncreaseRewardedItems(200));
 
         let old_inventory_count = game.inventory.len();
 

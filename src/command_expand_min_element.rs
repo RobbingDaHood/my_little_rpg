@@ -8,7 +8,7 @@ use crate::treasure_types::TreasureType::Gold;
 use serde::{Deserialize, Serialize};
 use crate::difficulty::Difficulty;
 
-#[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
+#[derive(Clone, PartialEq, Eq, Debug, Serialize, Deserialize)]
 pub struct ExecuteExpandMinElementReport {
     new_difficulty: Difficulty,
     paid_cost: HashMap<TreasureType, u64>,
@@ -26,7 +26,7 @@ pub fn execute_expand_min_element(game: &mut Game) -> Result<ExecuteExpandMinEle
         .map(|(attack_type, _)| attack_type.clone())
         .collect();
 
-    if max_possible_elements.len() < 1 {
+    if max_possible_elements.is_empty() {
         return Err("There are no element minimum values that can be upgraded, consider expanding a max element value.".to_string());
     }
 
@@ -88,7 +88,7 @@ mod tests_int {
     fn test_that_all_elements_can_be_hit() {
         let mut game = generate_testing_game(Some([1; 16]));
         let original_difficulty = game.difficulty.clone();
-        game.treasure.insert(Gold, 9999999);
+        game.treasure.insert(Gold, 9_999_999);
 
         for _i in 0..65 {
             assert!(execute_expand_max_element(&mut game).is_ok());

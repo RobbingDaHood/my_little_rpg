@@ -8,20 +8,18 @@ use crate::attack_types::AttackType;
 use crate::difficulty::Difficulty;
 use crate::game_statistics::GameStatistics;
 use crate::item::Item;
-use crate::item_resource::ItemResourceType;
+use crate::item_resource::Type;
 use crate::place::Place;
 use crate::treasure_types::TreasureType;
 
-//TODO SaveTheWorld
-
-#[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
+#[derive(Clone, PartialEq, Eq, Debug, Serialize, Deserialize)]
 pub struct Game {
     pub(crate) places: Vec<Place>,
     pub(crate) equipped_items: Vec<Item>,
     pub(crate) inventory: Vec<Option<Item>>,
     pub(crate) difficulty: Difficulty,
     pub(crate) treasure: HashMap<TreasureType, u64>,
-    pub(crate) item_resources: HashMap<ItemResourceType, u64>,
+    pub(crate) item_resources: HashMap<Type, u64>,
     pub(crate) seed: [u8; 16],
     pub(crate) random_generator_state: Lcg64Xsh32,
     pub(crate) game_statistics: GameStatistics,

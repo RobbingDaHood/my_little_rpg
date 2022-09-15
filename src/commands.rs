@@ -1,5 +1,6 @@
-use crate::commands::Command::{AddModifier, Equip, ExpandElements, ExpandEquipmentSlots, ExpandMaxElement, ExpandMaxSimultaneousElement, ExpandMinElement, ExpandMinSimultaneousElement, ExpandPlaces, Help, LoadTheWorld, Move, ReduceDifficulty, ReorderInventory, RerollModifier, SaveTheWorld, State, SwapEquipment};
 use serde::{Deserialize, Serialize};
+
+use crate::commands::Command::{AddModifier, Equip, ExpandElements, ExpandEquipmentSlots, ExpandMaxElement, ExpandMaxSimultaneousElement, ExpandMinElement, ExpandMinSimultaneousElement, ExpandPlaces, Help, LoadTheWorld, Move, ReduceDifficulty, ReorderInventory, RerollModifier, SaveTheWorld, State, SwapEquipment};
 use crate::index_specifier::IndexSpecifier;
 
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize, Eq, Hash)]
@@ -76,6 +77,124 @@ impl Command {
             })
             .collect()
     }
+
+    fn parse_move(command_parts: &Vec<&str>) -> Result<Command, String> {
+        if command_parts.len() < 2 {
+            return Err(format!("Trouble parsing move command, it needs the index of the place. Got {:?}", command_parts));
+        }
+
+        if let Ok(place_index) = command_parts[1].parse::<usize>() {
+            Ok(Move(place_index))
+        } else {
+            Err(format!("Trouble parsing move command, it needs the index of the place. Got {:?}", command_parts))
+        }
+    }
+
+    fn parse_add_modifier(command_parts: &Vec<&str>) -> Result<Command, String> {
+        let error_message = format!("Trouble parsing AddModifier command, it needs the index of the item and a list comma seperated list of items to sacrifice. Got {:?}", command_parts);
+        if command_parts.len() < 2 {
+            return Err(error_message);
+        }
+
+        if let Ok(inventory_position) = command_parts[1].parse::<usize>() {
+            match Self::parse_possible_relative_indexes(command_parts[2], inventory_position) {
+                Ok(parsed_sacrifice_item_indexes) => Ok(AddModifier(inventory_position, parsed_sacrifice_item_indexes)),
+                Err(_) => Err(error_message)
+            }
+        } else {
+            Err(error_message)
+        }
+    }
+
+    fn parse_equip(command_parts: &Vec<&str>) -> Result<Command, String> {
+        if command_parts.len() < 3 {
+            return Err(format!("Trouble parsing Equip command, it needs index of inventory and index of equipment slot. Got {:?}", command_parts));
+        }
+
+        if let Ok(inventory_position) = command_parts[1].parse::<usize>() {
+            if let Ok(equipped_item_position) = command_parts[2].parse::<usize>() {
+                Ok(Equip(inventory_position, equipped_item_position))
+            } else {
+                Err(format!("Trouble parsing Equip command, it needs index of inventory and index of equipment slot. Got {:?}", command_parts))
+            }
+        } else {
+            Err(format!("Trouble parsing Equip command, it needs index of inventory and index of equipment slot. Got {:?}", command_parts))
+        }
+    }
+
+    fn parse_swap_equipment(command_parts: &Vec<&str>) -> Result<Command, String> {
+        if command_parts.len() < 3 {
+            return Err(format!("Trouble parsing SwapEquipment command, it needs index of inventory and index of equipment slot. Got {:?}", command_parts));
+        }
+
+        if let Ok(equipped_item_position_1) = command_parts[1].parse::<usize>() {
+            if let Ok(equipped_item_position_2) = command_parts[2].parse::<usize>() {
+                Ok(SwapEquipment(equipped_item_position_1, equipped_item_position_2))
+            } else {
+                Err(format!("Trouble parsing SwapEquipment command, it needs index of inventory and index of equipment slot. Got {:?}", command_parts))
+            }
+        } else {
+            Err(format!("Trouble parsing SwapEquipment command, it needs index of inventory and index of equipment slot. Got {:?}", command_parts))
+        }
+    }
+
+    fn parse_reroll_modifier(command_parts: &Vec<&str>) -> Result<Command, String> {
+        let error_message = format!("Trouble parsing RerollModifier command, it needs index of inventory, index of modifier and a list comma seperated list of items to sacrifice. Got {:?}", command_parts);
+        if command_parts.len() < 4 {
+            return Err(error_message);
+        }
+
+        if let Ok(inventory_index) = command_parts[1].parse::<usize>() {
+            if let Ok(modifier_index) = command_parts[2].parse::<usize>() {
+                match Self::parse_possible_relative_indexes(command_parts[3], inventory_index) {
+                    Ok(parsed_sacrifice_item_indexes) => Ok(RerollModifier(inventory_index, modifier_index, parsed_sacrifice_item_indexes)),
+                    Err(_) => Err(error_message)
+                }
+            } else {
+                Err(error_message)
+            }
+        } else {
+            Err(error_message)
+        }
+    }
+
+    fn parse_save_the_world(command_parts: &Vec<&str>) -> Result<Command, String> {
+        let error_message = format!("Trouble parsing SaveTheWorld command, it needs a save game name and optionally a path to the savegame (remember to end the path with /). Default location is ./save_games/. Got {:?}", command_parts);
+        if command_parts.len() < 2 {
+            return Err(error_message);
+        }
+
+        if let Ok(save_game_name) = command_parts[1].parse::<String>() {
+            if command_parts.len() < 3 {
+                Ok(SaveTheWorld(save_game_name, None))
+            } else if let Ok(save_game_path) = command_parts[2].parse::<String>() {
+                Ok(SaveTheWorld(save_game_name, Some(save_game_path)))
+            } else {
+                Err(error_message)
+            }
+        } else {
+            Err(error_message)
+        }
+    }
+
+    fn parse_load_the_world(command_parts: &Vec<&str>) -> Result<Command, String> {
+        let error_message = format!("Trouble parsing LoadTheWorld command, it needs a save game name and optionally a path to the savegame (remember to end the path with /). Default location is ./save_games/. Got {:?}", command_parts);
+        if command_parts.len() < 2 {
+            return Err(error_message);
+        }
+
+        if let Ok(save_game_name) = command_parts[1].parse::<String>() {
+            if command_parts.len() < 3 {
+                Ok(LoadTheWorld(save_game_name, None))
+            } else if let Ok(save_game_path) = command_parts[2].parse::<String>() {
+                Ok(LoadTheWorld(save_game_name, Some(save_game_path)))
+            } else {
+                Err(error_message)
+            }
+        } else {
+            Err(error_message)
+        }
+    }
 }
 
 impl TryFrom<&String> for Command {
@@ -88,7 +207,7 @@ impl TryFrom<&String> for Command {
             return Err("Command is empty".to_string());
         }
 
-        match command_parts[0] {
+        match *command_parts.first().unwrap() {
             "State" => Ok(State),
             "ExpandPlaces" => Ok(ExpandPlaces),
             "ExpandElements" => Ok(ExpandElements),
@@ -100,117 +219,13 @@ impl TryFrom<&String> for Command {
             "ExpandMinSimultaneousElement" => Ok(ExpandMinSimultaneousElement),
             "Help" => Ok(Help),
             "ReorderInventory" => Ok(ReorderInventory),
-            "Move" => {
-                if command_parts.len() < 2 {
-                    return Err(format!("Trouble parsing move command, it needs the index of the place. Got {:?}", command_parts));
-                }
-
-                if let Ok(place_index) = command_parts[1].parse::<usize>() {
-                    Ok(Move(place_index))
-                } else {
-                    Err(format!("Trouble parsing move command, it needs the index of the place. Got {:?}", command_parts))
-                }
-            }
-            "AddModifier" => {
-                let error_message = format!("Trouble parsing AddModifier command, it needs the index of the item and a list comma seperated list of items to sacrifice. Got {:?}", command_parts);
-                if command_parts.len() < 2 {
-                    return Err(error_message);
-                }
-
-                if let Ok(inventory_position) = command_parts[1].parse::<usize>() {
-                    match Self::parse_possible_relative_indexes(command_parts[2], inventory_position) {
-                        Ok(parsed_sacrifice_item_indexes) => Ok(AddModifier(inventory_position, parsed_sacrifice_item_indexes)),
-                        Err(_) => Err(error_message)
-                    }
-                } else {
-                    Err(error_message)
-                }
-            }
-            "Equip" => {
-                if command_parts.len() < 3 {
-                    return Err(format!("Trouble parsing Equip command, it needs index of inventory and index of equipment slot. Got {:?}", command_parts));
-                }
-
-                if let Ok(inventory_position) = command_parts[1].parse::<usize>() {
-                    if let Ok(equipped_item_position) = command_parts[2].parse::<usize>() {
-                        Ok(Equip(inventory_position, equipped_item_position))
-                    } else {
-                        Err(format!("Trouble parsing Equip command, it needs index of inventory and index of equipment slot. Got {:?}", command_parts))
-                    }
-                } else {
-                    Err(format!("Trouble parsing Equip command, it needs index of inventory and index of equipment slot. Got {:?}", command_parts))
-                }
-            }
-            "SwapEquipment" => {
-                if command_parts.len() < 3 {
-                    return Err(format!("Trouble parsing SwapEquipment command, it needs index of inventory and index of equipment slot. Got {:?}", command_parts));
-                }
-
-                if let Ok(equipped_item_position_1) = command_parts[1].parse::<usize>() {
-                    if let Ok(equipped_item_position_2) = command_parts[2].parse::<usize>() {
-                        Ok(SwapEquipment(equipped_item_position_1, equipped_item_position_2))
-                    } else {
-                        Err(format!("Trouble parsing SwapEquipment command, it needs index of inventory and index of equipment slot. Got {:?}", command_parts))
-                    }
-                } else {
-                    Err(format!("Trouble parsing SwapEquipment command, it needs index of inventory and index of equipment slot. Got {:?}", command_parts))
-                }
-            }
-            "RerollModifier" => {
-                let error_message = format!("Trouble parsing RerollModifier command, it needs index of inventory, index of modifier and a list comma seperated list of items to sacrifice. Got {:?}", command_parts);
-                if command_parts.len() < 4 {
-                    return Err(error_message);
-                }
-
-                if let Ok(inventory_index) = command_parts[1].parse::<usize>() {
-                    if let Ok(modifier_index) = command_parts[2].parse::<usize>() {
-                        match Self::parse_possible_relative_indexes(command_parts[3], inventory_index) {
-                            Ok(parsed_sacrifice_item_indexes) => Ok(RerollModifier(inventory_index, modifier_index, parsed_sacrifice_item_indexes)),
-                            Err(_) => Err(error_message)
-                        }
-                    } else {
-                        Err(error_message)
-                    }
-                } else {
-                    Err(error_message)
-                }
-            }
-            "SaveTheWorld" => {
-                let error_message = format!("Trouble parsing SaveTheWorld command, it needs a save game name and optionally a path to the savegame (remember to end the path with /). Default location is ./save_games/. Got {:?}", command_parts);
-                if command_parts.len() < 2 {
-                    return Err(error_message);
-                }
-
-                if let Ok(save_game_name) = command_parts[1].parse::<String>() {
-                    if command_parts.len() < 3 {
-                        Ok(SaveTheWorld(save_game_name, None))
-                    } else if let Ok(save_game_path) = command_parts[2].parse::<String>() {
-                        Ok(SaveTheWorld(save_game_name, Some(save_game_path)))
-                    } else {
-                        Err(error_message)
-                    }
-                } else {
-                    Err(error_message)
-                }
-            }
-            "LoadTheWorld" => {
-                let error_message = format!("Trouble parsing LoadTheWorld command, it needs a save game name and optionally a path to the savegame (remember to end the path with /). Default location is ./save_games/. Got {:?}", command_parts);
-                if command_parts.len() < 2 {
-                    return Err(error_message);
-                }
-
-                if let Ok(save_game_name) = command_parts[1].parse::<String>() {
-                    if command_parts.len() < 3 {
-                        Ok(LoadTheWorld(save_game_name, None))
-                    } else if let Ok(save_game_path) = command_parts[2].parse::<String>() {
-                        Ok(LoadTheWorld(save_game_name, Some(save_game_path)))
-                    } else {
-                        Err(error_message)
-                    }
-                } else {
-                    Err(error_message)
-                }
-            }
+            "Move" => Self::parse_move(&command_parts),
+            "AddModifier" => Self::parse_add_modifier(&command_parts),
+            "Equip" => Self::parse_equip(&command_parts),
+            "SwapEquipment" => Self::parse_swap_equipment(&command_parts),
+            "RerollModifier" => Self::parse_reroll_modifier(&command_parts),
+            "SaveTheWorld" => Self::parse_save_the_world(&command_parts),
+            "LoadTheWorld" => Self::parse_load_the_world(&command_parts),
             _ => Err(format!("Command not known. Got {:?}", command_parts))
         }
     }

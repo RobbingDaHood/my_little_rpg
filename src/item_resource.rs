@@ -1,13 +1,13 @@
 use serde::{Deserialize, Serialize};
-use crate::item_resource::ItemResourceType::Mana;
+use crate::item_resource::Type::Mana;
 
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize, Eq, Hash)]
-pub enum ItemResourceType {
+pub enum Type {
     Mana
 }
 
-impl ItemResourceType {
-    pub fn get_all() -> Vec<ItemResourceType> {
+impl Type {
+    pub fn get_all() -> Vec<Type> {
         vec![
             Mana,
         ]

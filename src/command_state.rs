@@ -17,18 +17,18 @@ use crate::Game;
 use crate::game_statistics::GameStatistics;
 use crate::hex_encoder::encode_hex;
 use crate::item::Item;
-use crate::item_resource::ItemResourceType;
+use crate::item_resource::Type;
 use crate::place::Place;
 use crate::treasure_types::TreasureType;
 
-#[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
+#[derive(Clone, PartialEq, Eq, Debug, Serialize, Deserialize)]
 pub struct PresentationGameState {
     pub(crate) places: Vec<PresentationPlace>,
     pub(crate) equipped_items: Vec<PresentationItem>,
     pub(crate) inventory: Vec<PresentationItem>,
     pub(crate) difficulty: Difficulty,
     pub(crate) treasure: HashMap<TreasureType, u64>,
-    pub(crate) item_resources: HashMap<ItemResourceType, u64>,
+    pub(crate) item_resources: HashMap<Type, u64>,
     pub(crate) crafting_action_costs: PlaceCosts,
     pub(crate) seed: String,
     pub(crate) game_statistics: GameStatistics,
@@ -46,13 +46,13 @@ pub struct PlaceCosts {
     execute_reduce_difficulty: HashMap<TreasureType, u64>,
 }
 
-#[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
+#[derive(Clone, PartialEq, Eq, Debug, Serialize, Deserialize)]
 pub struct PresentationPlace {
     index: usize,
     place: Place,
 }
 
-#[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
+#[derive(Clone, PartialEq, Eq, Debug, Serialize, Deserialize)]
 pub struct PresentationItem {
     index: usize,
     item: Item,

@@ -3,16 +3,16 @@ use rand_pcg::{Lcg64Xsh32, Pcg32};
 use crate::attack_types::AttackType;
 use crate::Game;
 use crate::item::{CraftingInfo, Item};
-use crate::item_modifier::ItemModifier;
-use crate::item_resource::ItemResourceType;
-use crate::modifier_gain::ModifierGain;
+use crate::item_modifier::Modifier;
+use crate::item_resource::Type;
+use crate::modifier_gain::Gain;
 use crate::place_generator::{generate_place};
 use rand::{RngCore};
 use rand::SeedableRng;
 use crate::difficulty::Difficulty;
 use crate::game_statistics::GameStatistics;
 use crate::hex_encoder::encode_hex;
-use crate::modifier_cost::ModifierCost;
+use crate::modifier_cost::Cost;
 
 pub fn generate_new_game(seed: Option<[u8; 16]>) -> Game {
     let mut min_resistance = HashMap::new();
@@ -27,9 +27,9 @@ pub fn generate_new_game(seed: Option<[u8; 16]>) -> Game {
     let equipped_items = vec![
         Item {
             modifiers: vec![
-                ItemModifier {
+                Modifier {
                     costs: Vec::new(),
-                    gains: vec![ModifierGain::FlatDamage(AttackType::Physical, 2)],
+                    gains: vec![Gain::FlatDamage(AttackType::Physical, 2)],
                 }
             ],
             crafting_info: CraftingInfo {
@@ -101,9 +101,9 @@ pub fn generate_testing_game(seed: Option<[u8; 16]>) -> Game {
 
     //Generator item
     let mut modifiers = Vec::new();
-    let modifier = ItemModifier {
+    let modifier = Modifier {
         costs: Vec::new(),
-        gains: vec![ModifierGain::FlatItemResource(ItemResourceType::Mana, 5)],
+        gains: vec![Gain::FlatItemResource(Type::Mana, 5)],
     };
     modifiers.push(modifier);
     let item = Item {
@@ -118,9 +118,9 @@ pub fn generate_testing_game(seed: Option<[u8; 16]>) -> Game {
     //Powerful item
     let mut modifiers = Vec::new();
     for attack_type in AttackType::get_all() {
-        let modifier = ItemModifier {
-            costs: vec![ModifierCost::FlatItemResource(ItemResourceType::Mana, 1)],
-            gains: vec![ModifierGain::FlatDamage(attack_type, 100)],
+        let modifier = Modifier {
+            costs: vec![Cost::FlatItemResource(Type::Mana, 1)],
+            gains: vec![Gain::FlatDamage(attack_type, 100)],
         };
         modifiers.push(modifier);
     }
@@ -138,16 +138,16 @@ pub fn generate_testing_game(seed: Option<[u8; 16]>) -> Game {
     for attack_type in AttackType::get_all() {
         inventory.push(Some(Item {
             modifiers: vec![
-                ItemModifier {
+                Modifier {
                     costs: Vec::new(),
-                    gains: vec![ModifierGain::FlatDamage(attack_type, 1)],
+                    gains: vec![Gain::FlatDamage(attack_type, 1)],
                 }
             ],
             crafting_info: CraftingInfo {
                 possible_rolls: difficulty.clone(),
                 places_count: 10,
             },
-        }))
+        }));
     }
 
     let (seed, random_generator) = create_random_generator(seed);

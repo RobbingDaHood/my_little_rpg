@@ -11,14 +11,14 @@ pub enum IndexSpecifier {
 
 pub fn calculate_absolute_item_indexes(
     game: &Game,
-    inventory_index: &usize,
+    inventory_index: usize,
     index_specifiers: &[IndexSpecifier],
 ) -> Result<Vec<usize>, String> {
     let mut calculated_sacrifice_item_indexes = Vec::new();
     for index_specifier in index_specifiers {
         match index_specifier {
             IndexSpecifier::Absolute(index) => {
-                if *inventory_index == *index {
+                if inventory_index == *index {
                     return Err(format!("inventory_index {} and index_specifier {:?} cannot be the same", inventory_index, index_specifier));
                 }
                 if game.inventory.len() <= *index {
@@ -30,7 +30,7 @@ pub fn calculate_absolute_item_indexes(
                 if calculated_sacrifice_item_indexes.contains(index) {
                     return Err(format!("index_specifier {:?} is already present in calculated sacrifice indexes {:?}", index_specifier, calculated_sacrifice_item_indexes));
                 }
-                calculated_sacrifice_item_indexes.push(*index)
+                calculated_sacrifice_item_indexes.push(*index);
             }
             IndexSpecifier::RelativePositive(relative_index) => {
                 if inventory_index + relative_index >= game.inventory.len() {
