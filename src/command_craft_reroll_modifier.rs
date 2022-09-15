@@ -64,8 +64,7 @@ pub fn execute_craft_reroll_modifier(game: &mut Game, inventory_index: usize, mo
 
 pub fn execute_craft_reroll_modifier_calculate_cost(game: &Game, inventory_index: usize) -> u16 {
     match game.inventory[inventory_index].clone() {
-        #[allow(clippy::cast_possible_truncation)]
-        Some(item) => item.modifiers.len() as u16,
+        Some(item) => u16::try_from(item.modifiers.len()).unwrap_or(u16::MAX),
         None => 0
     }
 }
