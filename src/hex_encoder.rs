@@ -1,16 +1,19 @@
 use std::fmt::Write;
-use std::num::ParseIntError;
-use std::ops::Not;
 
 pub fn decode_hex(s: &str) -> Result<Vec<u8>, String> {
-    match s.chars().find(is_not_ascii_hexdigit) {
-        Some(offending_char) => Err(format!("{} is not a hexdigit!", offending_char)),
-        None => decode_hex_unsafe(&s)
+    let offending_chars = list_non_ascii_hexdigit_chars(s);
+
+    if offending_chars.is_empty() {
+        decode_hex_unsafe(&s)
+    } else {
+        Err(format!("{:?} is not hexdigit(s)!", offending_chars))
     }
 }
 
-const fn is_not_ascii_hexdigit(c: &char) -> bool {
-    !char::is_ascii_hexdigit(c)
+fn list_non_ascii_hexdigit_chars(s: &str) -> Vec<char> {
+    s.chars()
+        .filter(|c| !char::is_ascii_hexdigit(c))
+        .collect()
 }
 
 fn decode_hex_unsafe(s: &&str) -> Result<Vec<u8>, String> {
@@ -43,7 +46,7 @@ mod tests_int {
         let decoded: [u8; 16] = decode_hex(encoded.as_str())
             .unwrap()
             .try_into()
-            .unwrap_or_else(|v: Vec<u8>| panic!("Seed need exactly 16 comma seperated u8; It got {:?}", v));
+            .unwrap();
 
         assert_eq!(data, decoded);
     }
