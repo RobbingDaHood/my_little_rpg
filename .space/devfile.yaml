@@ -1,0 +1,16 @@
+schemaVersion: 2.2.0
+attributes:
+  space:
+    instanceType: regular
+    editor:
+      type: Idea
+components:
+- name: image-build
+  image: 
+      imageName: my-image:latest
+      dockerfile:
+        # (Optional) path to Docker context relative to projectRoot
+        # by default, projectRoot is repository root
+        buildContext: docker
+        # (Required) path to Dockerfile relative to projectRoot
+        uri: docker/Dockerfile
