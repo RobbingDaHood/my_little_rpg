@@ -1,9 +1,12 @@
-use std::net::{TcpListener, TcpStream};
-use std::time::Duration;
-use serde_json::json;
-use crate::{Game};
 use std::io::Read;
 use std::io::Write;
+use std::net::{TcpListener, TcpStream};
+use std::time::Duration;
+
+use serde_json::json;
+
+use crate::Game;
+use crate::command_craft_expand_modifier::execute_craft_expand_modifiers;
 use crate::command_craft_reroll_modifier::execute_craft_reroll_modifier;
 use crate::command_equip_swap::{execute_equip_item, execute_swap_equipped_item};
 use crate::command_expand_elements::execute_expand_elements;
@@ -12,7 +15,6 @@ use crate::command_expand_max_element::execute_expand_max_element;
 use crate::command_expand_max_simultaneous_element::execute_expand_max_simultaneous_element;
 use crate::command_expand_min_element::execute_expand_min_element;
 use crate::command_expand_min_simultanius_element::execute_expand_min_simultaneous_element;
-use crate::command_craft_expand_modifier::execute_craft_expand_modifiers;
 use crate::command_expand_places::execute_expand_places;
 use crate::command_help::execute_help;
 use crate::command_move::execute_move_command;
@@ -21,7 +23,7 @@ use crate::command_reorder_inventory::execute_reorder_inventory;
 use crate::command_save_load::{execute_load_command, execute_save_command};
 use crate::command_state::execute_state;
 use crate::commands::Command;
-use crate::game_generator::{generate_new_game};
+use crate::game_generator::generate_new_game;
 
 pub struct Listener {
     tcp_listener: TcpListener,
@@ -39,7 +41,7 @@ impl Listener {
         for stream in self.tcp_listener.incoming() {
             match stream {
                 Ok(mut stream) => {
-                    self.handle_request(&mut stream, &mut game);
+                    Listener::handle_request(&mut stream, &mut game);
                 }
                 Err(e) => {
                     println!("Error: {}", e);
@@ -49,7 +51,7 @@ impl Listener {
         }
     }
 
-    fn handle_request(&self, stream: &mut TcpStream, game: &mut Game) {
+    fn handle_request(stream: &mut TcpStream, game: &mut Game) {
         let command_as_string = Self::read_command(stream);
 
         match Command::try_from(&command_as_string) {
@@ -104,11 +106,11 @@ impl Listener {
             Ok(Command::ReorderInventory) => if let Err(e) = stream.write(format!("{} \n", json!(execute_reorder_inventory(game))).as_bytes()) {
                 panic!("{}", e);
             },
-            Ok(Command::SaveTheWorld(save_game_name, save_game_path)) => if let Err(e) = stream.write(format!("{} \n", json!(execute_save_command(game, save_game_name, save_game_path))).as_bytes()) {
+            Ok(Command::SaveTheWorld(save_game_name, save_game_path)) => if let Err(e) = stream.write(format!("{} \n", json!(execute_save_command(game, &save_game_name, save_game_path))).as_bytes()) {
                 panic!("{}", e);
             },
             Ok(Command::LoadTheWorld(save_game_name, save_game_path)) => {
-                let message = match execute_load_command(save_game_name, save_game_path) {
+                let message = match execute_load_command(&save_game_name, save_game_path) {
                     Err(error_message) => Err(error_message),
                     Ok(new_game) => {
                         *game = new_game;
@@ -118,7 +120,7 @@ impl Listener {
                 if let Err(e) = stream.write(format!("{} \n", json!(message)).as_bytes()) {
                     panic!("{}", e);
                 }
-            },
+            }
         }
     }
 

@@ -3,7 +3,7 @@ use crate::Game;
 use serde::{Deserialize, Serialize};
 use crate::item::Item;
 
-#[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
+#[derive(Clone, PartialEq, Eq, Debug, Serialize, Deserialize)]
 pub struct ExecuteEquipOrSwapReport {
     new_equipped_items: Vec<Item>,
 }

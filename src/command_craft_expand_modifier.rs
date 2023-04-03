@@ -1,12 +1,12 @@
 use std::collections::{HashMap};
 use crate::Game;
 use crate::item::Item;
-use crate::roll_modifier::execute_craft_roll_modifier;
+use crate::roll_modifier::execute_craft;
 use serde::{Deserialize, Serialize};
 use crate::index_specifier::{calculate_absolute_item_indexes, IndexSpecifier};
 use crate::treasure_types::{TreasureType};
 
-#[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
+#[derive(Clone, PartialEq, Eq, Debug, Serialize, Deserialize)]
 pub struct ExecuteExpandModifiersReport {
     new_item: Item,
     paid_cost: usize,
@@ -31,14 +31,14 @@ pub fn execute_craft_expand_modifiers(game: &mut Game, inventory_index: usize, m
     }
 
     let cost = execute_craft_expand_modifiers_calculate_cost(game, inventory_index);
-    if sacrifice_item_indexes.len() < cost.into() {
+    if sacrifice_item_indexes.len() < cost {
         return Err(format!("craft_reroll_modifier needs {} items to be sacrificed but you only provided {}", cost, sacrifice_item_indexes.len()));
     }
 
     //Only need to cost amount of items
     sacrifice_item_indexes.truncate(cost);
 
-    let calculated_sacrifice_item_indexes = match calculate_absolute_item_indexes(game, &inventory_index, &sacrifice_item_indexes) {
+    let calculated_sacrifice_item_indexes = match calculate_absolute_item_indexes(game, inventory_index, &sacrifice_item_indexes) {
         Err(error_message) => return Err(error_message),
         Ok(indexes) => indexes
     };
@@ -56,12 +56,12 @@ pub fn execute_craft_expand_modifiers(game: &mut Game, inventory_index: usize, m
     }
 
     //Create item
-    let new_item_modifier = execute_craft_roll_modifier(game, inventory_index);
+    let new_item_modifier = execute_craft(&mut game.random_generator_state, &game.inventory[inventory_index].as_ref().unwrap().crafting_info);
     game.inventory[inventory_index].as_mut().unwrap().modifiers.push(new_item_modifier);
 
     Ok(ExecuteExpandModifiersReport {
         new_item: game.inventory[inventory_index].as_ref().unwrap().clone(),
-        paid_cost: cost.clone(),
+        paid_cost: cost,
         new_cost: execute_craft_expand_modifiers_calculate_cost(game, inventory_index),
         leftover_spending_treasure: game.treasure.clone(),
     })

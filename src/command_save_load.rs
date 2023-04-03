@@ -1,9 +1,11 @@
 use std::fs;
-use std::fs::{create_dir_all};
+use std::fs::create_dir_all;
+
 use serde_json::json;
+
 use crate::Game;
 
-pub fn execute_save_command(game: &Game, save_name: String, save_path: Option<String>) -> Result<String, String> {
+pub fn execute_save_command(game: &Game, save_name: &str, save_path: Option<String>) -> Result<String, String> {
     let file_path = get_file_path(save_name, save_path)?;
     return match fs::write(
         file_path,
@@ -14,7 +16,7 @@ pub fn execute_save_command(game: &Game, save_name: String, save_path: Option<St
     };
 }
 
-pub fn execute_load_command(save_name: String, save_path: Option<String>) -> Result<Game, String> {
+pub fn execute_load_command(save_name: &str, save_path: Option<String>) -> Result<Game, String> {
     let file_path = get_file_path(save_name, save_path)?;
     return match fs::read(file_path) {
         Err(error_message) => Err(format!("Failed loading the world! Reason: {}", error_message)),
@@ -25,13 +27,13 @@ pub fn execute_load_command(save_name: String, save_path: Option<String>) -> Res
     };
 }
 
-fn get_file_path(save_name: String, save_path: Option<String>) -> Result<String, String> {
+fn get_file_path(save_name: &str, save_path: Option<String>) -> Result<String, String> {
     let save_path = match save_path {
         Some(path) => path,
         None => "./save_games/".to_string()
     };
 
-    return match create_dir_all(&save_path) {
+    match create_dir_all(&save_path) {
         Err(error_message) => Err(format!("Failed creating the folder for the save games, Reason: {}", error_message)),
         Ok(_) => Ok(format!("{}{}.json", save_path, save_name))
     }
@@ -41,9 +43,10 @@ fn get_file_path(save_name: String, save_path: Option<String>) -> Result<String,
 #[cfg(test)]
 mod tests_int {
     use std::fs;
+
     use crate::command_expand_max_element::execute_expand_max_element;
     use crate::command_save_load::{execute_load_command, execute_save_command};
-    use crate::game_generator::{generate_testing_game};
+    use crate::game_generator::generate_testing_game;
     use crate::treasure_types::TreasureType::Gold;
 
     #[test]
@@ -55,8 +58,8 @@ mod tests_int {
         for _i in 1..1000 {
             let mut game = generate_testing_game(Some([1; 16]));
             game.treasure.insert(Gold, 1000);
-            execute_save_command(&game, "save_load_seeding_test".to_string(), Some("./testing/".to_string())).unwrap();
-            let mut parsed_game = execute_load_command("save_load_seeding_test".to_string(), Some("./testing/".to_string())).unwrap();
+            execute_save_command(&game, "save_load_seeding_test", Some("./testing/".to_string())).unwrap();
+            let mut parsed_game = execute_load_command("save_load_seeding_test", Some("./testing/".to_string())).unwrap();
 
             assert_eq!(game, parsed_game);
 

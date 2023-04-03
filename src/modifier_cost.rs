@@ -1,12 +1,12 @@
 use serde::{Deserialize, Serialize};
 use crate::attack_types::AttackType;
-use crate::item_resource::ItemResourceType;
+use crate::item_resource::Type;
 
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize, Eq, Hash)]
-pub enum ModifierCost {
-    FlatItemResource(ItemResourceType, u64),
-    FlatMinItemResourceRequirement(ItemResourceType, u64),
-    FlatMaxItemResourceRequirement(ItemResourceType, u64),
+pub enum Cost {
+    FlatItemResource(Type, u64),
+    FlatMinItemResourceRequirement(Type, u64),
+    FlatMaxItemResourceRequirement(Type, u64),
     FlatMinAttackRequirement(AttackType, u64),
     FlatMaxAttackRequirement(AttackType, u64),
     FlatSumMinAttackRequirement(u64), //TODO Handle summing issue; x * u64 could be more than 64; That is still a high number though. Maybe it is fine that attacks are u32.

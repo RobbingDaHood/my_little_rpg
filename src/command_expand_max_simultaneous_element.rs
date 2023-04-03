@@ -4,7 +4,7 @@ use crate::treasure_types::TreasureType::Gold;
 use serde::{Deserialize, Serialize};
 use crate::treasure_types::{pay_crafting_cost, TreasureType};
 
-#[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
+#[derive(Clone, PartialEq, Eq, Debug, Serialize, Deserialize)]
 pub struct ExecuteExpandMaxSimultaneousElementReport {
     new_max_simultaneous_resistances: u8,
     paid_cost: HashMap<TreasureType, u64>,
@@ -35,7 +35,7 @@ pub fn execute_expand_max_simultaneous_element(game: &mut Game) -> Result<Execut
 }
 
 pub fn execute_expand_max_simultaneous_element_calculate_cost(game: &mut Game) -> HashMap<TreasureType, u64> {
-    HashMap::from([(Gold, game.difficulty.max_simultaneous_resistances as u64 * 10)])
+    HashMap::from([(Gold, u64::from(game.difficulty.max_simultaneous_resistances) * 10)])
 }
 
 #[cfg(test)]

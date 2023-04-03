@@ -1,7 +1,7 @@
 use crate::commands::Command;
 use serde::{Deserialize, Serialize};
 
-#[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
+#[derive(Clone, PartialEq, Eq, Debug, Serialize, Deserialize)]
 pub struct ExecuteHelpReport {
     tutorial: String,
     commands: Vec<String>,
@@ -12,7 +12,7 @@ pub fn execute_help() -> ExecuteHelpReport {
 
     let mut commands = Vec::new();
     for command in Command::get_all() {
-        commands.push(execute_help_for_command(command).to_string());
+        commands.push(execute_help_for_command(&command).to_string());
     }
 
     ExecuteHelpReport {
@@ -21,7 +21,7 @@ pub fn execute_help() -> ExecuteHelpReport {
     }
 }
 
-fn execute_help_for_command(command: Command) -> &'static str {
+fn execute_help_for_command(command: &Command) -> &'static str {
     match command {
         Command::State => "State: Get complete state of the game.",
         Command::Move(_) => "Move X: Move to place with index X. The game will tell you if you win the place and get the reward, with a lot more info too. After the move the place would be rerolled. You can move to the same place as many times in a row you want.",
