@@ -14,3 +14,5 @@ pub mod command_state;
 pub mod command_reduce_difficulty;
 pub mod command_reorder_inventory;
 pub mod command_save_load;
+pub mod commands;
+mod roll_modifier;

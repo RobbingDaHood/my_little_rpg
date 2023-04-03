@@ -5,7 +5,7 @@ use std::time::Duration;
 
 use serde_json::json;
 
-use crate::commands::Command;
+use crate::parser::commands_parser::Command;
 use crate::command::command_craft_expand_modifier::execute_craft_expand_modifiers;
 use crate::command::command_craft_reroll_modifier::execute_craft_reroll_modifier;
 use crate::command::command_equip_swap::{execute_equip_item, execute_swap_equipped_item};

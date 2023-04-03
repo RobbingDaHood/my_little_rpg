@@ -13,7 +13,7 @@ use crate::command::command_expand_min_simultanius_element::execute_expand_min_s
 use crate::command::command_expand_places::execute_expand_places_calculate_cost;
 use crate::command::command_reduce_difficulty::execute_execute_reduce_difficulty_cost;
 use crate::Game;
-use crate::hex_encoder::encode_hex;
+use crate::parser::hex_encoder::encode_hex;
 use crate::the_world::difficulty::Difficulty;
 use crate::the_world::game_statistics::GameStatistics;
 use crate::the_world::item::Item;

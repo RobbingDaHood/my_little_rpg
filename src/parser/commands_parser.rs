@@ -1,29 +1,6 @@
-use serde::{Deserialize, Serialize};
-
-use crate::commands::Command::{AddModifier, Equip, ExpandElements, ExpandEquipmentSlots, ExpandMaxElement, ExpandMaxSimultaneousElement, ExpandMinElement, ExpandMinSimultaneousElement, ExpandPlaces, Help, LoadTheWorld, Move, ReduceDifficulty, ReorderInventory, RerollModifier, SaveTheWorld, State, SwapEquipment};
+pub use crate::command::commands::Command;
+use crate::command::commands::Command::{AddModifier, Equip, ExpandElements, ExpandEquipmentSlots, ExpandMaxElement, ExpandMaxSimultaneousElement, ExpandMinElement, ExpandMinSimultaneousElement, ExpandPlaces, Help, LoadTheWorld, Move, ReduceDifficulty, ReorderInventory, RerollModifier, SaveTheWorld, State, SwapEquipment};
 use crate::the_world::index_specifier::IndexSpecifier;
-
-#[derive(Clone, PartialEq, Debug, Serialize, Deserialize, Eq, Hash)]
-pub enum Command {
-    State,
-    Move(usize),
-    Equip(usize, usize),
-    SwapEquipment(usize, usize),
-    RerollModifier(usize, usize, Vec<IndexSpecifier>),
-    ExpandPlaces,
-    ExpandElements,
-    ExpandMaxElement,
-    ExpandMinElement,
-    ExpandMaxSimultaneousElement,
-    ExpandMinSimultaneousElement,
-    ExpandEquipmentSlots,
-    ReduceDifficulty,
-    AddModifier(usize, Vec<IndexSpecifier>),
-    Help,
-    ReorderInventory,
-    SaveTheWorld(String, Option<String>),
-    LoadTheWorld(String, Option<String>),
-}
 
 impl Command {
     pub fn get_all() -> Vec<Command> {
@@ -233,7 +210,7 @@ impl TryFrom<&String> for Command {
 
 #[cfg(test)]
 mod tests_int {
-    use crate::commands::Command;
+    use crate::parser::commands_parser::Command;
     use crate::the_world::index_specifier::IndexSpecifier;
 
     #[test]

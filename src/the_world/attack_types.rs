@@ -1,4 +1,6 @@
 use std::collections::{HashMap, HashSet};
+use rand::prelude::SliceRandom;
+use rand_pcg::Lcg64Xsh32;
 
 use serde::{Deserialize, Serialize};
 
@@ -47,4 +49,14 @@ impl AttackType {
             .map(|attack_type| (attack_type.clone(), *collection.get(attack_type).unwrap()))
             .collect::<Vec<(AttackType, u64)>>()
     }
+}
+
+pub fn get_random_attack_type_from_unlocked(random_generator_state: &mut Lcg64Xsh32, unlocks: &HashMap<AttackType, u64>) -> AttackType {
+    let attack_type = AttackType::get_all().into_iter()
+        .filter(|attack_type| unlocks.contains_key(attack_type))
+        .collect::<Vec<AttackType>>()
+        .choose(random_generator_state)
+        .unwrap()
+        .clone();
+    attack_type
 }

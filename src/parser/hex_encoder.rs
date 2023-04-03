@@ -35,7 +35,7 @@ pub fn encode_hex(bytes: &[u8]) -> String {
 #[cfg(test)]
 mod tests_int {
     use crate::decode_hex;
-    use crate::hex_encoder::encode_hex;
+    use crate::parser::hex_encoder::encode_hex;
 
     #[test]
     fn hex_encode_decode() {

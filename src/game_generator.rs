@@ -5,7 +5,7 @@ use rand::SeedableRng;
 use rand_pcg::{Lcg64Xsh32, Pcg32};
 
 use crate::Game;
-use crate::hex_encoder::encode_hex;
+use crate::parser::hex_encoder::encode_hex;
 use crate::place_generator::generate_place;
 use crate::the_world::attack_types::AttackType;
 use crate::the_world::difficulty::Difficulty;

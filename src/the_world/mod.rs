@@ -9,3 +9,4 @@ pub(crate) mod place;
 pub(crate) mod difficulty;
 pub(crate) mod game_statistics;
 pub(crate) mod index_specifier;
+pub mod game;

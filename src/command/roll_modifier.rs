@@ -5,8 +5,7 @@ use std::ops::Add;
 use rand::Rng;
 use rand_pcg::Lcg64Xsh32;
 
-use crate::game::get_random_attack_type_from_unlocked;
-use crate::the_world::attack_types::AttackType;
+use crate::the_world::attack_types::{AttackType, get_random_attack_type_from_unlocked};
 use crate::the_world::item::CraftingInfo;
 use crate::the_world::item_modifier::Modifier;
 use crate::the_world::item_resource::Type;
@@ -273,8 +272,8 @@ fn execute_craft_roll_modifier_benefits(random_generator_state: &mut Lcg64Xsh32,
 mod tests_int {
     use std::collections::HashMap;
 
+    use crate::command::roll_modifier::execute_craft;
     use crate::game_generator::generate_testing_game;
-    use crate::roll_modifier::execute_craft;
     use crate::the_world::item_modifier::Modifier;
     use crate::the_world::item_resource::Type;
     use crate::the_world::modifier_cost::Cost;

@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use serde::{Deserialize, Serialize};
 
 use crate::Game;
-use crate::roll_modifier::execute_craft;
+use crate::command::roll_modifier::execute_craft;
 use crate::the_world::index_specifier::{calculate_absolute_item_indexes, IndexSpecifier};
 use crate::the_world::item::Item;
 use crate::the_world::treasure_types::TreasureType;

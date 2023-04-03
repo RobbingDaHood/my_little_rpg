@@ -2,19 +2,15 @@ extern crate core;
 
 use structopt::StructOpt;
 
-use crate::game::Game;
-use crate::hex_encoder::decode_hex;
-use crate::tcp_listener::Listener;
+use the_world::game::Game;
+use crate::parser::hex_encoder::decode_hex;
+use crate::parser::tcp_listener::Listener;
 
-mod game;
-mod tcp_listener;
 mod place_generator;
 mod game_generator;
-mod roll_modifier;
-mod hex_encoder;
 mod the_world;
 mod command;
-mod commands;
+mod parser;
 
 #[derive(Debug, StructOpt)]
 pub struct Settings {

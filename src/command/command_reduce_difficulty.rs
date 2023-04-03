@@ -6,8 +6,8 @@ use rand::prelude::SliceRandom;
 use serde::{Deserialize, Serialize};
 
 use crate::Game;
-use crate::game::get_random_attack_type_from_unlocked;
 use crate::place_generator::generate_place;
+use crate::the_world::attack_types::get_random_attack_type_from_unlocked;
 use crate::the_world::difficulty::Difficulty;
 use crate::the_world::treasure_types::TreasureType;
 use crate::the_world::treasure_types::TreasureType::Gold;
