@@ -8,12 +8,13 @@ use crate::tcp_listener::Listener;
 
 mod game;
 mod tcp_listener;
-mod commands;
 mod place_generator;
 mod game_generator;
 mod roll_modifier;
 mod hex_encoder;
 mod the_world;
+mod command;
+mod commands;
 
 #[derive(Debug, StructOpt)]
 pub struct Settings {

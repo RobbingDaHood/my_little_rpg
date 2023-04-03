@@ -64,7 +64,7 @@ pub fn execute_execute_reduce_difficulty_cost() -> HashMap<TreasureType, u64> {
 mod tests_int {
     use std::collections::HashMap;
 
-    use crate::commands::command_reduce_difficulty::execute_reduce_difficulty;
+    use crate::command::command_reduce_difficulty::execute_reduce_difficulty;
     use crate::Game;
     use crate::game_generator::generate_testing_game;
     use crate::the_world::attack_types::AttackType;

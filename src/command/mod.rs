@@ -1,0 +1,16 @@
+pub(crate) mod command_craft_expand_modifier;
+pub mod command_move;
+pub mod command_equip_swap;
+pub mod command_craft_reroll_modifier;
+pub mod command_expand_places;
+pub mod command_expand_elements;
+pub mod command_expand_max_element;
+pub mod command_expand_min_element;
+pub mod command_expand_equipment_slots;
+pub mod command_help;
+pub mod command_expand_max_simultaneous_element;
+pub mod command_expand_min_simultanius_element;
+pub mod command_state;
+pub mod command_reduce_difficulty;
+pub mod command_reorder_inventory;
+pub mod command_save_load;

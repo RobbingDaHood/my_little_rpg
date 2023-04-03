@@ -42,8 +42,8 @@ pub fn execute_expand_max_element_calculate_cost(game: &mut Game) -> HashMap<Tre
 
 #[cfg(test)]
 mod tests_int {
-    use crate::commands::command_expand_max_element::execute_expand_max_element;
-    use crate::commands::command_move::execute_move_command;
+    use crate::command::command_expand_max_element::execute_expand_max_element;
+    use crate::command::command_move::execute_move_command;
     use crate::game_generator::{generate_new_game, generate_testing_game};
     use crate::the_world::treasure_types::TreasureType::Gold;
 

@@ -71,7 +71,7 @@ pub fn execute_craft_reroll_modifier_calculate_cost(game: &Game, inventory_index
 
 #[cfg(test)]
 mod tests_int {
-    use crate::commands::command_craft_reroll_modifier::{execute_craft_reroll_modifier, execute_craft_reroll_modifier_calculate_cost};
+    use crate::command::command_craft_reroll_modifier::{execute_craft_reroll_modifier, execute_craft_reroll_modifier_calculate_cost};
     use crate::Game;
     use crate::game_generator::generate_testing_game;
     use crate::the_world::index_specifier;
