@@ -43,8 +43,8 @@ pub fn execute_expand_elements_calculate_cost(game: &mut Game) -> HashMap<Treasu
 
 #[cfg(test)]
 mod tests_int {
-    use crate::command_expand_elements::execute_expand_elements;
-    use crate::command_move::execute_move_command;
+    use crate::commands::command_expand_elements::execute_expand_elements;
+    use crate::commands::command_move::execute_move_command;
     use crate::game_generator::{generate_new_game};
     use crate::treasure_types::TreasureType::Gold;
 

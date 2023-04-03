@@ -41,9 +41,9 @@ pub fn execute_expand_min_simultaneous_element_calculate_cost(game: &mut Game) -
 
 #[cfg(test)]
 mod tests_int {
-    use crate::command_expand_elements::execute_expand_elements;
-    use crate::command_expand_max_simultaneous_element::execute_expand_max_simultaneous_element;
-    use crate::command_expand_min_simultanius_element::execute_expand_min_simultaneous_element;
+    use crate::commands::command_expand_elements::execute_expand_elements;
+    use crate::commands::command_expand_max_simultaneous_element::execute_expand_max_simultaneous_element;
+    use crate::commands::command_expand_min_simultanius_element::execute_expand_min_simultaneous_element;
     use crate::game_generator::{generate_new_game};
     use crate::treasure_types::TreasureType::Gold;
 

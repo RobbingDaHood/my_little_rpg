@@ -65,7 +65,7 @@ mod tests_int {
     use std::collections::HashMap;
 
     use crate::attack_types::AttackType;
-    use crate::command_reduce_difficulty::execute_reduce_difficulty;
+    use crate::commands::command_reduce_difficulty::execute_reduce_difficulty;
     use crate::difficulty::Difficulty;
     use crate::Game;
     use crate::game_generator::generate_testing_game;

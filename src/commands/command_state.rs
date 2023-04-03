@@ -2,16 +2,16 @@ use std::collections::HashMap;
 
 use serde::{Deserialize, Serialize};
 
-use crate::command_craft_expand_modifier::execute_craft_expand_modifiers_calculate_cost;
-use crate::command_craft_reroll_modifier::execute_craft_reroll_modifier_calculate_cost;
-use crate::command_expand_elements::execute_expand_elements_calculate_cost;
-use crate::command_expand_equipment_slots::execute_expand_equipment_slots_calculate_cost;
-use crate::command_expand_max_element::execute_expand_max_element_calculate_cost;
-use crate::command_expand_max_simultaneous_element::execute_expand_max_simultaneous_element_calculate_cost;
-use crate::command_expand_min_element::execute_expand_min_element_calculate_cost;
-use crate::command_expand_min_simultanius_element::execute_expand_min_simultaneous_element_calculate_cost;
-use crate::command_expand_places::execute_expand_places_calculate_cost;
-use crate::command_reduce_difficulty::execute_execute_reduce_difficulty_cost;
+use crate::commands::command_craft_expand_modifier::execute_craft_expand_modifiers_calculate_cost;
+use crate::commands::command_craft_reroll_modifier::execute_craft_reroll_modifier_calculate_cost;
+use crate::commands::command_expand_elements::execute_expand_elements_calculate_cost;
+use crate::commands::command_expand_equipment_slots::execute_expand_equipment_slots_calculate_cost;
+use crate::commands::command_expand_max_element::execute_expand_max_element_calculate_cost;
+use crate::commands::command_expand_max_simultaneous_element::execute_expand_max_simultaneous_element_calculate_cost;
+use crate::commands::command_expand_min_element::execute_expand_min_element_calculate_cost;
+use crate::commands::command_expand_min_simultanius_element::execute_expand_min_simultaneous_element_calculate_cost;
+use crate::commands::command_expand_places::execute_expand_places_calculate_cost;
+use crate::commands::command_reduce_difficulty::execute_execute_reduce_difficulty_cost;
 use crate::difficulty::Difficulty;
 use crate::Game;
 use crate::game_statistics::GameStatistics;
