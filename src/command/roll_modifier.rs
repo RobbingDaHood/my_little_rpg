@@ -273,7 +273,7 @@ mod tests_int {
     use std::collections::HashMap;
 
     use crate::command::roll_modifier::execute_craft;
-    use crate::game_generator::generate_testing_game;
+    use crate::generator::game_generator::generate_testing_game;
     use crate::the_world::item_modifier::Modifier;
     use crate::the_world::item_resource::Type;
     use crate::the_world::modifier_cost::Cost;

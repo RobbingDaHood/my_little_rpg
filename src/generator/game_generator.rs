@@ -6,7 +6,7 @@ use rand_pcg::{Lcg64Xsh32, Pcg32};
 
 use crate::Game;
 use crate::parser::hex_encoder::encode_hex;
-use crate::place_generator::generate_place;
+use crate::generator::place_generator::generate_place;
 use crate::the_world::attack_types::AttackType;
 use crate::the_world::difficulty::Difficulty;
 use crate::the_world::game_statistics::GameStatistics;
@@ -174,7 +174,7 @@ pub fn generate_testing_game(seed: Option<[u8; 16]>) -> Game {
 
 #[cfg(test)]
 mod tests_int {
-    use crate::game_generator::{generate_new_game, generate_testing_game};
+    use crate::generator::game_generator::{generate_new_game, generate_testing_game};
 
     #[test]
     fn seeding_test_generate_testing_game() {

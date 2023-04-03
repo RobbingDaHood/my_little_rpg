@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use serde::{Deserialize, Serialize};
 
 use crate::Game;
-use crate::place_generator::generate_place;
+use crate::generator::place_generator::generate_place;
 use crate::the_world::attack_types::AttackType;
 use crate::the_world::item::{CraftingInfo, Item};
 use crate::the_world::item_modifier::Modifier;
@@ -337,7 +337,7 @@ fn evaluate_item_costs(item: &Item, current_damage: &HashMap<AttackType, u64>, g
 mod tests_int {
     use crate::command::command_move::execute_move_command;
     use crate::Game;
-    use crate::game_generator::generate_testing_game;
+    use crate::generator::game_generator::generate_testing_game;
     use crate::the_world::attack_types::AttackType;
     use crate::the_world::item::{CraftingInfo, Item};
     use crate::the_world::item_modifier::Modifier;

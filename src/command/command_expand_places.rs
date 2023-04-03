@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use serde::{Deserialize, Serialize};
 
 use crate::Game;
-use crate::place_generator::generate_place;
+use crate::generator::place_generator::generate_place;
 use crate::the_world::place::Place;
 use crate::the_world::treasure_types::{pay_crafting_cost, TreasureType};
 use crate::the_world::treasure_types::TreasureType::Gold;
@@ -43,7 +43,7 @@ pub fn execute_expand_places_calculate_cost(game: &mut Game) -> HashMap<Treasure
 mod tests_int {
     use crate::command::command_expand_places::execute_expand_places;
     use crate::command::command_move::execute_move_command;
-    use crate::game_generator::generate_testing_game;
+    use crate::generator::game_generator::generate_testing_game;
     use crate::the_world::treasure_types::TreasureType::Gold;
 
     #[test]

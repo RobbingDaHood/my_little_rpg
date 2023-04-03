@@ -6,11 +6,10 @@ use the_world::game::Game;
 use crate::parser::hex_encoder::decode_hex;
 use crate::parser::tcp_listener::Listener;
 
-mod place_generator;
-mod game_generator;
 mod the_world;
 mod command;
 mod parser;
+mod generator;
 
 #[derive(Debug, StructOpt)]
 pub struct Settings {

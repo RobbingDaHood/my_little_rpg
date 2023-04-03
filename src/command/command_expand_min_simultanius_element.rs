@@ -45,7 +45,7 @@ mod tests_int {
     use crate::command::command_expand_elements::execute_expand_elements;
     use crate::command::command_expand_max_simultaneous_element::execute_expand_max_simultaneous_element;
     use crate::command::command_expand_min_simultanius_element::execute_expand_min_simultaneous_element;
-    use crate::game_generator::generate_new_game;
+    use crate::generator::game_generator::generate_new_game;
     use crate::the_world::treasure_types::TreasureType::Gold;
 
     #[test]

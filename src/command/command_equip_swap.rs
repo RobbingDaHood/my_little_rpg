@@ -47,7 +47,7 @@ pub fn execute_swap_equipped_item(game: &mut Game, equipped_item_position_1: usi
 #[cfg(test)]
 mod tests_int {
     use crate::command::command_equip_swap::{execute_equip_item, execute_swap_equipped_item};
-    use crate::game_generator::generate_testing_game;
+    use crate::generator::game_generator::generate_testing_game;
 
     #[test]
     fn test_execute_equip_item() {

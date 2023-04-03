@@ -23,7 +23,7 @@ use crate::command::command_reorder_inventory::execute_reorder_inventory;
 use crate::command::command_save_load::{execute_load_command, execute_save_command};
 use crate::command::command_state::execute_state;
 use crate::Game;
-use crate::game_generator::generate_new_game;
+use crate::generator::game_generator::generate_new_game;
 
 pub struct Listener {
     tcp_listener: TcpListener,

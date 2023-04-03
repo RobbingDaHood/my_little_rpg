@@ -54,8 +54,8 @@ pub fn generate_place(game: &mut Game) -> Place {
 
 #[cfg(test)]
 mod tests_int {
-    use crate::game_generator::{generate_new_game, generate_testing_game};
-    use crate::place_generator::generate_place;
+    use crate::generator::game_generator::{generate_new_game, generate_testing_game};
+    use crate::generator::place_generator::generate_place;
     use crate::the_world::attack_types::AttackType;
     use crate::the_world::treasure_types::TreasureType;
 
