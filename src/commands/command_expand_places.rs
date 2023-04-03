@@ -1,10 +1,12 @@
 use std::collections::HashMap;
-use crate::Game;
-use crate::place::Place;
-use crate::place_generator::generate_place;
-use crate::treasure_types::TreasureType::Gold;
+
 use serde::{Deserialize, Serialize};
-use crate::treasure_types::{pay_crafting_cost, TreasureType};
+
+use crate::Game;
+use crate::place_generator::generate_place;
+use crate::the_world::place::Place;
+use crate::the_world::treasure_types::{pay_crafting_cost, TreasureType};
+use crate::the_world::treasure_types::TreasureType::Gold;
 
 #[derive(Clone, PartialEq, Eq, Debug, Serialize, Deserialize)]
 pub struct ExecuteExpandPlacesReport {
@@ -18,7 +20,7 @@ pub fn execute_expand_places(game: &mut Game) -> Result<ExecuteExpandPlacesRepor
     //Crafting cost
     let crafting_cost = execute_expand_places_calculate_cost(game);
     if let Err(error_message) = pay_crafting_cost(game, &crafting_cost) {
-        return Err(error_message)
+        return Err(error_message);
     };
 
     //Create new place
@@ -42,7 +44,7 @@ mod tests_int {
     use crate::commands::command_expand_places::execute_expand_places;
     use crate::commands::command_move::execute_move_command;
     use crate::game_generator::generate_testing_game;
-    use crate::treasure_types::TreasureType::Gold;
+    use crate::the_world::treasure_types::TreasureType::Gold;
 
     #[test]
     fn test_execute_expand_places() {

@@ -2,16 +2,16 @@ use std::collections::HashMap;
 
 use serde::{Deserialize, Serialize};
 
-use crate::attack_types::AttackType;
 use crate::Game;
-use crate::item::{CraftingInfo, Item};
-use crate::item_modifier::Modifier;
-use crate::item_resource::Type;
-use crate::modifier_cost::Cost;
-use crate::modifier_gain::Gain;
-use crate::place::Place;
 use crate::place_generator::generate_place;
-use crate::treasure_types::TreasureType;
+use crate::the_world::attack_types::AttackType;
+use crate::the_world::item::{CraftingInfo, Item};
+use crate::the_world::item_modifier::Modifier;
+use crate::the_world::item_resource::Type;
+use crate::the_world::modifier_cost::Cost;
+use crate::the_world::modifier_gain::Gain;
+use crate::the_world::place::Place;
+use crate::the_world::treasure_types::TreasureType;
 
 #[derive(Clone, PartialEq, Eq, Debug, Serialize, Deserialize)]
 pub struct ItemReport {
@@ -335,16 +335,16 @@ fn evaluate_item_costs(item: &Item, current_damage: &HashMap<AttackType, u64>, g
 
 #[cfg(test)]
 mod tests_int {
-    use crate::attack_types::AttackType;
     use crate::commands::command_move::execute_move_command;
     use crate::Game;
     use crate::game_generator::generate_testing_game;
-    use crate::item::{CraftingInfo, Item};
-    use crate::item_modifier::Modifier;
-    use crate::item_resource::Type;
-    use crate::modifier_cost::Cost;
-    use crate::modifier_gain::Gain;
-    use crate::treasure_types::TreasureType::Gold;
+    use crate::the_world::attack_types::AttackType;
+    use crate::the_world::item::{CraftingInfo, Item};
+    use crate::the_world::item_modifier::Modifier;
+    use crate::the_world::item_resource::Type;
+    use crate::the_world::modifier_cost::Cost;
+    use crate::the_world::modifier_gain::Gain;
+    use crate::the_world::treasure_types::TreasureType::Gold;
 
     #[test]
     fn test_execute_move_command() {

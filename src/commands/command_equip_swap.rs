@@ -1,7 +1,9 @@
 use std::mem;
-use crate::Game;
+
 use serde::{Deserialize, Serialize};
-use crate::item::Item;
+
+use crate::Game;
+use crate::the_world::item::Item;
 
 #[derive(Clone, PartialEq, Eq, Debug, Serialize, Deserialize)]
 pub struct ExecuteEquipOrSwapReport {

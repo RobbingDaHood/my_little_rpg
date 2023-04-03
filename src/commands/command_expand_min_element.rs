@@ -1,12 +1,13 @@
 use std::collections::HashMap;
-use rand::Rng;
-use crate::attack_types::AttackType;
-use crate::Game;
-use crate::treasure_types::{pay_crafting_cost, TreasureType};
-use crate::treasure_types::TreasureType::Gold;
 
+use rand::Rng;
 use serde::{Deserialize, Serialize};
-use crate::difficulty::Difficulty;
+
+use crate::Game;
+use crate::the_world::attack_types::AttackType;
+use crate::the_world::difficulty::Difficulty;
+use crate::the_world::treasure_types::{pay_crafting_cost, TreasureType};
+use crate::the_world::treasure_types::TreasureType::Gold;
 
 #[derive(Clone, PartialEq, Eq, Debug, Serialize, Deserialize)]
 pub struct ExecuteExpandMinElementReport {
@@ -31,7 +32,7 @@ pub fn execute_expand_min_element(game: &mut Game) -> Result<ExecuteExpandMinEle
     }
 
     if let Err(error_message) = pay_crafting_cost(game, &crafting_cost) {
-        return Err(error_message)
+        return Err(error_message);
     };
 
     //Increase min of existing element
@@ -58,7 +59,7 @@ mod tests_int {
     use crate::commands::command_expand_min_element::execute_expand_min_element;
     use crate::commands::command_move::execute_move_command;
     use crate::game_generator::{generate_new_game, generate_testing_game};
-    use crate::treasure_types::TreasureType::Gold;
+    use crate::the_world::treasure_types::TreasureType::Gold;
 
     #[test]
     fn test_execute_expand_min_element() {

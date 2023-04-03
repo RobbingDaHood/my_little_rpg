@@ -1,9 +1,10 @@
 use std::collections::HashMap;
-use crate::attack_types;
-use crate::treasure_types::TreasureType;
 
 use serde::{Deserialize, Serialize};
-use crate::difficulty::Difficulty;
+
+use crate::the_world::attack_types;
+use crate::the_world::difficulty::Difficulty;
+use crate::the_world::treasure_types::TreasureType;
 
 #[derive(Clone, PartialEq, Eq, Debug, Serialize, Deserialize)]
 pub struct Place {
@@ -30,9 +31,10 @@ impl Place {
 #[cfg(test)]
 mod tests_int {
     use std::collections::HashMap;
-    use crate::attack_types::AttackType;
-    use crate::difficulty::Difficulty;
-    use crate::place::Place;
+
+    use crate::the_world::attack_types::AttackType;
+    use crate::the_world::difficulty::Difficulty;
+    use crate::the_world::place::Place;
 
     #[test]
     fn claim_rewards_no_resistance() {

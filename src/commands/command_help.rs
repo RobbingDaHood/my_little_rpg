@@ -1,5 +1,6 @@
-use crate::commands::Command;
 use serde::{Deserialize, Serialize};
+
+use crate::commands::Command;
 
 #[derive(Clone, PartialEq, Eq, Debug, Serialize, Deserialize)]
 pub struct ExecuteHelpReport {

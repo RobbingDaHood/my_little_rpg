@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 
 use crate::commands::Command::{AddModifier, Equip, ExpandElements, ExpandEquipmentSlots, ExpandMaxElement, ExpandMaxSimultaneousElement, ExpandMinElement, ExpandMinSimultaneousElement, ExpandPlaces, Help, LoadTheWorld, Move, ReduceDifficulty, ReorderInventory, RerollModifier, SaveTheWorld, State, SwapEquipment};
-use crate::index_specifier::IndexSpecifier;
+use crate::the_world::index_specifier::IndexSpecifier;
 
 pub(crate) mod command_craft_expand_modifier;
 pub mod command_move;
@@ -251,7 +251,7 @@ impl TryFrom<&String> for Command {
 #[cfg(test)]
 mod tests_int {
     use crate::commands::Command;
-    use crate::index_specifier::IndexSpecifier;
+    use crate::the_world::index_specifier::IndexSpecifier;
 
     #[test]
     fn try_from() {

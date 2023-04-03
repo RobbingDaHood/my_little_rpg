@@ -47,7 +47,7 @@ mod tests_int {
     use crate::commands::command_expand_max_element::execute_expand_max_element;
     use crate::commands::command_save_load::{execute_load_command, execute_save_command};
     use crate::game_generator::generate_testing_game;
-    use crate::treasure_types::TreasureType::Gold;
+    use crate::the_world::treasure_types::TreasureType::Gold;
 
     #[test]
     fn seeding_test() {

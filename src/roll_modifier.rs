@@ -5,15 +5,15 @@ use std::ops::Add;
 use rand::Rng;
 use rand_pcg::Lcg64Xsh32;
 
-use crate::attack_types::AttackType;
 use crate::game::get_random_attack_type_from_unlocked;
-use crate::item::CraftingInfo;
-use crate::item_modifier::Modifier;
-use crate::item_resource::Type;
-use crate::modifier_cost::Cost;
-use crate::modifier_gain::Gain::{FlatDamageAgainstHighestResistance, FlatDamageAgainstLowestResistance, FlatIncreaseRewardedItems, FlatItemResource, FlatResistanceReduction, PercentageIncreaseDamage, PercentageIncreaseDamageAgainstHighestResistance, PercentageIncreaseDamageAgainstLowestResistance, PercentageIncreaseResistanceReduction, PercentageIncreaseTreasure};
-use crate::modifier_gain::Gain;
-use crate::modifier_gain::Gain::FlatDamage;
+use crate::the_world::attack_types::AttackType;
+use crate::the_world::item::CraftingInfo;
+use crate::the_world::item_modifier::Modifier;
+use crate::the_world::item_resource::Type;
+use crate::the_world::modifier_cost::Cost;
+use crate::the_world::modifier_gain::Gain::{FlatDamageAgainstHighestResistance, FlatDamageAgainstLowestResistance, FlatIncreaseRewardedItems, FlatItemResource, FlatResistanceReduction, PercentageIncreaseDamage, PercentageIncreaseDamageAgainstHighestResistance, PercentageIncreaseDamageAgainstLowestResistance, PercentageIncreaseResistanceReduction, PercentageIncreaseTreasure};
+use crate::the_world::modifier_gain::Gain;
+use crate::the_world::modifier_gain::Gain::FlatDamage;
 
 pub fn execute_craft(random_generator_state: &mut Lcg64Xsh32, crafting_info: &CraftingInfo) -> Modifier {
     let minimum_elements = min(crafting_info.possible_rolls.min_resistance.len(), crafting_info.possible_rolls.min_simultaneous_resistances as usize);
@@ -274,12 +274,12 @@ mod tests_int {
     use std::collections::HashMap;
 
     use crate::game_generator::generate_testing_game;
-    use crate::item_modifier::Modifier;
-    use crate::item_resource::Type;
-    use crate::modifier_cost::Cost;
-    use crate::modifier_gain::Gain;
     use crate::roll_modifier::execute_craft;
-    use crate::treasure_types::TreasureType;
+    use crate::the_world::item_modifier::Modifier;
+    use crate::the_world::item_resource::Type;
+    use crate::the_world::modifier_cost::Cost;
+    use crate::the_world::modifier_gain::Gain;
+    use crate::the_world::treasure_types::TreasureType;
 
     #[test]
     fn basic_test() {

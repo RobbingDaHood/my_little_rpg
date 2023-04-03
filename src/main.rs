@@ -1,29 +1,19 @@
 extern crate core;
 
+use structopt::StructOpt;
+
 use crate::game::Game;
+use crate::hex_encoder::decode_hex;
 use crate::tcp_listener::Listener;
 
 mod game;
-mod attack_types;
-mod treasure_types;
-mod place;
 mod tcp_listener;
 mod commands;
 mod place_generator;
 mod game_generator;
-mod modifier_cost;
-mod modifier_gain;
-mod item_modifier;
-mod item;
-mod item_resource;
 mod roll_modifier;
 mod hex_encoder;
-mod index_specifier;
-mod difficulty;
-mod game_statistics;
-
-use structopt::StructOpt;
-use crate::hex_encoder::decode_hex;
+mod the_world;
 
 #[derive(Debug, StructOpt)]
 pub struct Settings {
@@ -36,11 +26,11 @@ pub struct Settings {
 
 fn parse_seed(src: &str) -> Result<[u8; 16], String> {
     if src.len() != 32 {
-        return Err("32 Hexidecimals as a string requires 32 chars!".to_string())
+        return Err("32 Hexidecimals as a string requires 32 chars!".to_string());
     }
     match decode_hex(src) {
         Err(e) => Err(e),
-        Ok(r) =>  Ok(r.try_into().unwrap())
+        Ok(r) => Ok(r.try_into().unwrap())
     }
 }
 

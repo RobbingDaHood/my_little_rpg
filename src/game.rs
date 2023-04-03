@@ -4,13 +4,13 @@ use rand::prelude::SliceRandom;
 use rand_pcg::Lcg64Xsh32;
 use serde::{Deserialize, Serialize};
 
-use crate::attack_types::AttackType;
-use crate::difficulty::Difficulty;
-use crate::game_statistics::GameStatistics;
-use crate::item::Item;
-use crate::item_resource::Type;
-use crate::place::Place;
-use crate::treasure_types::TreasureType;
+use crate::the_world::attack_types::AttackType;
+use crate::the_world::difficulty::Difficulty;
+use crate::the_world::game_statistics::GameStatistics;
+use crate::the_world::item::Item;
+use crate::the_world::item_resource::Type;
+use crate::the_world::place::Place;
+use crate::the_world::treasure_types::TreasureType;
 
 #[derive(Clone, PartialEq, Eq, Debug, Serialize, Deserialize)]
 pub struct Game {

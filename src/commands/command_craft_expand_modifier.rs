@@ -1,10 +1,12 @@
-use std::collections::{HashMap};
-use crate::Game;
-use crate::item::Item;
-use crate::roll_modifier::execute_craft;
+use std::collections::HashMap;
+
 use serde::{Deserialize, Serialize};
-use crate::index_specifier::{calculate_absolute_item_indexes, IndexSpecifier};
-use crate::treasure_types::{TreasureType};
+
+use crate::Game;
+use crate::roll_modifier::execute_craft;
+use crate::the_world::index_specifier::{calculate_absolute_item_indexes, IndexSpecifier};
+use crate::the_world::item::Item;
+use crate::the_world::treasure_types::TreasureType;
 
 #[derive(Clone, PartialEq, Eq, Debug, Serialize, Deserialize)]
 pub struct ExecuteExpandModifiersReport {
@@ -78,8 +80,8 @@ pub fn execute_craft_expand_modifiers_calculate_cost(game: &Game, inventory_inde
 mod tests_int {
     use crate::commands::command_craft_expand_modifier::execute_craft_expand_modifiers;
     use crate::game_generator::generate_testing_game;
-    use crate::index_specifier::IndexSpecifier;
-    use crate::treasure_types::TreasureType::Gold;
+    use crate::the_world::index_specifier::IndexSpecifier;
+    use crate::the_world::treasure_types::TreasureType::Gold;
 
     #[test]
     fn test_execute_expand_modifiers_absolute() {

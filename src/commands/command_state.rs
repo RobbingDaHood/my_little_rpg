@@ -12,14 +12,14 @@ use crate::commands::command_expand_min_element::execute_expand_min_element_calc
 use crate::commands::command_expand_min_simultanius_element::execute_expand_min_simultaneous_element_calculate_cost;
 use crate::commands::command_expand_places::execute_expand_places_calculate_cost;
 use crate::commands::command_reduce_difficulty::execute_execute_reduce_difficulty_cost;
-use crate::difficulty::Difficulty;
 use crate::Game;
-use crate::game_statistics::GameStatistics;
 use crate::hex_encoder::encode_hex;
-use crate::item::Item;
-use crate::item_resource::Type;
-use crate::place::Place;
-use crate::treasure_types::TreasureType;
+use crate::the_world::difficulty::Difficulty;
+use crate::the_world::game_statistics::GameStatistics;
+use crate::the_world::item::Item;
+use crate::the_world::item_resource::Type;
+use crate::the_world::place::Place;
+use crate::the_world::treasure_types::TreasureType;
 
 #[derive(Clone, PartialEq, Eq, Debug, Serialize, Deserialize)]
 pub struct PresentationGameState {

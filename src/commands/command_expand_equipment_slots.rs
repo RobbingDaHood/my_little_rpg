@@ -4,9 +4,9 @@ use std::mem;
 use serde::{Deserialize, Serialize};
 
 use crate::Game;
-use crate::item::Item;
-use crate::treasure_types::{pay_crafting_cost, TreasureType};
-use crate::treasure_types::TreasureType::Gold;
+use crate::the_world::item::Item;
+use crate::the_world::treasure_types::{pay_crafting_cost, TreasureType};
+use crate::the_world::treasure_types::TreasureType::Gold;
 
 #[derive(Clone, PartialEq, Eq, Debug, Serialize, Deserialize)]
 pub struct ExecuteExpandEquipmentSlotsReport {
@@ -53,8 +53,8 @@ pub fn execute_expand_equipment_slots_calculate_cost(game: &mut Game) -> HashMap
 mod tests_int {
     use crate::commands::command_expand_equipment_slots::execute_expand_equipment_slots;
     use crate::game_generator::generate_new_game;
-    use crate::item::test_util::create_item;
-    use crate::treasure_types::TreasureType::Gold;
+    use crate::the_world::item::test_util::create_item;
+    use crate::the_world::treasure_types::TreasureType::Gold;
 
     #[test]
     fn test_execute_expand_equipment_slots() {

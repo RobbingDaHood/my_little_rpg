@@ -1,5 +1,5 @@
 use crate::Game;
-use crate::item::Item;
+use crate::the_world::item::Item;
 
 pub fn execute_reorder_inventory(game: &mut Game) -> String {
     let reordered_inventory = game.inventory.clone().into_iter()
@@ -16,8 +16,8 @@ pub fn execute_reorder_inventory(game: &mut Game) -> String {
 mod tests_int {
     use crate::commands::command_reorder_inventory::execute_reorder_inventory;
     use crate::game_generator::generate_testing_game;
-    use crate::item::{CraftingInfo, Item};
-    use crate::item_modifier::Modifier;
+    use crate::the_world::item::{CraftingInfo, Item};
+    use crate::the_world::item_modifier::Modifier;
 
     #[test]
     fn test_execute_equip_item() {

@@ -1,18 +1,20 @@
 use std::collections::HashMap;
-use rand_pcg::{Lcg64Xsh32, Pcg32};
-use crate::attack_types::AttackType;
-use crate::Game;
-use crate::item::{CraftingInfo, Item};
-use crate::item_modifier::Modifier;
-use crate::item_resource::Type;
-use crate::modifier_gain::Gain;
-use crate::place_generator::{generate_place};
-use rand::{RngCore};
+
+use rand::RngCore;
 use rand::SeedableRng;
-use crate::difficulty::Difficulty;
-use crate::game_statistics::GameStatistics;
+use rand_pcg::{Lcg64Xsh32, Pcg32};
+
+use crate::Game;
 use crate::hex_encoder::encode_hex;
-use crate::modifier_cost::Cost;
+use crate::place_generator::generate_place;
+use crate::the_world::attack_types::AttackType;
+use crate::the_world::difficulty::Difficulty;
+use crate::the_world::game_statistics::GameStatistics;
+use crate::the_world::item::{CraftingInfo, Item};
+use crate::the_world::item_modifier::Modifier;
+use crate::the_world::item_resource::Type;
+use crate::the_world::modifier_cost::Cost;
+use crate::the_world::modifier_gain::Gain;
 
 pub fn generate_new_game(seed: Option<[u8; 16]>) -> Game {
     let mut min_resistance = HashMap::new();
@@ -46,7 +48,7 @@ pub fn generate_new_game(seed: Option<[u8; 16]>) -> Game {
         wins: 0,
         loses: 0,
         wins_in_a_row: 0,
-        loses_in_a_row: 0
+        loses_in_a_row: 0,
     };
 
     let mut game = Game { places: Vec::new(), equipped_items, difficulty, treasure: HashMap::new(), item_resources: HashMap::new(), inventory: Vec::new(), seed, random_generator_state: random_generator, game_statistics };
@@ -157,7 +159,7 @@ pub fn generate_testing_game(seed: Option<[u8; 16]>) -> Game {
         wins: 0,
         loses: 0,
         wins_in_a_row: 0,
-        loses_in_a_row: 0
+        loses_in_a_row: 0,
     };
 
     let mut game = Game { places: Vec::new(), equipped_items, difficulty, treasure: HashMap::new(), item_resources: HashMap::new(), inventory, seed, random_generator_state: random_generator, game_statistics };

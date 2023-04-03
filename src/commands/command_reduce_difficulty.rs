@@ -5,12 +5,12 @@ use std::ops::Div;
 use rand::prelude::SliceRandom;
 use serde::{Deserialize, Serialize};
 
-use crate::difficulty::Difficulty;
 use crate::Game;
 use crate::game::get_random_attack_type_from_unlocked;
 use crate::place_generator::generate_place;
-use crate::treasure_types::TreasureType;
-use crate::treasure_types::TreasureType::Gold;
+use crate::the_world::difficulty::Difficulty;
+use crate::the_world::treasure_types::TreasureType;
+use crate::the_world::treasure_types::TreasureType::Gold;
 
 #[derive(Clone, PartialEq, Eq, Debug, Serialize, Deserialize)]
 pub struct ReduceDifficultyReport {
@@ -64,12 +64,12 @@ pub fn execute_execute_reduce_difficulty_cost() -> HashMap<TreasureType, u64> {
 mod tests_int {
     use std::collections::HashMap;
 
-    use crate::attack_types::AttackType;
     use crate::commands::command_reduce_difficulty::execute_reduce_difficulty;
-    use crate::difficulty::Difficulty;
     use crate::Game;
     use crate::game_generator::generate_testing_game;
-    use crate::treasure_types::TreasureType::Gold;
+    use crate::the_world::attack_types::AttackType;
+    use crate::the_world::difficulty::Difficulty;
+    use crate::the_world::treasure_types::TreasureType::Gold;
 
     #[test]
     fn test_execute_reduce_difficulty() {

@@ -5,7 +5,7 @@ use std::time::Duration;
 
 use serde_json::json;
 
-use crate::Game;
+use crate::commands::Command;
 use crate::commands::command_craft_expand_modifier::execute_craft_expand_modifiers;
 use crate::commands::command_craft_reroll_modifier::execute_craft_reroll_modifier;
 use crate::commands::command_equip_swap::{execute_equip_item, execute_swap_equipped_item};
@@ -22,7 +22,7 @@ use crate::commands::command_reduce_difficulty::execute_reduce_difficulty;
 use crate::commands::command_reorder_inventory::execute_reorder_inventory;
 use crate::commands::command_save_load::{execute_load_command, execute_save_command};
 use crate::commands::command_state::execute_state;
-use crate::commands::Command;
+use crate::Game;
 use crate::game_generator::generate_new_game;
 
 pub struct Listener {

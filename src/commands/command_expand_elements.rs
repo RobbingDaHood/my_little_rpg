@@ -1,9 +1,11 @@
 use std::collections::HashMap;
-use crate::attack_types::AttackType;
-use crate::Game;
-use crate::treasure_types::{pay_crafting_cost, TreasureType};
-use crate::treasure_types::TreasureType::Gold;
+
 use serde::{Deserialize, Serialize};
+
+use crate::Game;
+use crate::the_world::attack_types::AttackType;
+use crate::the_world::treasure_types::{pay_crafting_cost, TreasureType};
+use crate::the_world::treasure_types::TreasureType::Gold;
 
 #[derive(Clone, PartialEq, Eq, Debug, Serialize, Deserialize)]
 pub struct ExecuteExpandElementsReport {
@@ -21,7 +23,7 @@ pub fn execute_expand_elements(game: &mut Game) -> Result<ExecuteExpandElementsR
     //Crafting cost
     let crafting_cost = execute_expand_elements_calculate_cost(game);
     if let Err(error_message) = pay_crafting_cost(game, &crafting_cost) {
-        return Err(error_message)
+        return Err(error_message);
     };
 
     //Add new element
@@ -45,8 +47,8 @@ pub fn execute_expand_elements_calculate_cost(game: &mut Game) -> HashMap<Treasu
 mod tests_int {
     use crate::commands::command_expand_elements::execute_expand_elements;
     use crate::commands::command_move::execute_move_command;
-    use crate::game_generator::{generate_new_game};
-    use crate::treasure_types::TreasureType::Gold;
+    use crate::game_generator::generate_new_game;
+    use crate::the_world::treasure_types::TreasureType::Gold;
 
     #[test]
     fn test_execute_expand_elements() {

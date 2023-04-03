@@ -1,5 +1,6 @@
 use serde::{Deserialize, Serialize};
-use crate::item_resource::Type::Mana;
+
+use crate::the_world::item_resource::Type::Mana;
 
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize, Eq, Hash)]
 pub enum Type {

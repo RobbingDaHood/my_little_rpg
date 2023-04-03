@@ -1,11 +1,13 @@
 use std::cmp::{max, min};
 use std::collections::{HashMap, HashSet};
-use crate::{Game};
-use crate::place::Place;
-use crate::attack_types::AttackType;
-use crate::treasure_types::TreasureType;
+
 use rand::Rng;
 use rand::seq::SliceRandom;
+
+use crate::Game;
+use crate::the_world::attack_types::AttackType;
+use crate::the_world::place::Place;
+use crate::the_world::treasure_types::TreasureType;
 
 pub fn generate_place(game: &mut Game) -> Place {
     let mut resistance: HashMap<AttackType, u64> = HashMap::new();
@@ -25,7 +27,7 @@ pub fn generate_place(game: &mut Game) -> Place {
 
     let mut resistance_sum = 0;
     let mut count_elements = 0;
-    while count_elements < resistance_numbers  {
+    while count_elements < resistance_numbers {
         let attack_type = attack_types.choose(&mut game.random_generator_state).unwrap();
 
         let min_value = game.difficulty.min_resistance.get(attack_type).unwrap();
@@ -42,7 +44,7 @@ pub fn generate_place(game: &mut Game) -> Place {
 
     let possible_resistance_values_sum = game.difficulty.max_resistance.values().chain(game.difficulty.min_resistance.values()).sum::<u64>();
     let average_possible_resistance_values = possible_resistance_values_sum / relevant_attack_types.len() as u64;
-    let reward_from_difficulty = max( 1, average_possible_resistance_values / max(game.places.len(), 1) as u64);
+    let reward_from_difficulty = max(1, average_possible_resistance_values / max(game.places.len(), 1) as u64);
 
     reward.insert(TreasureType::Gold, reward_from_resistance + reward_from_difficulty);
 
@@ -52,10 +54,10 @@ pub fn generate_place(game: &mut Game) -> Place {
 
 #[cfg(test)]
 mod tests_int {
-    use crate::attack_types::AttackType;
     use crate::game_generator::{generate_new_game, generate_testing_game};
-    use crate::treasure_types::TreasureType;
-    use crate::place_generator::{generate_place};
+    use crate::place_generator::generate_place;
+    use crate::the_world::attack_types::AttackType;
+    use crate::the_world::treasure_types::TreasureType;
 
     #[test]
     fn test_generate_place() {

@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 
-use crate::difficulty::Difficulty;
-use crate::item_modifier::Modifier;
+use crate::the_world::difficulty::Difficulty;
+use crate::the_world::item_modifier::Modifier;
 
 #[derive(Clone, PartialEq, Eq, Debug, Serialize, Deserialize)]
 pub struct Item {
@@ -18,8 +18,8 @@ pub struct CraftingInfo {
 #[cfg(test)]
 pub mod test_util {
     use crate::Game;
-    use crate::item::{CraftingInfo, Item};
-    use crate::item_modifier::Modifier;
+    use crate::the_world::item::{CraftingInfo, Item};
+    use crate::the_world::item_modifier::Modifier;
 
     pub fn create_item(game: &Game) -> Item {
         Item {
