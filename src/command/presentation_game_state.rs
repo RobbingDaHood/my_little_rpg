@@ -65,7 +65,7 @@ pub struct ItemCosts {
     add_modifier: usize,
 }
 
-pub fn execute_state(game: &mut Game) -> PresentationGameState {
+pub fn execute(game: &mut Game) -> PresentationGameState {
     let places: Vec<PresentationPlace> = game.places.iter()
         .cloned()
         .enumerate()

@@ -1,7 +1,7 @@
 use crate::Game;
 use crate::the_world::item::Item;
 
-pub fn execute_reorder_inventory(game: &mut Game) -> String {
+pub fn execute(game: &mut Game) -> String {
     let reordered_inventory = game.inventory.clone().into_iter()
         .filter(Option::is_some)
         .collect::<Vec<Option<Item>>>();
@@ -14,14 +14,14 @@ pub fn execute_reorder_inventory(game: &mut Game) -> String {
 
 #[cfg(test)]
 mod tests_int {
-    use crate::command::reorder_inventory::execute_reorder_inventory;
-    use crate::generator::game_generator::generate_testing_game;
+    use crate::command::reorder_inventory::execute;
+    use crate::generator::game::new_testing;
     use crate::the_world::item::{CraftingInfo, Item};
     use crate::the_world::item_modifier::Modifier;
 
     #[test]
     fn test_execute_equip_item() {
-        let mut game = generate_testing_game(Some([1; 16]));
+        let mut game = new_testing(Some([1; 16]));
         let item = Some(Item {
             modifiers: vec![
                 Modifier {
@@ -37,7 +37,7 @@ mod tests_int {
 
         game.inventory = vec![item.clone(), None, item.clone(), None, None, item];
 
-        assert_eq!("Inventory is reordered.".to_string(), execute_reorder_inventory(&mut game));
+        assert_eq!("Inventory is reordered.".to_string(), execute(&mut game));
 
         assert_eq!(3, game.inventory.len());
         assert_eq!(0, game.inventory.iter().filter(|i| i.is_none()).count());

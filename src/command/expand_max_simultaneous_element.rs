@@ -14,7 +14,7 @@ pub struct ExecuteExpandMaxSimultaneousElementReport {
     leftover_spending_treasure: HashMap<TreasureType, u64>,
 }
 
-pub fn execute_expand_max_simultaneous_element(game: &mut Game) -> Result<ExecuteExpandMaxSimultaneousElementReport, String> {
+pub fn execute(game: &mut Game) -> Result<ExecuteExpandMaxSimultaneousElementReport, String> {
     if (game.difficulty.max_simultaneous_resistances as usize) >= game.difficulty.max_resistance.len() {
         return Err(format!("max_simultaneous_resistances {} is already equal to number of active resistances {}. Consider calling ExpandElements.", game.difficulty.max_simultaneous_resistances, game.difficulty.max_resistance.len()));
     }
@@ -42,14 +42,14 @@ pub fn execute_expand_max_simultaneous_element_calculate_cost(game: &mut Game) -
 
 #[cfg(test)]
 mod tests_int {
-    use crate::command::expand_elements::execute_expand_elements;
-    use crate::command::expand_max_simultaneous_element::execute_expand_max_simultaneous_element;
-    use crate::generator::game_generator::generate_new_game;
+    use crate::command::expand_elements::execute as execute_expand_elements;
+    use crate::command::expand_max_simultaneous_element::execute as execute_expand_max_simultaneous_element;
+    use crate::generator::game::new;
     use crate::the_world::treasure_types::TreasureType::Gold;
 
     #[test]
     fn test_execute_expand_max_simultaneous_element() {
-        let mut game = generate_new_game(Some([1; 16]));
+        let mut game = new(Some([1; 16]));
         assert_eq!(1, game.difficulty.max_resistance.len());
         assert_eq!(1, game.difficulty.max_simultaneous_resistances);
         assert_eq!(1, game.difficulty.min_resistance.len());

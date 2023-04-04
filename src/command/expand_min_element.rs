@@ -17,7 +17,7 @@ pub struct ExecuteExpandMinElementReport {
     leftover_spending_treasure: HashMap<TreasureType, u64>,
 }
 
-pub fn execute_expand_min_element(game: &mut Game) -> Result<ExecuteExpandMinElementReport, String> {
+pub fn execute(game: &mut Game) -> Result<ExecuteExpandMinElementReport, String> {
     //Crafting cost
     let crafting_cost = execute_expand_min_element_calculate_cost(game);
     let crafting_gold_cost = crafting_cost.get(&Gold).unwrap();
@@ -55,15 +55,15 @@ pub fn execute_expand_min_element_calculate_cost(game: &mut Game) -> HashMap<Tre
 
 #[cfg(test)]
 mod tests_int {
-    use crate::command::expand_max_element::execute_expand_max_element;
-    use crate::command::expand_min_element::execute_expand_min_element;
+    use crate::command::expand_max_element::execute as execute_expand_max_element;
+    use crate::command::expand_min_element::execute as execute_expand_min_element;
     use crate::command::r#move::execute_move_command;
-    use crate::generator::game_generator::{generate_new_game, generate_testing_game};
+    use crate::generator::game::{new, new_testing};
     use crate::the_world::treasure_types::TreasureType::Gold;
 
     #[test]
     fn test_execute_expand_min_element() {
-        let mut game = generate_new_game(Some([1; 16]));
+        let mut game = new(Some([1; 16]));
         assert_eq!(1, game.difficulty.min_resistance.len());
         assert_eq!(1, game.difficulty.min_resistance.len());
 
@@ -87,7 +87,7 @@ mod tests_int {
 
     #[test]
     fn test_that_all_elements_can_be_hit() {
-        let mut game = generate_testing_game(Some([1; 16]));
+        let mut game = new_testing(Some([1; 16]));
         let original_difficulty = game.difficulty.clone();
         game.treasure.insert(Gold, 9_999_999);
 
@@ -104,13 +104,13 @@ mod tests_int {
 
     #[test]
     fn seeding_test() {
-        let mut game = generate_new_game(Some([1; 16]));
+        let mut game = new(Some([1; 16]));
         game.treasure.insert(Gold, 1000);
         assert!(execute_expand_max_element(&mut game).is_ok());
         let original_result = execute_expand_min_element(&mut game);
 
         for _i in 1..1000 {
-            let mut game = generate_new_game(Some([1; 16]));
+            let mut game = new(Some([1; 16]));
             game.treasure.insert(Gold, 1000);
             assert!(execute_expand_max_element(&mut game).is_ok());
             let result = execute_expand_min_element(&mut game);

@@ -15,7 +15,7 @@ pub struct ExecuteExpandElementsReport {
     leftover_spending_treasure: HashMap<TreasureType, u64>,
 }
 
-pub fn execute_expand_elements(game: &mut Game) -> Result<ExecuteExpandElementsReport, String> {
+pub fn execute(game: &mut Game) -> Result<ExecuteExpandElementsReport, String> {
     if game.difficulty.max_resistance.len() >= AttackType::get_all().len() {
         return Err("Already at maximum elements.".to_string());
     }
@@ -45,18 +45,18 @@ pub fn execute_expand_elements_calculate_cost(game: &mut Game) -> HashMap<Treasu
 
 #[cfg(test)]
 mod tests_int {
-    use crate::command::expand_elements::execute_expand_elements;
+    use crate::command::expand_elements::execute;
     use crate::command::r#move::execute_move_command;
-    use crate::generator::game_generator::generate_new_game;
+    use crate::generator::game::new;
     use crate::the_world::treasure_types::TreasureType::Gold;
 
     #[test]
     fn test_execute_expand_elements() {
-        let mut game = generate_new_game(Some([1; 16]));
+        let mut game = new(Some([1; 16]));
         assert_eq!(1, game.difficulty.max_resistance.len());
         assert_eq!(1, game.difficulty.min_resistance.len());
 
-        assert_eq!(Err("Cant pay the crafting cost, the cost is {Gold: 10} and you only have {}".to_string()), execute_expand_elements(&mut game));
+        assert_eq!(Err("Cant pay the crafting cost, the cost is {Gold: 10} and you only have {}".to_string()), execute(&mut game));
 
         for _i in 0..1000 {
             assert!(execute_move_command(&mut game, 0).is_ok());
@@ -66,28 +66,28 @@ mod tests_int {
         assert_eq!(1, game.difficulty.min_resistance.len());
 
         for i in 2..10 {
-            let result = execute_expand_elements(&mut game);
+            let result = execute(&mut game);
 
             assert!(result.is_ok());
             assert_eq!(i, game.difficulty.max_resistance.len());
             assert_eq!(i, game.difficulty.min_resistance.len());
         }
 
-        assert_eq!(Err("Already at maximum elements.".to_string()), execute_expand_elements(&mut game));
+        assert_eq!(Err("Already at maximum elements.".to_string()), execute(&mut game));
         assert_eq!(9, game.difficulty.max_resistance.len());
         assert_eq!(9, game.difficulty.min_resistance.len());
     }
 
     #[test]
     fn seeding_test() {
-        let mut game = generate_new_game(Some([1; 16]));
+        let mut game = new(Some([1; 16]));
         game.treasure.insert(Gold, 1000);
-        let original_result = execute_expand_elements(&mut game);
+        let original_result = execute(&mut game);
 
         for _i in 1..1000 {
-            let mut game = generate_new_game(Some([1; 16]));
+            let mut game = new(Some([1; 16]));
             game.treasure.insert(Gold, 1000);
-            let result = execute_expand_elements(&mut game);
+            let result = execute(&mut game);
             assert_eq!(original_result, result);
         }
     }

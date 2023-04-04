@@ -6,21 +6,21 @@ use rand::prelude::SliceRandom;
 use serde::{Deserialize, Serialize};
 
 use crate::Game;
-use crate::generator::place_generator::generate_place;
+use crate::generator::place::new;
 use crate::the_world::attack_types::get_random_attack_type_from_unlocked;
 use crate::the_world::difficulty::Difficulty;
 use crate::the_world::treasure_types::TreasureType;
 use crate::the_world::treasure_types::TreasureType::Gold;
 
 #[derive(Clone, PartialEq, Eq, Debug, Serialize, Deserialize)]
-pub struct ReduceDifficultyReport {
+pub struct Report {
     new_difficulty: Difficulty,
     paid_cost: HashMap<TreasureType, u64>,
     new_cost: HashMap<TreasureType, u64>,
     leftover_spending_treasure: HashMap<TreasureType, u64>,
 }
 
-pub fn execute_reduce_difficulty(game: &mut Game) -> ReduceDifficultyReport {
+pub fn execute(game: &mut Game) -> Report {
     //Add new element
     let attack_type = get_random_attack_type_from_unlocked(&mut game.random_generator_state, &game.difficulty.min_resistance);
 
@@ -45,10 +45,10 @@ pub fn execute_reduce_difficulty(game: &mut Game) -> ReduceDifficultyReport {
         *game.difficulty.min_resistance.get_mut(&attack_type).unwrap() = min(max(1, new_max_value.div(2)), new_min);
     }
 
-    let new_place = generate_place(game);
+    let new_place = new(game);
     *game.places.choose_mut(&mut game.random_generator_state).unwrap() = new_place;
 
-    ReduceDifficultyReport {
+    Report {
         new_difficulty: game.difficulty.clone(),
         paid_cost: execute_execute_reduce_difficulty_cost(),
         new_cost: execute_execute_reduce_difficulty_cost(),
@@ -64,16 +64,16 @@ pub fn execute_execute_reduce_difficulty_cost() -> HashMap<TreasureType, u64> {
 mod tests_int {
     use std::collections::HashMap;
 
-    use crate::command::reduce_difficulty::execute_reduce_difficulty;
+    use crate::command::reduce_difficulty::execute;
     use crate::Game;
-    use crate::generator::game_generator::generate_testing_game;
+    use crate::generator::game::new_testing;
     use crate::the_world::attack_types::AttackType;
     use crate::the_world::difficulty::Difficulty;
     use crate::the_world::treasure_types::TreasureType::Gold;
 
     #[test]
     fn test_execute_reduce_difficulty() {
-        let mut game = generate_testing_game(Some([1; 16]));
+        let mut game = new_testing(Some([1; 16]));
 
         game.difficulty = Difficulty {
             min_resistance: HashMap::from([
@@ -88,7 +88,7 @@ mod tests_int {
             max_simultaneous_resistances: 7,
         };
 
-        execute_reduce_difficulty(&mut game);
+        execute(&mut game);
 
         assert_eq!(15, game.difficulty.min_simultaneous_resistances);
         assert_eq!(7, game.difficulty.max_simultaneous_resistances);
@@ -101,7 +101,7 @@ mod tests_int {
 
         assert_eq!(1, count_places_possible_rolls_equal_difficulty(&game));
 
-        execute_reduce_difficulty(&mut game);
+        execute(&mut game);
 
         assert_eq!(15, game.difficulty.min_simultaneous_resistances);
         assert_eq!(7, game.difficulty.max_simultaneous_resistances);
@@ -114,7 +114,7 @@ mod tests_int {
 
         assert_eq!(1, count_places_possible_rolls_equal_difficulty(&game));
 
-        execute_reduce_difficulty(&mut game);
+        execute(&mut game);
 
         assert_eq!(1, game.difficulty.min_simultaneous_resistances);
         assert_eq!(1, game.difficulty.max_simultaneous_resistances);
@@ -127,7 +127,7 @@ mod tests_int {
 
         assert_eq!(1, count_places_possible_rolls_equal_difficulty(&game));
 
-        execute_reduce_difficulty(&mut game);
+        execute(&mut game);
 
         assert_eq!(1, game.difficulty.min_simultaneous_resistances);
         assert_eq!(1, game.difficulty.max_simultaneous_resistances);
@@ -140,7 +140,7 @@ mod tests_int {
 
         assert_eq!(1, count_places_possible_rolls_equal_difficulty(&game));
 
-        execute_reduce_difficulty(&mut game);
+        execute(&mut game);
 
         assert_eq!(1, game.difficulty.min_simultaneous_resistances);
         assert_eq!(1, game.difficulty.max_simultaneous_resistances);
@@ -166,14 +166,14 @@ mod tests_int {
 
     #[test]
     fn seeding_test() {
-        let mut game = generate_testing_game(Some([1; 16]));
+        let mut game = new_testing(Some([1; 16]));
         game.treasure.insert(Gold, 1000);
-        let original_result = execute_reduce_difficulty(&mut game);
+        let original_result = execute(&mut game);
 
         for _i in 1..1000 {
-            let mut game = generate_testing_game(Some([1; 16]));
+            let mut game = new_testing(Some([1; 16]));
             game.treasure.insert(Gold, 1000);
-            let result = execute_reduce_difficulty(&mut game);
+            let result = execute(&mut game);
             assert_eq!(original_result, result);
         }
     }

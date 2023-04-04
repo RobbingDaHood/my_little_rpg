@@ -6,7 +6,7 @@ use rand_pcg::{Lcg64Xsh32, Pcg32};
 
 use crate::Game;
 use crate::parser::hex_encoder::encode_hex;
-use crate::generator::place_generator::generate_place;
+use crate::generator::place::new as new_place;
 use crate::the_world::attack_types::AttackType;
 use crate::the_world::difficulty::Difficulty;
 use crate::the_world::game_statistics::GameStatistics;
@@ -16,7 +16,7 @@ use crate::the_world::item_resource::Type;
 use crate::the_world::modifier_cost::Cost;
 use crate::the_world::modifier_gain::Gain;
 
-pub fn generate_new_game(seed: Option<[u8; 16]>) -> Game {
+pub fn new(seed: Option<[u8; 16]>) -> Game {
     let mut min_resistance = HashMap::new();
     min_resistance.insert(AttackType::Physical, 1);
 
@@ -53,7 +53,7 @@ pub fn generate_new_game(seed: Option<[u8; 16]>) -> Game {
 
     let mut game = Game { places: Vec::new(), equipped_items, difficulty, treasure: HashMap::new(), item_resources: HashMap::new(), inventory: Vec::new(), seed, random_generator_state: random_generator, game_statistics };
 
-    let new_place = generate_place(&mut game);
+    let new_place = new_place(&mut game);
     game.places.push(new_place);
 
     game
@@ -76,7 +76,7 @@ fn create_random_generator(seed: Option<[u8; 16]>) -> ([u8; 16], Lcg64Xsh32) {
 }
 
 #[allow(dead_code)]
-pub fn generate_testing_game(seed: Option<[u8; 16]>) -> Game {
+pub fn new_testing(seed: Option<[u8; 16]>) -> Game {
     let mut min_resistance = HashMap::new();
     min_resistance.insert(AttackType::Fire, 2);
     min_resistance.insert(AttackType::Frost, 3);
@@ -165,7 +165,7 @@ pub fn generate_testing_game(seed: Option<[u8; 16]>) -> Game {
     let mut game = Game { places: Vec::new(), equipped_items, difficulty, treasure: HashMap::new(), item_resources: HashMap::new(), inventory, seed, random_generator_state: random_generator, game_statistics };
 
     for _i in 0..10 {
-        let new_place = generate_place(&mut game);
+        let new_place = new_place(&mut game);
         game.places.push(new_place);
     }
 
@@ -174,24 +174,24 @@ pub fn generate_testing_game(seed: Option<[u8; 16]>) -> Game {
 
 #[cfg(test)]
 mod tests_int {
-    use crate::generator::game_generator::{generate_new_game, generate_testing_game};
+    use crate::generator::game::{new, new_testing};
 
     #[test]
     fn seeding_test_generate_testing_game() {
-        let original_result = generate_testing_game(Some([1; 16]));
+        let original_result = new_testing(Some([1; 16]));
 
         for _i in 1..1000 {
-            let game = generate_testing_game(Some([1; 16]));
+            let game = new_testing(Some([1; 16]));
             assert_eq!(original_result, game);
         }
     }
 
     #[test]
     fn seeding_test_generate_new_game() {
-        let original_result = generate_new_game(Some([1; 16]));
+        let original_result = new(Some([1; 16]));
 
         for _i in 1..1000 {
-            let game = generate_new_game(Some([1; 16]));
+            let game = new(Some([1; 16]));
             assert_eq!(original_result, game);
         }
     }

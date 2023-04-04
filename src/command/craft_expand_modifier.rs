@@ -79,13 +79,13 @@ pub fn execute_craft_expand_modifiers_calculate_cost(game: &Game, inventory_inde
 #[cfg(test)]
 mod tests_int {
     use crate::command::craft_expand_modifier::execute_craft_expand_modifiers;
-    use crate::generator::game_generator::generate_testing_game;
+    use crate::generator::game::new_testing;
     use crate::the_world::index_specifier::IndexSpecifier;
     use crate::the_world::treasure_types::TreasureType::Gold;
 
     #[test]
     fn test_execute_expand_modifiers_absolute() {
-        let mut game = generate_testing_game(Some([1; 16]));
+        let mut game = new_testing(Some([1; 16]));
         assert_eq!(1, game.inventory[0].as_ref().unwrap().modifiers.len());
 
         assert_eq!(Err("craft_reroll_modifier needs 2 items to be sacrificed but you only provided 1".to_string()), execute_craft_expand_modifiers(&mut game, 0, vec![IndexSpecifier::Absolute(0)]));
@@ -123,7 +123,7 @@ mod tests_int {
 
     #[test]
     fn test_execute_expand_modifiers_relative_positive() {
-        let mut game = generate_testing_game(Some([1; 16]));
+        let mut game = new_testing(Some([1; 16]));
 
         let result = execute_craft_expand_modifiers(&mut game, 0, vec![IndexSpecifier::RelativePositive(1), IndexSpecifier::RelativePositive(2)]);
 
@@ -146,7 +146,7 @@ mod tests_int {
 
     #[test]
     fn test_execute_expand_modifiers_relative_negative() {
-        let mut game = generate_testing_game(Some([1; 16]));
+        let mut game = new_testing(Some([1; 16]));
 
         let result = execute_craft_expand_modifiers(&mut game, 8, vec![IndexSpecifier::RelativeNegative(1), IndexSpecifier::RelativeNegative(2)]);
 
@@ -169,7 +169,7 @@ mod tests_int {
 
     #[test]
     fn test_execute_expand_modifiers_relative_mix() {
-        let mut game = generate_testing_game(Some([1; 16]));
+        let mut game = new_testing(Some([1; 16]));
 
         let result = execute_craft_expand_modifiers(&mut game, 5, vec![IndexSpecifier::RelativeNegative(1), IndexSpecifier::RelativePositive(1)]);
 
@@ -197,12 +197,12 @@ mod tests_int {
 
     #[test]
     fn seeding_test() {
-        let mut game = generate_testing_game(Some([1; 16]));
+        let mut game = new_testing(Some([1; 16]));
         game.treasure.insert(Gold, 1000);
         let original_result = execute_craft_expand_modifiers(&mut game, 0, vec![IndexSpecifier::Absolute(1), IndexSpecifier::Absolute(2)]);
 
         for _i in 1..1000 {
-            let mut game = generate_testing_game(Some([1; 16]));
+            let mut game = new_testing(Some([1; 16]));
             game.treasure.insert(Gold, 1000);
             let result = execute_craft_expand_modifiers(&mut game, 0, vec![IndexSpecifier::Absolute(1), IndexSpecifier::Absolute(2)]);
             assert_eq!(original_result, result);

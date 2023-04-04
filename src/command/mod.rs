@@ -10,7 +10,7 @@ pub mod expand_equipment_slots;
 pub mod help;
 pub mod expand_max_simultaneous_element;
 pub mod expand_min_simultanius_element;
-pub mod state;
+pub mod presentation_game_state;
 pub mod reduce_difficulty;
 pub mod reorder_inventory;
 pub mod save_load;

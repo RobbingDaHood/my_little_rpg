@@ -5,25 +5,25 @@ use std::time::Duration;
 
 use serde_json::json;
 
-use crate::parser::commands_parser::Command;
+use crate::parser::commands::Command;
 use crate::command::craft_expand_modifier::execute_craft_expand_modifiers;
-use crate::command::craft_reroll_modifier::execute_craft_reroll_modifier;
+use crate::command::craft_reroll_modifier::execute as execute_craft_reroll_modifier;
 use crate::command::equip_swap::{execute_equip_item, execute_swap_equipped_item};
-use crate::command::expand_elements::execute_expand_elements;
-use crate::command::expand_equipment_slots::execute_expand_equipment_slots;
-use crate::command::expand_max_element::execute_expand_max_element;
-use crate::command::expand_max_simultaneous_element::execute_expand_max_simultaneous_element;
-use crate::command::expand_min_element::execute_expand_min_element;
+use crate::command::expand_elements::execute as execute_expand_elements;
+use crate::command::expand_equipment_slots::execute as execute_expand_equipment_slots;
+use crate::command::expand_max_element::execute as execute_expand_max_element;
+use crate::command::expand_max_simultaneous_element::execute as execute_expand_max_simultaneous_element;
+use crate::command::expand_min_element::execute as execute_expand_min_element;
 use crate::command::expand_min_simultanius_element::execute_expand_min_simultaneous_element;
-use crate::command::expand_places::execute_expand_places;
-use crate::command::help::execute_help;
+use crate::command::expand_places::execute as execute_expand_places;
+use crate::command::help::execute as execute_help;
 use crate::command::r#move::execute_move_command;
-use crate::command::reduce_difficulty::execute_reduce_difficulty;
-use crate::command::reorder_inventory::execute_reorder_inventory;
+use crate::command::reduce_difficulty::execute as execute_reduce_difficulty;
+use crate::command::reorder_inventory::execute as execute_reorder_inventory;
 use crate::command::save_load::{execute_load_command, execute_save_command};
-use crate::command::state::execute_state;
+use crate::command::presentation_game_state::execute as execute_presentation_game_state;
 use crate::Game;
-use crate::generator::game_generator::generate_new_game;
+use crate::generator::game::new;
 
 pub struct Listener {
     tcp_listener: TcpListener,
@@ -35,7 +35,7 @@ impl Listener {
     }
 
     pub fn listen(&self, seed: Option<[u8; 16]>) {
-        let mut game = generate_new_game(seed);
+        let mut game = new(seed);
         println!("Game is ready and listening on: 0.0.0.0:{}", self.tcp_listener.local_addr().unwrap().port());
 
         for stream in self.tcp_listener.incoming() {
@@ -58,7 +58,7 @@ impl Listener {
             Err(e) => if let Err(e) = stream.write(format!("{:?}", e).as_bytes()) {
                 panic!("{}", e);
             },
-            Ok(Command::State) => if let Err(e) = stream.write(format!("{} \n", json!(execute_state(game))).as_bytes()) {
+            Ok(Command::State) => if let Err(e) = stream.write(format!("{} \n", json!(execute_presentation_game_state(game))).as_bytes()) {
                 panic!("{}", e);
             },
             Ok(Command::ReduceDifficulty) => if let Err(e) = stream.write(format!("{} \n", json!(execute_reduce_difficulty(game))).as_bytes()) {

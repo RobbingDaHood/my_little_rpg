@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use crate::parser::commands_parser::Command;
+use crate::parser::commands::Command;
 
 #[derive(Clone, PartialEq, Eq, Debug, Serialize, Deserialize)]
 pub struct ExecuteHelpReport {
@@ -8,7 +8,7 @@ pub struct ExecuteHelpReport {
     commands: Vec<String>,
 }
 
-pub fn execute_help() -> ExecuteHelpReport {
+pub fn execute() -> ExecuteHelpReport {
     let tutorial = "Use state, see what you like. Then get Moving, try Move 0. Do some more movement, earn some treasure. Use the treasure to craft items and expand difficulty. Have fun.".to_string();
 
     let mut commands = Vec::new();

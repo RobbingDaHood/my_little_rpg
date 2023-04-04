@@ -174,6 +174,7 @@ impl Command {
     }
 }
 
+//TODO Could be interesting to move parsing of individual commands out of this file
 impl TryFrom<&String> for Command {
     type Error = String;
 
@@ -210,7 +211,7 @@ impl TryFrom<&String> for Command {
 
 #[cfg(test)]
 mod tests_int {
-    use crate::parser::commands_parser::Command;
+    use crate::parser::commands::Command;
     use crate::the_world::index_specifier::IndexSpecifier;
 
     #[test]

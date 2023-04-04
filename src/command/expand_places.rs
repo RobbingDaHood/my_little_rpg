@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use serde::{Deserialize, Serialize};
 
 use crate::Game;
-use crate::generator::place_generator::generate_place;
+use crate::generator::place::new;
 use crate::the_world::place::Place;
 use crate::the_world::treasure_types::{pay_crafting_cost, TreasureType};
 use crate::the_world::treasure_types::TreasureType::Gold;
@@ -16,7 +16,7 @@ pub struct ExecuteExpandPlacesReport {
     leftover_spending_treasure: HashMap<TreasureType, u64>,
 }
 
-pub fn execute_expand_places(game: &mut Game) -> Result<ExecuteExpandPlacesReport, String> {
+pub fn execute(game: &mut Game) -> Result<ExecuteExpandPlacesReport, String> {
     //Crafting cost
     let crafting_cost = execute_expand_places_calculate_cost(game);
     if let Err(error_message) = pay_crafting_cost(game, &crafting_cost) {
@@ -24,7 +24,7 @@ pub fn execute_expand_places(game: &mut Game) -> Result<ExecuteExpandPlacesRepor
     };
 
     //Create new place
-    let new_place = generate_place(game);
+    let new_place = new(game);
     game.places.push(new_place.clone());
 
     Ok(ExecuteExpandPlacesReport {
@@ -41,24 +41,24 @@ pub fn execute_expand_places_calculate_cost(game: &mut Game) -> HashMap<Treasure
 
 #[cfg(test)]
 mod tests_int {
-    use crate::command::expand_places::execute_expand_places;
+    use crate::command::expand_places::execute;
     use crate::command::r#move::execute_move_command;
-    use crate::generator::game_generator::generate_testing_game;
+    use crate::generator::game::new_testing;
     use crate::the_world::treasure_types::TreasureType::Gold;
 
     #[test]
     fn test_execute_expand_places() {
-        let mut game = generate_testing_game(Some([1; 16]));
+        let mut game = new_testing(Some([1; 16]));
         assert_eq!(10, game.places.len());
 
-        assert_eq!(Err("Cant pay the crafting cost, the cost is {Gold: 100} and you only have {}".to_string()), execute_expand_places(&mut game));
+        assert_eq!(Err("Cant pay the crafting cost, the cost is {Gold: 100} and you only have {}".to_string()), execute(&mut game));
 
         assert!(execute_move_command(&mut game, 0).is_err());
         assert!(execute_move_command(&mut game, 0).is_ok());
         assert!(game.treasure.get(&Gold).unwrap() > &0);
         assert_eq!(10, game.places.len());
 
-        let result = execute_expand_places(&mut game);
+        let result = execute(&mut game);
 
         assert!(result.is_ok());
         assert_eq!(11, game.places.len());
@@ -66,25 +66,25 @@ mod tests_int {
 
     #[test]
     fn seeding_test() {
-        let mut game = generate_testing_game(Some([1; 16]));
+        let mut game = new_testing(Some([1; 16]));
         game.treasure.insert(Gold, 1000);
-        let original_result = execute_expand_places(&mut game);
+        let original_result = execute(&mut game);
 
         for _i in 1..1000 {
-            let mut game = generate_testing_game(Some([1; 16]));
+            let mut game = new_testing(Some([1; 16]));
             game.treasure.insert(Gold, 1000);
-            let result = execute_expand_places(&mut game);
+            let result = execute(&mut game);
             assert_eq!(original_result, result);
         }
     }
 
     #[test]
     fn many_runs_test() {
-        let mut game = generate_testing_game(Some([1; 16]));
+        let mut game = new_testing(Some([1; 16]));
         game.treasure.insert(Gold, 999_999);
 
         for _i in 1..438 {
-            assert!(execute_expand_places(&mut game).is_ok());
+            assert!(execute(&mut game).is_ok());
         }
     }
 }

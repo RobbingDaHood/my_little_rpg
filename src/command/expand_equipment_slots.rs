@@ -16,7 +16,7 @@ pub struct ExecuteExpandEquipmentSlotsReport {
     leftover_spending_treasure: HashMap<TreasureType, u64>,
 }
 
-pub fn execute_expand_equipment_slots(game: &mut Game) -> Result<ExecuteExpandEquipmentSlotsReport, String> {
+pub fn execute(game: &mut Game) -> Result<ExecuteExpandEquipmentSlotsReport, String> {
     if game.inventory.is_empty() {
         return Err("No item in inventory to equip in new item slot.".to_string());
     }
@@ -51,17 +51,17 @@ pub fn execute_expand_equipment_slots_calculate_cost(game: &mut Game) -> HashMap
 
 #[cfg(test)]
 mod tests_int {
-    use crate::command::expand_equipment_slots::execute_expand_equipment_slots;
-    use crate::generator::game_generator::generate_new_game;
+    use crate::command::expand_equipment_slots::execute;
+    use crate::generator::game::new;
     use crate::the_world::item::test_util::create_item;
     use crate::the_world::treasure_types::TreasureType::Gold;
 
     #[test]
     fn test_execute_expand_equipment_slots() {
-        let mut game = generate_new_game(Some([1; 16]));
+        let mut game = new(Some([1; 16]));
         assert_eq!(1, game.equipped_items.len());
 
-        assert_eq!(Err("No item in inventory to equip in new item slot.".to_string()), execute_expand_equipment_slots(&mut game));
+        assert_eq!(Err("No item in inventory to equip in new item slot.".to_string()), execute(&mut game));
         assert_eq!(1, game.equipped_items.len());
 
         let item = create_item(&game);
@@ -69,23 +69,23 @@ mod tests_int {
         game.inventory.push(Some(item.clone()));
         game.inventory.push(Some(item.clone()));
 
-        assert_eq!(Err("Cant pay the crafting cost, the cost is {Gold: 32} and you only have {}".to_string()), execute_expand_equipment_slots(&mut game));
+        assert_eq!(Err("Cant pay the crafting cost, the cost is {Gold: 32} and you only have {}".to_string()), execute(&mut game));
 
         game.treasure.insert(Gold, 1300);
-        let result = execute_expand_equipment_slots(&mut game);
+        let result = execute(&mut game);
         assert!(result.is_ok());
         assert_eq!(2, game.equipped_items.len());
 
-        let result = execute_expand_equipment_slots(&mut game);
+        let result = execute(&mut game);
         assert!(result.is_ok());
         assert_eq!(3, game.equipped_items.len());
 
-        let result = execute_expand_equipment_slots(&mut game);
+        let result = execute(&mut game);
         assert!(result.is_ok());
         assert_eq!(4, game.equipped_items.len());
 
-        assert_eq!(Err("No item in inventory to equip in new item slot. Whole inventory is empty.".to_string()), execute_expand_equipment_slots(&mut game));
+        assert_eq!(Err("No item in inventory to equip in new item slot. Whole inventory is empty.".to_string()), execute(&mut game));
         game.inventory.push(Some(item));
-        assert_eq!(Err("Cant pay the crafting cost, the cost is {Gold: 3125} and you only have {Gold: 1}".to_string()), execute_expand_equipment_slots(&mut game));
+        assert_eq!(Err("Cant pay the crafting cost, the cost is {Gold: 3125} and you only have {Gold: 1}".to_string()), execute(&mut game));
     }
 }

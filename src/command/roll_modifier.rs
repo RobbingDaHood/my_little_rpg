@@ -273,7 +273,7 @@ mod tests_int {
     use std::collections::HashMap;
 
     use crate::command::roll_modifier::execute_craft;
-    use crate::generator::game_generator::generate_testing_game;
+    use crate::generator::game::new_testing;
     use crate::the_world::item_modifier::Modifier;
     use crate::the_world::item_resource::Type;
     use crate::the_world::modifier_cost::Cost;
@@ -282,17 +282,17 @@ mod tests_int {
 
     #[test]
     fn basic_test() {
-        let mut game = generate_testing_game(Some([1; 16]));
+        let mut game = new_testing(Some([1; 16]));
         execute_craft(&mut game.random_generator_state, &game.inventory[0].as_ref().unwrap().crafting_info);
     }
 
     #[test]
     fn seeding_test() {
-        let mut game = generate_testing_game(Some([1; 16]));
+        let mut game = new_testing(Some([1; 16]));
         let original_game = execute_craft(&mut game.random_generator_state, &game.inventory[0].as_ref().unwrap().crafting_info);
 
         for _i in 1..1000 {
-            let mut game = generate_testing_game(Some([1; 16]));
+            let mut game = new_testing(Some([1; 16]));
             let result = execute_craft(&mut game.random_generator_state, &game.inventory[0].as_ref().unwrap().crafting_info);
             assert_eq!(original_game, result);
         }
@@ -300,7 +300,7 @@ mod tests_int {
 
     #[test]
     fn test_many_runs() {
-        let mut game = generate_testing_game(Some([1; 16]));
+        let mut game = new_testing(Some([1; 16]));
         let mut cost_modifiers: HashMap<Cost, u32> = HashMap::new();
         let mut gain_modifiers: HashMap<Gain, u32> = HashMap::new();
 

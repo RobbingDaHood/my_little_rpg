@@ -44,26 +44,26 @@ fn get_file_path(save_name: &str, save_path: Option<String>) -> Result<String, S
 mod tests_int {
     use std::fs;
 
-    use crate::command::expand_max_element::execute_expand_max_element;
+    use crate::command::expand_max_element::execute;
     use crate::command::save_load::{execute_load_command, execute_save_command};
-    use crate::generator::game_generator::generate_testing_game;
+    use crate::generator::game::new_testing;
     use crate::the_world::treasure_types::TreasureType::Gold;
 
     #[test]
     fn seeding_test() {
-        let mut game = generate_testing_game(Some([1; 16]));
+        let mut game = new_testing(Some([1; 16]));
         game.treasure.insert(Gold, 1000);
-        let original_result = execute_expand_max_element(&mut game);
+        let original_result = execute(&mut game);
 
         for _i in 1..1000 {
-            let mut game = generate_testing_game(Some([1; 16]));
+            let mut game = new_testing(Some([1; 16]));
             game.treasure.insert(Gold, 1000);
             execute_save_command(&game, "save_load_seeding_test", Some("./testing/".to_string())).unwrap();
             let mut parsed_game = execute_load_command("save_load_seeding_test", Some("./testing/".to_string())).unwrap();
 
             assert_eq!(game, parsed_game);
 
-            let result = execute_expand_max_element(&mut parsed_game);
+            let result = execute(&mut parsed_game);
             assert_eq!(original_result, result);
         }
 

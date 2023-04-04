@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use serde::{Deserialize, Serialize};
 
 use crate::Game;
-use crate::generator::place_generator::generate_place;
+use crate::generator::place::new;
 use crate::the_world::attack_types::AttackType;
 use crate::the_world::item::{CraftingInfo, Item};
 use crate::the_world::item_modifier::Modifier;
@@ -12,6 +12,8 @@ use crate::the_world::modifier_cost::Cost;
 use crate::the_world::modifier_gain::Gain;
 use crate::the_world::place::Place;
 use crate::the_world::treasure_types::TreasureType;
+
+// TODO this file have too many responsibilities
 
 #[derive(Clone, PartialEq, Eq, Debug, Serialize, Deserialize)]
 pub struct ItemReport {
@@ -153,7 +155,7 @@ fn update_claim_place_effect(game: &mut Game, index: usize, item_report: Vec<Ite
         *game.treasure.entry(treasure_type).or_insert(0) += amount;
     }
 
-    game.places[index] = generate_place(game);
+    game.places[index] = new(game);
 
     ExecuteMoveCommandReport {
         item_report,
@@ -337,7 +339,7 @@ fn evaluate_item_costs(item: &Item, current_damage: &HashMap<AttackType, u64>, g
 mod tests_int {
     use crate::command::r#move::execute_move_command;
     use crate::Game;
-    use crate::generator::game_generator::generate_testing_game;
+    use crate::generator::game::new_testing;
     use crate::the_world::attack_types::AttackType;
     use crate::the_world::item::{CraftingInfo, Item};
     use crate::the_world::item_modifier::Modifier;
@@ -348,7 +350,7 @@ mod tests_int {
 
     #[test]
     fn test_execute_move_command() {
-        let mut game = generate_testing_game(Some([1; 16]));
+        let mut game = new_testing(Some([1; 16]));
         let place = game.places[0].clone();
         assert_eq!(None, game.treasure.get(&Gold));
         assert_eq!(None, game.item_resources.get(&Type::Mana));
@@ -397,7 +399,7 @@ mod tests_int {
 
     #[test]
     fn test_execute_move_command_index_out_of_bounds() {
-        let mut game = generate_testing_game(Some([1; 16]));
+        let mut game = new_testing(Some([1; 16]));
 
         let result = execute_move_command(&mut game, 11);
 
@@ -412,7 +414,7 @@ mod tests_int {
 
     #[test]
     fn test_execute_not_enough_damage() {
-        let mut game = generate_testing_game(Some([1; 16]));
+        let mut game = new_testing(Some([1; 16]));
         game.equipped_items = Vec::new();
 
         let result = execute_move_command(&mut game, 0);
@@ -428,7 +430,7 @@ mod tests_int {
 
     #[test]
     fn test_execute_move_command_item_after_claim_does_not_activate() {
-        let mut game = generate_testing_game(Some([1; 16]));
+        let mut game = new_testing(Some([1; 16]));
         let place = game.places[0].clone();
         assert_eq!(None, game.treasure.get(&Gold));
         assert_eq!(None, game.item_resources.get(&Type::Mana));
@@ -479,7 +481,7 @@ mod tests_int {
 
     #[test]
     fn test_flat_min_attack_requirement() {
-        let mut game = generate_testing_game(Some([1; 16]));
+        let mut game = new_testing(Some([1; 16]));
         game.equipped_items = Vec::new();
 
         let first_item_cannot_pay = Item {
@@ -530,7 +532,7 @@ mod tests_int {
 
     #[test]
     fn test_flat_max_attack_requirement() {
-        let mut game = generate_testing_game(Some([1; 16]));
+        let mut game = new_testing(Some([1; 16]));
         game.equipped_items = Vec::new();
 
         let first_item_cannot_pay = Item {
@@ -581,7 +583,7 @@ mod tests_int {
 
     #[test]
     fn test_place_limited_by_index_modulus_requirement() {
-        let mut game = generate_testing_game(Some([1; 16]));
+        let mut game = new_testing(Some([1; 16]));
         game.equipped_items = Vec::new();
 
         let first_item_cannot_pay = Item {
@@ -614,7 +616,7 @@ mod tests_int {
 
     #[test]
     fn test_flat_item_resource() {
-        let mut game = generate_testing_game(Some([1; 16]));
+        let mut game = new_testing(Some([1; 16]));
         game.equipped_items = Vec::new();
 
         let first_item_cannot_pay = Item {
@@ -669,7 +671,7 @@ mod tests_int {
 
     #[test]
     fn test_flat_min_sum_attack_requirement() {
-        let mut game = generate_testing_game(Some([1; 16]));
+        let mut game = new_testing(Some([1; 16]));
         game.equipped_items = Vec::new();
 
         let first_item_cannot_pay = Item {
@@ -724,7 +726,7 @@ mod tests_int {
 
     #[test]
     fn test_flat_max_sum_attack_requirement() {
-        let mut game = generate_testing_game(Some([1; 16]));
+        let mut game = new_testing(Some([1; 16]));
         game.equipped_items = Vec::new();
 
         let first_item_cannot_pay = Item {
@@ -781,7 +783,7 @@ mod tests_int {
 
     #[test]
     fn test_flat_min_sum_item_resource_requirement() {
-        let mut game = generate_testing_game(Some([1; 16]));
+        let mut game = new_testing(Some([1; 16]));
         game.equipped_items = Vec::new();
 
         let first_item_cannot_pay = Item {
@@ -819,7 +821,7 @@ mod tests_int {
 
     #[test]
     fn test_flat_max_sum_item_resource_requirement() {
-        let mut game = generate_testing_game(Some([1; 16]));
+        let mut game = new_testing(Some([1; 16]));
         game.equipped_items = Vec::new();
 
         let first_item_cannot_pay = Item {
@@ -860,7 +862,7 @@ mod tests_int {
 
     #[test]
     fn test_flat_min_resistance_requirement() {
-        let mut game = generate_testing_game(Some([1; 16]));
+        let mut game = new_testing(Some([1; 16]));
         game.equipped_items = Vec::new();
 
         let first_item_cannot_pay = Item {
@@ -899,7 +901,7 @@ mod tests_int {
 
     #[test]
     fn test_flat_max_resistance_requirement() {
-        let mut game = generate_testing_game(Some([1; 16]));
+        let mut game = new_testing(Some([1; 16]));
         game.equipped_items = Vec::new();
 
         let first_item_cannot_pay = Item {
@@ -938,7 +940,7 @@ mod tests_int {
 
     #[test]
     fn test_flat_min_sum_resistance_requirement() {
-        let mut game = generate_testing_game(Some([1; 16]));
+        let mut game = new_testing(Some([1; 16]));
         game.equipped_items = Vec::new();
 
         let first_item_cannot_pay = Item {
@@ -977,7 +979,7 @@ mod tests_int {
 
     #[test]
     fn test_flat_max_sum_resistance_requirement() {
-        let mut game = generate_testing_game(Some([1; 16]));
+        let mut game = new_testing(Some([1; 16]));
         game.equipped_items = Vec::new();
 
         let first_item_cannot_pay = Item {
@@ -1016,7 +1018,7 @@ mod tests_int {
 
     #[test]
     fn test_min_win_row_requirement() {
-        let mut game = generate_testing_game(Some([1; 16]));
+        let mut game = new_testing(Some([1; 16]));
 
         let first_item_cannot_pay = Item {
             modifiers: vec![
@@ -1065,7 +1067,7 @@ mod tests_int {
 
     #[test]
     fn test_max_win_row_requirement() {
-        let mut game = generate_testing_game(Some([1; 16]));
+        let mut game = new_testing(Some([1; 16]));
 
         let first_item_cannot_pay = Item {
             modifiers: vec![
@@ -1114,7 +1116,7 @@ mod tests_int {
 
     #[test]
     fn test_percentage_increase_damage() {
-        let mut game = generate_testing_game(Some([1; 16]));
+        let mut game = new_testing(Some([1; 16]));
         game.equipped_items = Vec::new();
 
         let item = Item {
@@ -1148,7 +1150,7 @@ mod tests_int {
 
     #[test]
     fn test_flat_resistance_reduction_damage() {
-        let mut game = generate_testing_game(Some([1; 16]));
+        let mut game = new_testing(Some([1; 16]));
         game.equipped_items = Vec::new();
 
         let item = Item {
@@ -1181,7 +1183,7 @@ mod tests_int {
 
     #[test]
     fn test_percentage_increase_resistance_reduction() {
-        let mut game = generate_testing_game(Some([1; 16]));
+        let mut game = new_testing(Some([1; 16]));
         game.equipped_items = Vec::new();
 
         let item = Item {
@@ -1215,7 +1217,7 @@ mod tests_int {
 
     #[test]
     fn test_flat_damage_against_highest_resistance() {
-        let mut game = generate_testing_game(Some([1; 16]));
+        let mut game = new_testing(Some([1; 16]));
         game.equipped_items = Vec::new();
 
         let item = Item {
@@ -1248,7 +1250,7 @@ mod tests_int {
 
     #[test]
     fn test_percentage_increase_damage_against_highest_resistance() {
-        let mut game = generate_testing_game(Some([1; 16]));
+        let mut game = new_testing(Some([1; 16]));
         game.equipped_items = Vec::new();
 
         let item = Item {
@@ -1282,7 +1284,7 @@ mod tests_int {
 
     #[test]
     fn test_flat_damage_against_lowest_resistance() {
-        let mut game = generate_testing_game(Some([1; 16]));
+        let mut game = new_testing(Some([1; 16]));
         game.equipped_items = Vec::new();
 
         let item = Item {
@@ -1315,7 +1317,7 @@ mod tests_int {
 
     #[test]
     fn test_flat_damage_against_lowest_resistance_multiple() {
-        let mut game = generate_testing_game(Some([1; 16]));
+        let mut game = new_testing(Some([1; 16]));
         game.equipped_items = Vec::new();
 
         let item = Item {
@@ -1349,7 +1351,7 @@ mod tests_int {
 
     #[test]
     fn test_percentage_increase_damage_against_lowest_resistance() {
-        let mut game = generate_testing_game(Some([1; 16]));
+        let mut game = new_testing(Some([1; 16]));
         game.equipped_items = Vec::new();
 
         let item = Item {
@@ -1383,7 +1385,7 @@ mod tests_int {
 
     #[test]
     fn test_percentage_increase_treasure() {
-        let mut game = generate_testing_game(Some([1; 16]));
+        let mut game = new_testing(Some([1; 16]));
 
         //Remove all costs of super item
         for modifier in &mut game.equipped_items[1].modifiers {
@@ -1414,7 +1416,7 @@ mod tests_int {
 
     #[test]
     fn test_increase_item_gain() {
-        let mut game = generate_testing_game(Some([1; 16]));
+        let mut game = new_testing(Some([1; 16]));
 
         //Remove all costs of super item
         for modifier in &mut game.equipped_items[1].modifiers {
