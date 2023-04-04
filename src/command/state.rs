@@ -2,16 +2,16 @@ use std::collections::HashMap;
 
 use serde::{Deserialize, Serialize};
 
-use crate::command::command_craft_expand_modifier::execute_craft_expand_modifiers_calculate_cost;
-use crate::command::command_craft_reroll_modifier::execute_craft_reroll_modifier_calculate_cost;
-use crate::command::command_expand_elements::execute_expand_elements_calculate_cost;
-use crate::command::command_expand_equipment_slots::execute_expand_equipment_slots_calculate_cost;
-use crate::command::command_expand_max_element::execute_expand_max_element_calculate_cost;
-use crate::command::command_expand_max_simultaneous_element::execute_expand_max_simultaneous_element_calculate_cost;
-use crate::command::command_expand_min_element::execute_expand_min_element_calculate_cost;
-use crate::command::command_expand_min_simultanius_element::execute_expand_min_simultaneous_element_calculate_cost;
-use crate::command::command_expand_places::execute_expand_places_calculate_cost;
-use crate::command::command_reduce_difficulty::execute_execute_reduce_difficulty_cost;
+use crate::command::craft_expand_modifier::execute_craft_expand_modifiers_calculate_cost;
+use crate::command::craft_reroll_modifier::execute_craft_reroll_modifier_calculate_cost;
+use crate::command::expand_elements::execute_expand_elements_calculate_cost;
+use crate::command::expand_equipment_slots::execute_expand_equipment_slots_calculate_cost;
+use crate::command::expand_max_element::execute_expand_max_element_calculate_cost;
+use crate::command::expand_max_simultaneous_element::execute_expand_max_simultaneous_element_calculate_cost;
+use crate::command::expand_min_element::execute_expand_min_element_calculate_cost;
+use crate::command::expand_min_simultanius_element::execute_expand_min_simultaneous_element_calculate_cost;
+use crate::command::expand_places::execute_expand_places_calculate_cost;
+use crate::command::reduce_difficulty::execute_execute_reduce_difficulty_cost;
 use crate::Game;
 use crate::parser::hex_encoder::encode_hex;
 use crate::the_world::difficulty::Difficulty;

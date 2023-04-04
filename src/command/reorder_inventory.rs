@@ -14,7 +14,7 @@ pub fn execute_reorder_inventory(game: &mut Game) -> String {
 
 #[cfg(test)]
 mod tests_int {
-    use crate::command::command_reorder_inventory::execute_reorder_inventory;
+    use crate::command::reorder_inventory::execute_reorder_inventory;
     use crate::generator::game_generator::generate_testing_game;
     use crate::the_world::item::{CraftingInfo, Item};
     use crate::the_world::item_modifier::Modifier;

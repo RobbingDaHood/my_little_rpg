@@ -44,8 +44,8 @@ fn get_file_path(save_name: &str, save_path: Option<String>) -> Result<String, S
 mod tests_int {
     use std::fs;
 
-    use crate::command::command_expand_max_element::execute_expand_max_element;
-    use crate::command::command_save_load::{execute_load_command, execute_save_command};
+    use crate::command::expand_max_element::execute_expand_max_element;
+    use crate::command::save_load::{execute_load_command, execute_save_command};
     use crate::generator::game_generator::generate_testing_game;
     use crate::the_world::treasure_types::TreasureType::Gold;
 

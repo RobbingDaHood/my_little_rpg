@@ -51,7 +51,7 @@ pub fn execute_expand_equipment_slots_calculate_cost(game: &mut Game) -> HashMap
 
 #[cfg(test)]
 mod tests_int {
-    use crate::command::command_expand_equipment_slots::execute_expand_equipment_slots;
+    use crate::command::expand_equipment_slots::execute_expand_equipment_slots;
     use crate::generator::game_generator::generate_new_game;
     use crate::the_world::item::test_util::create_item;
     use crate::the_world::treasure_types::TreasureType::Gold;

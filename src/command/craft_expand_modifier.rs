@@ -78,7 +78,7 @@ pub fn execute_craft_expand_modifiers_calculate_cost(game: &Game, inventory_inde
 
 #[cfg(test)]
 mod tests_int {
-    use crate::command::command_craft_expand_modifier::execute_craft_expand_modifiers;
+    use crate::command::craft_expand_modifier::execute_craft_expand_modifiers;
     use crate::generator::game_generator::generate_testing_game;
     use crate::the_world::index_specifier::IndexSpecifier;
     use crate::the_world::treasure_types::TreasureType::Gold;

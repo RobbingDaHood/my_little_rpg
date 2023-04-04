@@ -335,7 +335,7 @@ fn evaluate_item_costs(item: &Item, current_damage: &HashMap<AttackType, u64>, g
 
 #[cfg(test)]
 mod tests_int {
-    use crate::command::command_move::execute_move_command;
+    use crate::command::r#move::execute_move_command;
     use crate::Game;
     use crate::generator::game_generator::generate_testing_game;
     use crate::the_world::attack_types::AttackType;
