@@ -2,6 +2,7 @@ use std::collections::HashMap;
 
 use rand::Rng;
 use serde::{Deserialize, Serialize};
+use serde_json::{json, Value};
 
 use crate::Game;
 use crate::the_world::attack_types::AttackType;
@@ -15,6 +16,13 @@ pub struct ExecuteExpandMinElementReport {
     paid_cost: HashMap<TreasureType, u64>,
     new_cost: HashMap<TreasureType, u64>,
     leftover_spending_treasure: HashMap<TreasureType, u64>,
+}
+
+pub fn execute_json(game: &mut Game) -> Value {
+    match execute(game) {
+        Ok(result) => json!(result),
+        Err(result) => json!(result)
+    }
 }
 
 pub fn execute(game: &mut Game) -> Result<ExecuteExpandMinElementReport, String> {
@@ -57,7 +65,7 @@ pub fn execute_expand_min_element_calculate_cost(game: &mut Game) -> HashMap<Tre
 mod tests_int {
     use crate::command::expand_max_element::execute as execute_expand_max_element;
     use crate::command::expand_min_element::execute as execute_expand_min_element;
-    use crate::command::r#move::execute_move_command;
+    use crate::command::r#move::execute;
     use crate::generator::game::{new, new_testing};
     use crate::the_world::treasure_types::TreasureType::Gold;
 
@@ -70,7 +78,7 @@ mod tests_int {
         assert_eq!(Err("There are no element minimum values that can be upgraded, consider expanding a max element value.".to_string()), execute_expand_min_element(&mut game));
 
         for _i in 0..1000 {
-            assert!(execute_move_command(&mut game, 0).is_ok());
+            assert!(execute(&mut game, 0).is_ok());
         }
 
         assert_eq!(Err("There are no element minimum values that can be upgraded, consider expanding a max element value.".to_string()), execute_expand_min_element(&mut game));

@@ -1,7 +1,8 @@
 use serde::{Deserialize, Serialize};
+use serde_json::{json, Value};
 
-use crate::Game;
 use crate::command::roll_modifier::execute_craft;
+use crate::Game;
 use crate::the_world::index_specifier::{calculate_absolute_item_indexes, IndexSpecifier};
 use crate::the_world::item::Item;
 
@@ -10,6 +11,13 @@ pub struct ExecuteCraftRerollModifierReport {
     new_item: Item,
     paid_cost: u16,
     new_cost: u16,
+}
+
+pub fn execute_json(game: &mut Game, inventory_index: usize, modifier_index: usize, sacrifice_item_indexes: Vec<IndexSpecifier>) -> Value {
+    match execute(game, inventory_index, modifier_index, sacrifice_item_indexes) {
+        Ok(result) => json!(result),
+        Err(result) => json!(result)
+    }
 }
 
 pub fn execute(game: &mut Game, inventory_index: usize, modifier_index: usize, mut sacrifice_item_indexes: Vec<IndexSpecifier>) -> Result<ExecuteCraftRerollModifierReport, String> {

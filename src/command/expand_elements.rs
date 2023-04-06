@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 
 use serde::{Deserialize, Serialize};
+use serde_json::{json, Value};
 
 use crate::Game;
 use crate::the_world::attack_types::AttackType;
@@ -15,6 +16,12 @@ pub struct ExecuteExpandElementsReport {
     leftover_spending_treasure: HashMap<TreasureType, u64>,
 }
 
+pub fn execute_json(game: &mut Game) -> Value {
+    match execute(game) {
+        Ok(result) => json!(result),
+        Err(result) => json!(result)
+    }
+}
 pub fn execute(game: &mut Game) -> Result<ExecuteExpandElementsReport, String> {
     if game.difficulty.max_resistance.len() >= AttackType::get_all().len() {
         return Err("Already at maximum elements.".to_string());
@@ -46,7 +53,7 @@ pub fn execute_expand_elements_calculate_cost(game: &mut Game) -> HashMap<Treasu
 #[cfg(test)]
 mod tests_int {
     use crate::command::expand_elements::execute;
-    use crate::command::r#move::execute_move_command;
+    use crate::command::r#move::execute as execute_move_command;
     use crate::generator::game::new;
     use crate::the_world::treasure_types::TreasureType::Gold;
 

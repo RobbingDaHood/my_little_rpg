@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 
 use serde::{Deserialize, Serialize};
+use serde_json::{json, Value};
 
 use crate::Game;
 use crate::the_world::treasure_types::{pay_crafting_cost, TreasureType};
@@ -12,6 +13,13 @@ pub struct ExecuteExpandMaxSimultaneousElementReport {
     paid_cost: HashMap<TreasureType, u64>,
     new_cost: HashMap<TreasureType, u64>,
     leftover_spending_treasure: HashMap<TreasureType, u64>,
+}
+
+pub fn execute_json(game: &mut Game) -> Value {
+    match execute(game) {
+        Ok(result) => json!(result),
+        Err(result) => json!(result)
+    }
 }
 
 pub fn execute(game: &mut Game) -> Result<ExecuteExpandMaxSimultaneousElementReport, String> {

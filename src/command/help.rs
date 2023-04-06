@@ -1,4 +1,5 @@
 use serde::{Deserialize, Serialize};
+use serde_json::{json, Value};
 
 use crate::parser::commands::Command;
 
@@ -6,6 +7,10 @@ use crate::parser::commands::Command;
 pub struct ExecuteHelpReport {
     tutorial: String,
     commands: Vec<String>,
+}
+
+pub fn execute_json() -> Value {
+    json!(execute())
 }
 
 pub fn execute() -> ExecuteHelpReport {

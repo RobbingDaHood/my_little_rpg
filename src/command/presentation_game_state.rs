@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 
 use serde::{Deserialize, Serialize};
+use serde_json::{json, Value};
 
 use crate::command::craft_expand_modifier::execute_craft_expand_modifiers_calculate_cost;
 use crate::command::craft_reroll_modifier::execute_craft_reroll_modifier_calculate_cost;
@@ -30,7 +31,7 @@ pub struct PresentationGameState {
     pub(crate) treasure: HashMap<TreasureType, u64>,
     pub(crate) item_resources: HashMap<Type, u64>,
     pub(crate) crafting_action_costs: PlaceCosts,
-    pub(crate) seed: String,
+    pub(crate) seed: Box<str>,
     pub(crate) game_statistics: GameStatistics,
 }
 
@@ -63,6 +64,10 @@ pub struct PresentationItem {
 pub struct ItemCosts {
     reroll_modifier: u16,
     add_modifier: usize,
+}
+
+pub fn execute_json(game: &mut Game) -> Value {
+   json!(execute(game))
 }
 
 pub fn execute(game: &mut Game) -> PresentationGameState {

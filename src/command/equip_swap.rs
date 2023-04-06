@@ -1,6 +1,7 @@
 use std::mem;
 
 use serde::{Deserialize, Serialize};
+use serde_json::{json, Value};
 
 use crate::Game;
 use crate::the_world::item::Item;
@@ -8,6 +9,13 @@ use crate::the_world::item::Item;
 #[derive(Clone, PartialEq, Eq, Debug, Serialize, Deserialize)]
 pub struct ExecuteEquipOrSwapReport {
     new_equipped_items: Vec<Item>,
+}
+
+pub fn execute_equip_item_json(game: &mut Game, inventory_position: usize, equipped_item_position: usize) -> Value {
+    match execute_equip_item(game, inventory_position, equipped_item_position) {
+        Ok(result) => json!(result),
+        Err(result) => json!(result)
+    }
 }
 
 pub fn execute_equip_item(game: &mut Game, inventory_position: usize, equipped_item_position: usize) -> Result<ExecuteEquipOrSwapReport, String> {
@@ -25,6 +33,13 @@ pub fn execute_equip_item(game: &mut Game, inventory_position: usize, equipped_i
     game.equipped_items[equipped_item_position] = inventory_item.unwrap();
 
     Ok(ExecuteEquipOrSwapReport { new_equipped_items: game.equipped_items.clone() })
+}
+
+pub fn execute_swap_equipped_item_json(game: &mut Game, equipped_item_position_1: usize, equipped_item_position_2: usize) -> Value {
+    match execute_swap_equipped_item(game, equipped_item_position_1, equipped_item_position_2) {
+        Ok(result) => json!(result),
+        Err(result) => json!(result)
+    }
 }
 
 pub fn execute_swap_equipped_item(game: &mut Game, equipped_item_position_1: usize, equipped_item_position_2: usize) -> Result<ExecuteEquipOrSwapReport, String> {

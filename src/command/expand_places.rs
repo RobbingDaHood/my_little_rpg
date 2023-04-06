@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 
 use serde::{Deserialize, Serialize};
+use serde_json::{json, Value};
 
 use crate::Game;
 use crate::generator::place::new;
@@ -14,6 +15,13 @@ pub struct ExecuteExpandPlacesReport {
     paid_cost: HashMap<TreasureType, u64>,
     new_cost: HashMap<TreasureType, u64>,
     leftover_spending_treasure: HashMap<TreasureType, u64>,
+}
+
+pub fn execute_json(game: &mut Game) -> Value {
+    match execute(game) {
+        Ok(result) => json!(result),
+        Err(result) => json!(result)
+    }
 }
 
 pub fn execute(game: &mut Game) -> Result<ExecuteExpandPlacesReport, String> {
@@ -42,7 +50,7 @@ pub fn execute_expand_places_calculate_cost(game: &mut Game) -> HashMap<Treasure
 #[cfg(test)]
 mod tests_int {
     use crate::command::expand_places::execute;
-    use crate::command::r#move::execute_move_command;
+    use crate::command::r#move::execute as execute_move_command;
     use crate::generator::game::new_testing;
     use crate::the_world::treasure_types::TreasureType::Gold;
 

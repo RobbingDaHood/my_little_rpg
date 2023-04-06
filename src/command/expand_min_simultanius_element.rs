@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 
 use serde::{Deserialize, Serialize};
+use serde_json::{json, Value};
 
 use crate::Game;
 use crate::the_world::treasure_types::{pay_crafting_cost, TreasureType};
@@ -14,6 +15,12 @@ pub struct ExecuteExpandMaxSimultaneousElementReport {
     leftover_spending_treasure: HashMap<TreasureType, u64>,
 }
 
+pub fn execute_expand_min_simultaneous_element_json(game: &mut Game) -> Value {
+    match execute_expand_min_simultaneous_element(game) {
+        Ok(result) => json!(result),
+        Err(result) => json!(result)
+    }
+}
 pub fn execute_expand_min_simultaneous_element(game: &mut Game) -> Result<ExecuteExpandMaxSimultaneousElementReport, String> {
     if game.difficulty.min_simultaneous_resistances >= game.difficulty.max_simultaneous_resistances {
         return Err(format!("execute_expand_min_simultaneous_element {} is already equal to max_simultaneous_resistances {}. Consider calling ExpandMaxSimultaneousElement.", game.difficulty.max_simultaneous_resistances, game.difficulty.max_resistance.len()));

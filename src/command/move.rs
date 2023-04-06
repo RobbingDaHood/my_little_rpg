@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 
 use serde::{Deserialize, Serialize};
+use serde_json::{json, Value};
 
 use crate::Game;
 use crate::generator::place::new;
@@ -40,7 +41,13 @@ pub struct ExecuteMoveCommandErrorReport {
     result: String,
 }
 
-pub fn execute_move_command(game: &mut Game, index: usize) -> Result<ExecuteMoveCommandReport, ExecuteMoveCommandErrorReport> {
+pub fn execute_json(game: &mut Game, index: usize) -> Value {
+    match execute(game, index) {
+        Ok(result) => json!(result),
+        Err(result) => json!(result)
+    }
+}
+pub fn execute(game: &mut Game, index: usize) -> Result<ExecuteMoveCommandReport, ExecuteMoveCommandErrorReport> {
     if game.places.len() <= index { return report_place_does_not_exist(game, index); }
 
     game.game_statistics.moves_count += 1;
@@ -337,7 +344,7 @@ fn evaluate_item_costs(item: &Item, current_damage: &HashMap<AttackType, u64>, g
 
 #[cfg(test)]
 mod tests_int {
-    use crate::command::r#move::execute_move_command;
+    use crate::command::r#move::execute;
     use crate::Game;
     use crate::generator::game::new_testing;
     use crate::the_world::attack_types::AttackType;
@@ -361,7 +368,7 @@ mod tests_int {
         assert_eq!(0, game.game_statistics.wins_in_a_row);
         assert_eq!(0, game.game_statistics.loses_in_a_row);
 
-        let result = execute_move_command(&mut game, 0);
+        let result = execute(&mut game, 0);
 
         assert!(result.is_err());
 
@@ -378,7 +385,7 @@ mod tests_int {
         assert_eq!(0, game.game_statistics.wins_in_a_row);
         assert_eq!(1, game.game_statistics.loses_in_a_row);
 
-        let result = execute_move_command(&mut game, 0);
+        let result = execute(&mut game, 0);
 
         assert!(result.is_ok());
 
@@ -401,7 +408,7 @@ mod tests_int {
     fn test_execute_move_command_index_out_of_bounds() {
         let mut game = new_testing(Some([1; 16]));
 
-        let result = execute_move_command(&mut game, 11);
+        let result = execute(&mut game, 11);
 
         assert!(result.is_err());
 
@@ -417,7 +424,7 @@ mod tests_int {
         let mut game = new_testing(Some([1; 16]));
         game.equipped_items = Vec::new();
 
-        let result = execute_move_command(&mut game, 0);
+        let result = execute(&mut game, 0);
 
         assert!(result.is_err());
 
@@ -451,7 +458,7 @@ mod tests_int {
         };
         game.equipped_items.insert(0, power_item);
 
-        let result = execute_move_command(&mut game, 0);
+        let result = execute(&mut game, 0);
 
         assert!(result.is_ok());
 
@@ -467,7 +474,7 @@ mod tests_int {
         game.equipped_items.swap(0, 2);
         game.equipped_items.swap(0, 1);
 
-        let result = execute_move_command(&mut game, 0);
+        let result = execute(&mut game, 0);
 
         assert!(result.is_ok());
 
@@ -519,7 +526,7 @@ mod tests_int {
         game.equipped_items.push(first_item_cannot_pay);
 
 
-        let result = execute_move_command(&mut game, 0);
+        let result = execute(&mut game, 0);
 
         assert!(result.is_err());
 
@@ -570,7 +577,7 @@ mod tests_int {
         game.equipped_items.push(first_item_cannot_pay);
 
 
-        let result = execute_move_command(&mut game, 0);
+        let result = execute(&mut game, 0);
 
         assert!(result.is_err());
 
@@ -602,16 +609,16 @@ mod tests_int {
         };
 
         game.equipped_items.push(first_item_cannot_pay);
-        assert_eq!("Did not fulfill the PlaceLimitedByIndexModulus: 0 % 6 = 0 and that is not contained in [1, 3, 4].".to_string(), execute_move_command(&mut game, 0).unwrap_err().item_report[0].effect_description);
-        assert_eq!("Costs paid and all gains executed.".to_string(), execute_move_command(&mut game, 1).unwrap_err().item_report[0].effect_description);
-        assert_eq!("Did not fulfill the PlaceLimitedByIndexModulus: 2 % 6 = 2 and that is not contained in [1, 3, 4].".to_string(), execute_move_command(&mut game, 2).unwrap_err().item_report[0].effect_description);
-        assert_eq!("Costs paid and all gains executed.".to_string(), execute_move_command(&mut game, 3).unwrap_err().item_report[0].effect_description);
-        assert_eq!("Costs paid and all gains executed.".to_string(), execute_move_command(&mut game, 4).unwrap_err().item_report[0].effect_description);
-        assert_eq!("Did not fulfill the PlaceLimitedByIndexModulus: 5 % 6 = 5 and that is not contained in [1, 3, 4].".to_string(), execute_move_command(&mut game, 5).unwrap_err().item_report[0].effect_description);
-        assert_eq!("Did not fulfill the PlaceLimitedByIndexModulus: 6 % 6 = 0 and that is not contained in [1, 3, 4].".to_string(), execute_move_command(&mut game, 6).unwrap_err().item_report[0].effect_description);
-        assert_eq!("Costs paid and all gains executed.".to_string(), execute_move_command(&mut game, 7).unwrap_err().item_report[0].effect_description);
-        assert_eq!("Did not fulfill the PlaceLimitedByIndexModulus: 8 % 6 = 2 and that is not contained in [1, 3, 4].".to_string(), execute_move_command(&mut game, 8).unwrap_err().item_report[0].effect_description);
-        assert_eq!("Costs paid and all gains executed.".to_string(), execute_move_command(&mut game, 9).unwrap_err().item_report[0].effect_description);
+        assert_eq!("Did not fulfill the PlaceLimitedByIndexModulus: 0 % 6 = 0 and that is not contained in [1, 3, 4].".to_string(), execute(&mut game, 0).unwrap_err().item_report[0].effect_description);
+        assert_eq!("Costs paid and all gains executed.".to_string(), execute(&mut game, 1).unwrap_err().item_report[0].effect_description);
+        assert_eq!("Did not fulfill the PlaceLimitedByIndexModulus: 2 % 6 = 2 and that is not contained in [1, 3, 4].".to_string(), execute(&mut game, 2).unwrap_err().item_report[0].effect_description);
+        assert_eq!("Costs paid and all gains executed.".to_string(), execute(&mut game, 3).unwrap_err().item_report[0].effect_description);
+        assert_eq!("Costs paid and all gains executed.".to_string(), execute(&mut game, 4).unwrap_err().item_report[0].effect_description);
+        assert_eq!("Did not fulfill the PlaceLimitedByIndexModulus: 5 % 6 = 5 and that is not contained in [1, 3, 4].".to_string(), execute(&mut game, 5).unwrap_err().item_report[0].effect_description);
+        assert_eq!("Did not fulfill the PlaceLimitedByIndexModulus: 6 % 6 = 0 and that is not contained in [1, 3, 4].".to_string(), execute(&mut game, 6).unwrap_err().item_report[0].effect_description);
+        assert_eq!("Costs paid and all gains executed.".to_string(), execute(&mut game, 7).unwrap_err().item_report[0].effect_description);
+        assert_eq!("Did not fulfill the PlaceLimitedByIndexModulus: 8 % 6 = 2 and that is not contained in [1, 3, 4].".to_string(), execute(&mut game, 8).unwrap_err().item_report[0].effect_description);
+        assert_eq!("Costs paid and all gains executed.".to_string(), execute(&mut game, 9).unwrap_err().item_report[0].effect_description);
     }
 
     #[test]
@@ -641,7 +648,7 @@ mod tests_int {
         game.equipped_items.push(first_item_cannot_pay);
 
 
-        let result = execute_move_command(&mut game, 0);
+        let result = execute(&mut game, 0);
 
         assert!(result.is_err());
 
@@ -711,7 +718,7 @@ mod tests_int {
         game.equipped_items.push(first_item_cannot_pay);
 
 
-        let result = execute_move_command(&mut game, 0);
+        let result = execute(&mut game, 0);
 
         assert!(result.is_err());
 
@@ -766,7 +773,7 @@ mod tests_int {
         game.equipped_items.push(first_item_cannot_pay);
 
 
-        let result = execute_move_command(&mut game, 0);
+        let result = execute(&mut game, 0);
 
         assert!(result.is_err());
 
@@ -808,7 +815,7 @@ mod tests_int {
         game.equipped_items.push(first_item_cannot_pay);
 
 
-        let result = execute_move_command(&mut game, 0);
+        let result = execute(&mut game, 0);
 
         assert!(result.is_err());
 
@@ -847,7 +854,7 @@ mod tests_int {
         game.equipped_items.push(second_item_generates_needed_resource);
         game.equipped_items.push(first_item_cannot_pay);
 
-        let result = execute_move_command(&mut game, 0);
+        let result = execute(&mut game, 0);
 
         assert!(result.is_err());
 
@@ -882,7 +889,7 @@ mod tests_int {
 
         game.equipped_items.push(first_item_cannot_pay);
 
-        let result = execute_move_command(&mut game, 0);
+        let result = execute(&mut game, 0);
 
         assert!(result.is_err());
 
@@ -890,7 +897,7 @@ mod tests_int {
         assert_eq!("You did not deal enough damage to overcome the challenges in this place.".to_string(), result.result);
         assert_eq!("Did not fulfill the FlatMinResistanceRequirement of 18 Fire damage, place only has [(Fire, 17), (Frost, 7), (Darkness, 6), (Nature, 70), (Corruption, 52), (Holy, 89)] damage.".to_string(), result.item_report[0].effect_description);
 
-        let result = execute_move_command(&mut game, 7);
+        let result = execute(&mut game, 7);
 
         assert!(result.is_err());
 
@@ -921,7 +928,7 @@ mod tests_int {
 
         game.equipped_items.push(first_item_cannot_pay);
 
-        let result = execute_move_command(&mut game, 0);
+        let result = execute(&mut game, 0);
 
         assert!(result.is_err());
 
@@ -929,7 +936,7 @@ mod tests_int {
         assert_eq!("You did not deal enough damage to overcome the challenges in this place.".to_string(), result.result);
         assert_eq!("Costs paid and all gains executed.".to_string(), result.item_report[0].effect_description);
 
-        let result = execute_move_command(&mut game, 7);
+        let result = execute(&mut game, 7);
 
         assert!(result.is_err());
 
@@ -960,7 +967,7 @@ mod tests_int {
 
         game.equipped_items.push(first_item_cannot_pay);
 
-        let result = execute_move_command(&mut game, 9);
+        let result = execute(&mut game, 9);
 
         assert!(result.is_err());
 
@@ -968,7 +975,7 @@ mod tests_int {
         assert_eq!("You did not deal enough damage to overcome the challenges in this place.".to_string(), result.result);
         assert_eq!("Did not fulfill the FlatMinSumResistanceRequirement of 195 damage, place only has 194 damage.".to_string(), result.item_report[0].effect_description);
 
-        let result = execute_move_command(&mut game, 0);
+        let result = execute(&mut game, 0);
 
         assert!(result.is_err());
 
@@ -999,7 +1006,7 @@ mod tests_int {
 
         game.equipped_items.push(first_item_cannot_pay);
 
-        let result = execute_move_command(&mut game, 9);
+        let result = execute(&mut game, 9);
 
         assert!(result.is_err());
 
@@ -1007,7 +1014,7 @@ mod tests_int {
         assert_eq!("You did not deal enough damage to overcome the challenges in this place.".to_string(), result.result);
         assert_eq!("Costs paid and all gains executed.".to_string(), result.item_report[0].effect_description);
 
-        let result = execute_move_command(&mut game, 0);
+        let result = execute(&mut game, 0);
 
         assert!(result.is_err());
 
@@ -1037,7 +1044,7 @@ mod tests_int {
 
         game.equipped_items.insert(0, first_item_cannot_pay);
 
-        let result = execute_move_command(&mut game, 0);
+        let result = execute(&mut game, 0);
 
         assert!(result.is_err());
 
@@ -1046,7 +1053,7 @@ mod tests_int {
         assert_eq!("Did not fulfill the MinWinsInARow of 1 win, only hase 0 wins in a row.".to_string(), result.item_report[0].effect_description);
         assert_eq!("Costs paid and all gains executed.".to_string(), result.item_report[1].effect_description);
 
-        let result = execute_move_command(&mut game, 0);
+        let result = execute(&mut game, 0);
 
         assert!(result.is_ok());
 
@@ -1055,7 +1062,7 @@ mod tests_int {
         assert_eq!("Did not fulfill the MinWinsInARow of 1 win, only hase 0 wins in a row.".to_string(), result.item_report[0].effect_description);
         assert_eq!("Costs paid and all gains executed.".to_string(), result.item_report[1].effect_description);
 
-        let result = execute_move_command(&mut game, 9);
+        let result = execute(&mut game, 9);
 
         assert!(result.is_err());
 
@@ -1086,7 +1093,7 @@ mod tests_int {
 
         game.equipped_items.insert(0, first_item_cannot_pay);
 
-        let result = execute_move_command(&mut game, 0);
+        let result = execute(&mut game, 0);
 
         assert!(result.is_err());
 
@@ -1095,7 +1102,7 @@ mod tests_int {
         assert_eq!("Costs paid and all gains executed.".to_string(), result.item_report[0].effect_description);
         assert_eq!("Costs paid and all gains executed.".to_string(), result.item_report[1].effect_description);
 
-        let result = execute_move_command(&mut game, 0);
+        let result = execute(&mut game, 0);
 
         assert!(result.is_ok());
 
@@ -1104,7 +1111,7 @@ mod tests_int {
         assert_eq!("Costs paid and all gains executed.".to_string(), result.item_report[0].effect_description);
         assert_eq!("Costs paid and all gains executed.".to_string(), result.item_report[1].effect_description);
 
-        let result = execute_move_command(&mut game, 9);
+        let result = execute(&mut game, 9);
 
         assert!(result.is_err());
 
@@ -1138,7 +1145,7 @@ mod tests_int {
         game.equipped_items.push(item);
 
 
-        let result = execute_move_command(&mut game, 0);
+        let result = execute(&mut game, 0);
 
         assert!(result.is_err());
 
@@ -1171,7 +1178,7 @@ mod tests_int {
         game.equipped_items.push(item);
 
 
-        let result = execute_move_command(&mut game, 0);
+        let result = execute(&mut game, 0);
 
         assert!(result.is_err());
 
@@ -1205,7 +1212,7 @@ mod tests_int {
         game.equipped_items.push(item);
 
 
-        let result = execute_move_command(&mut game, 0);
+        let result = execute(&mut game, 0);
 
         assert!(result.is_err());
 
@@ -1238,7 +1245,7 @@ mod tests_int {
         game.equipped_items.push(item);
 
 
-        let result = execute_move_command(&mut game, 0);
+        let result = execute(&mut game, 0);
 
         assert!(result.is_err());
 
@@ -1272,7 +1279,7 @@ mod tests_int {
         game.equipped_items.push(item);
 
 
-        let result = execute_move_command(&mut game, 0);
+        let result = execute(&mut game, 0);
 
         assert!(result.is_err());
 
@@ -1305,7 +1312,7 @@ mod tests_int {
         game.equipped_items.push(item);
 
 
-        let result = execute_move_command(&mut game, 0);
+        let result = execute(&mut game, 0);
 
         assert!(result.is_err());
 
@@ -1339,7 +1346,7 @@ mod tests_int {
         game.equipped_items.push(item);
 
 
-        let result = execute_move_command(&mut game, 0);
+        let result = execute(&mut game, 0);
 
         assert!(result.is_err());
 
@@ -1373,7 +1380,7 @@ mod tests_int {
         game.equipped_items.push(item);
 
 
-        let result = execute_move_command(&mut game, 0);
+        let result = execute(&mut game, 0);
 
         assert!(result.is_err());
 
@@ -1401,7 +1408,7 @@ mod tests_int {
 
         let old_place = game.places[0].clone();
 
-        let result = execute_move_command(&mut game, 0);
+        let result = execute(&mut game, 0);
 
         assert!(result.is_ok());
 
@@ -1429,7 +1436,7 @@ mod tests_int {
 
         let old_inventory_count = game.inventory.len();
 
-        let result = execute_move_command(&mut game, 0);
+        let result = execute(&mut game, 0);
 
         assert!(result.is_ok());
 

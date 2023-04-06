@@ -3,6 +3,7 @@ extern crate core;
 use structopt::StructOpt;
 
 use the_world::game::Game;
+
 use crate::parser::hex_encoder::decode_hex;
 use crate::parser::tcp_listener::Listener;
 
@@ -10,6 +11,7 @@ mod the_world;
 mod command;
 mod parser;
 mod generator;
+mod my_little_rpg_errors;
 
 #[derive(Debug, StructOpt)]
 pub struct Settings {
@@ -25,8 +27,8 @@ fn parse_seed(src: &str) -> Result<[u8; 16], String> {
         return Err("32 Hexidecimals as a string requires 32 chars!".to_string());
     }
     match decode_hex(src) {
-        Err(e) => Err(e),
-        Ok(r) => Ok(r.try_into().unwrap())
+        Err(e) => Err(format!("{:?}", e)),
+        Ok(r) => Ok(r.try_into().unwrap()) //We know the size fits
     }
 }
 

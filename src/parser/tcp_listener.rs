@@ -5,25 +5,27 @@ use std::time::Duration;
 
 use serde_json::json;
 
-use crate::parser::commands::Command;
-use crate::command::craft_expand_modifier::execute_craft_expand_modifiers;
-use crate::command::craft_reroll_modifier::execute as execute_craft_reroll_modifier;
-use crate::command::equip_swap::{execute_equip_item, execute_swap_equipped_item};
-use crate::command::expand_elements::execute as execute_expand_elements;
-use crate::command::expand_equipment_slots::execute as execute_expand_equipment_slots;
-use crate::command::expand_max_element::execute as execute_expand_max_element;
-use crate::command::expand_max_simultaneous_element::execute as execute_expand_max_simultaneous_element;
-use crate::command::expand_min_element::execute as execute_expand_min_element;
-use crate::command::expand_min_simultanius_element::execute_expand_min_simultaneous_element;
-use crate::command::expand_places::execute as execute_expand_places;
-use crate::command::help::execute as execute_help;
-use crate::command::r#move::execute_move_command;
-use crate::command::reduce_difficulty::execute as execute_reduce_difficulty;
-use crate::command::reorder_inventory::execute as execute_reorder_inventory;
-use crate::command::save_load::{execute_load_command, execute_save_command};
-use crate::command::presentation_game_state::execute as execute_presentation_game_state;
+//TODO align all the execute method names
+use crate::command::craft_expand_modifier::execute_craft_expand_modifiers_json;
+use crate::command::craft_reroll_modifier::execute_json as execute_craft_reroll_modifier;
+use crate::command::equip_swap::{execute_equip_item_json, execute_swap_equipped_item_json};
+use crate::command::expand_elements::execute_json as execute_expand_elements;
+use crate::command::expand_equipment_slots::execute_json as execute_expand_equipment_slots;
+use crate::command::expand_max_element::execute_json as execute_expand_max_element;
+use crate::command::expand_max_simultaneous_element::execute_json as execute_expand_max_simultaneous_element;
+use crate::command::expand_min_element::execute_json as execute_expand_min_element;
+use crate::command::expand_min_simultanius_element::execute_expand_min_simultaneous_element_json;
+use crate::command::expand_places::execute_json as execute_expand_places;
+use crate::command::help::execute_json as execute_help;
+use crate::command::presentation_game_state::execute_json as execute_presentation_game_state;
+use crate::command::r#move::execute_json as execute_move_command;
+use crate::command::reduce_difficulty::execute_json as execute_reduce_difficulty;
+use crate::command::reorder_inventory::execute_json as execute_reorder_inventory;
+use crate::command::save_load::{execute_load_command_json, execute_save_command_json};
 use crate::Game;
 use crate::generator::game::new;
+use crate::my_little_rpg_errors::MyError;
+use crate::parser::commands::Command;
 
 pub struct Listener {
     tcp_listener: TcpListener,
@@ -40,105 +42,62 @@ impl Listener {
 
         for stream in self.tcp_listener.incoming() {
             match stream {
-                Ok(mut stream) => {
-                    Listener::handle_request(&mut stream, &mut game);
-                }
-                Err(e) => {
-                    println!("Error: {}", e);
-                    /* connection failed */
-                }
+                Ok(mut stream) => Listener::handle_request(&mut stream, &mut game),
+                Err(e) => println!("Failed handling the request, got the following error: {}", e),
             }
         }
     }
 
     fn handle_request(stream: &mut TcpStream, game: &mut Game) {
-        let command_as_string = Self::read_command(stream);
+        let result = Self::read_command(stream)
+            .map(Command::try_from)
+            .and_then(|r| r)
+            .map(|command| match command {
+                Command::State => execute_presentation_game_state(game),
+                Command::ReduceDifficulty => execute_reduce_difficulty(game),
+                Command::Move(place_index) => execute_move_command(game, place_index),
+                Command::Equip(inventory_position, equipped_item_position) => execute_equip_item_json(game, inventory_position, equipped_item_position),
+                Command::SwapEquipment(equipped_item_position_1, equipped_item_position_2) => execute_swap_equipped_item_json(game, equipped_item_position_1, equipped_item_position_2),
+                Command::RerollModifier(inventory_index, modifier_index, sacrifice_item_indexes) => execute_craft_reroll_modifier(game, inventory_index, modifier_index, sacrifice_item_indexes),
+                Command::ExpandPlaces => execute_expand_places(game),
+                Command::ExpandElements => execute_expand_elements(game),
+                Command::ExpandMaxElement => execute_expand_max_element(game),
+                Command::ExpandMinElement => execute_expand_min_element(game),
+                Command::ExpandMaxSimultaneousElement => execute_expand_max_simultaneous_element(game),
+                Command::ExpandMinSimultaneousElement => execute_expand_min_simultaneous_element_json(game),
+                Command::ExpandEquipmentSlots => execute_expand_equipment_slots(game),
+                Command::AddModifier(place_index, sacrifice_item_indexes) => execute_craft_expand_modifiers_json(game, place_index, sacrifice_item_indexes),
+                Command::Help => execute_help(),
+                Command::ReorderInventory => execute_reorder_inventory(game),
+                Command::SaveTheWorld(save_game_name, save_game_path) => execute_save_command_json(game, &save_game_name, save_game_path),
+                Command::LoadTheWorld(save_game_name, save_game_path) => execute_load_command_json(game, &save_game_name, save_game_path),
+            });
 
-        match Command::try_from(&command_as_string) {
-            Err(e) => if let Err(e) = stream.write(format!("{:?}", e).as_bytes()) {
-                panic!("{}", e);
-            },
-            Ok(Command::State) => if let Err(e) = stream.write(format!("{} \n", json!(execute_presentation_game_state(game))).as_bytes()) {
-                panic!("{}", e);
-            },
-            Ok(Command::ReduceDifficulty) => if let Err(e) = stream.write(format!("{} \n", json!(execute_reduce_difficulty(game))).as_bytes()) {
-                panic!("{}", e);
-            },
-            Ok(Command::Move(place_index)) => if let Err(e) = stream.write(format!("{} \n", json!(execute_move_command(game, place_index))).as_bytes()) {
-                panic!("{}", e);
-            },
-            Ok(Command::Equip(inventory_position, equipped_item_position)) => if let Err(e) = stream.write(format!("{} \n", json!(execute_equip_item(game, inventory_position, equipped_item_position))).as_bytes()) {
-                panic!("{}", e);
-            },
-            Ok(Command::SwapEquipment(equipped_item_position_1, equipped_item_position_2)) => if let Err(e) = stream.write(format!("{} \n", json!(execute_swap_equipped_item(game, equipped_item_position_1, equipped_item_position_2))).as_bytes()) {
-                panic!("{}", e);
-            },
-            Ok(Command::RerollModifier(inventory_index, modifier_index, sacrifice_item_indexes)) => if let Err(e) = stream.write(format!("{} \n", json!(execute_craft_reroll_modifier(game, inventory_index, modifier_index, sacrifice_item_indexes))).as_bytes()) {
-                panic!("{}", e);
-            },
-            Ok(Command::ExpandPlaces) => if let Err(e) = stream.write(format!("{} \n", json!(execute_expand_places(game))).as_bytes()) {
-                panic!("{}", e);
-            },
-            Ok(Command::ExpandElements) => if let Err(e) = stream.write(format!("{} \n", json!(execute_expand_elements(game))).as_bytes()) {
-                panic!("{}", e);
-            },
-            Ok(Command::ExpandMaxElement) => if let Err(e) = stream.write(format!("{} \n", json!(execute_expand_max_element(game))).as_bytes()) {
-                panic!("{}", e);
-            },
-            Ok(Command::ExpandMinElement) => if let Err(e) = stream.write(format!("{} \n", json!(execute_expand_min_element(game))).as_bytes()) {
-                panic!("{}", e);
-            },
-            Ok(Command::ExpandMaxSimultaneousElement) => if let Err(e) = stream.write(format!("{} \n", json!(execute_expand_max_simultaneous_element(game))).as_bytes()) {
-                panic!("{}", e);
-            },
-            Ok(Command::ExpandMinSimultaneousElement) => if let Err(e) = stream.write(format!("{} \n", json!(execute_expand_min_simultaneous_element(game))).as_bytes()) {
-                panic!("{}", e);
-            },
-            Ok(Command::ExpandEquipmentSlots) => if let Err(e) = stream.write(format!("{} \n", json!(execute_expand_equipment_slots(game))).as_bytes()) {
-                panic!("{}", e);
-            },
-            Ok(Command::AddModifier(place_index, sacrifice_item_indexes)) => if let Err(e) = stream.write(format!("{} \n", json!(execute_craft_expand_modifiers(game, place_index, sacrifice_item_indexes))).as_bytes()) {
-                panic!("{}", e);
-            },
-            Ok(Command::Help) => if let Err(e) = stream.write(format!("{} \n", json!(execute_help())).as_bytes()) {
-                panic!("{}", e);
-            },
-            Ok(Command::ReorderInventory) => if let Err(e) = stream.write(format!("{} \n", json!(execute_reorder_inventory(game))).as_bytes()) {
-                panic!("{}", e);
-            },
-            Ok(Command::SaveTheWorld(save_game_name, save_game_path)) => if let Err(e) = stream.write(format!("{} \n", json!(execute_save_command(game, &save_game_name, save_game_path))).as_bytes()) {
-                panic!("{}", e);
-            },
-            Ok(Command::LoadTheWorld(save_game_name, save_game_path)) => {
-                let message = match execute_load_command(&save_game_name, save_game_path) {
-                    Err(error_message) => Err(error_message),
-                    Ok(new_game) => {
-                        *game = new_game;
-                        Ok("Game is loaded!")
-                    }
-                };
-                if let Err(e) = stream.write(format!("{} \n", json!(message)).as_bytes()) {
-                    panic!("{}", e);
-                }
-            }
+        let result_message = match result {
+            Ok(result) => format!("{} \n", json!(result)),
+            Err(result) => format!("{} \n", json!(result))
+        };
+
+        match stream.write(result_message.as_bytes()) {
+            Ok(_) => { print!("Responded to request.") } //TODO give more details
+            Err(e) => panic!("Got the following error when writing the response to the user: {}", e)
         }
     }
 
-    fn read_command(stream: &mut TcpStream) -> String {
+    fn read_command(stream: &mut TcpStream) -> Result<Box<str>, MyError> {
         let mut buffer = [0; 1024];
-        if let Err(e) = stream.set_read_timeout(Some(Duration::from_secs(1))) {
-            panic!("Got error from setting timeout on reading tcp input, aborting: {}", e);
-        }
-        let buffer_size = match stream.read(&mut buffer) {
-            Ok(buffer_size_value) => { buffer_size_value }
-            Err(e) => {
-                panic!("Got error from reading command, aborting: {}", e);
-            }
-        };
+        stream.set_read_timeout(Some(Duration::from_secs(1)))
+            .map_err(|e| MyError::from(format!("Got error from setting timeout on reading tcp input, aborting: {}", e))
+            )?;
+        let buffer_size = stream.read(&mut buffer)
+            .map_err(|e| MyError::from(format!("Got error from reading command, aborting: {}", e))
+            )?;
         let command = &buffer[..buffer_size];
-        let command_as_string = String::from_utf8(command.to_vec()).unwrap();
+        let command_as_string = String::from_utf8(command.to_vec())
+            .map_err(|e| MyError::from(format!("Failed parsing the command, got error: {}", e))
+            )?;
         println!("Received request with following command: {}", command_as_string);
-        command_as_string
+        Ok(command_as_string.into())
     }
 }
 

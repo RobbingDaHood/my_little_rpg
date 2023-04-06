@@ -1,9 +1,16 @@
 use std::fs;
 use std::fs::create_dir_all;
 
-use serde_json::json;
+use serde_json::{json, Value};
 
 use crate::Game;
+use crate::my_little_rpg_errors::MyError;
+
+pub fn execute_save_command_json(game: &Game, save_name: &str, save_path: Option<String>) -> Value {
+    match execute_save_command(game, save_name, save_path) {
+        Ok(result) | Err(result)=> json!(result)
+    }
+}
 
 pub fn execute_save_command(game: &Game, save_name: &str, save_path: Option<String>) -> Result<String, String> {
     let file_path = get_file_path(save_name, save_path)?;
@@ -16,15 +23,31 @@ pub fn execute_save_command(game: &Game, save_name: &str, save_path: Option<Stri
     };
 }
 
-pub fn execute_load_command(save_name: &str, save_path: Option<String>) -> Result<Game, String> {
-    let file_path = get_file_path(save_name, save_path)?;
-    return match fs::read(file_path) {
-        Err(error_message) => Err(format!("Failed loading the world! Reason: {}", error_message)),
-        Ok(data) => match serde_json::from_slice(data.as_slice()) {
-            Err(error_message) => Err(format!("Failed loading the world! Reason: {}", error_message)),
-            Ok(parsed_data) => Ok(parsed_data)
+pub fn execute_load_command_json(game: &mut Game, save_name: &str, save_path: Option<String>) -> Value {
+    match execute_load_command(save_name, save_path) {
+        Ok(new_game) => {
+            *game = new_game;
+            json!("Game is loaded!")
         }
-    };
+        Err(result) => json!(result)
+    }
+}
+
+pub fn execute_load_command(save_name: &str, save_path: Option<String>) -> Result<Game, MyError> {
+    let file_path = get_file_path(save_name, save_path)?;
+    //TODO better way of flattening this?!
+    fs::read(file_path)
+        .map_err(|error| {
+            let error_message = format!("Failed loading the world! Reason: {}", error);
+            MyError::create_save_load_error(error_message)
+        })
+        .map(|data| serde_json::from_slice::<Game>(data.as_slice()))
+        .and_then(|result| result
+            .map_err(|error| {
+                let error_message = format!("Failed loading the world! Reason: {}", error);
+                MyError::create_save_load_error(error_message)
+            })
+        )
 }
 
 fn get_file_path(save_name: &str, save_path: Option<String>) -> Result<String, String> {

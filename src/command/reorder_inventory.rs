@@ -1,5 +1,11 @@
+use serde_json::{json, Value};
+
 use crate::Game;
 use crate::the_world::item::Item;
+
+pub fn execute_json(game: &mut Game) -> Value {
+    json!(execute(game))
+}
 
 pub fn execute(game: &mut Game) -> String {
     let reordered_inventory = game.inventory.clone().into_iter()

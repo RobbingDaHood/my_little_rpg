@@ -2,6 +2,7 @@ use std::collections::HashMap;
 use std::mem;
 
 use serde::{Deserialize, Serialize};
+use serde_json::{json, Value};
 
 use crate::Game;
 use crate::the_world::item::Item;
@@ -16,6 +17,12 @@ pub struct ExecuteExpandEquipmentSlotsReport {
     leftover_spending_treasure: HashMap<TreasureType, u64>,
 }
 
+pub fn execute_json(game: &mut Game) -> Value {
+    match execute(game) {
+        Ok(result) => json!(result),
+        Err(result) => json!(result)
+    }
+}
 pub fn execute(game: &mut Game) -> Result<ExecuteExpandEquipmentSlotsReport, String> {
     if game.inventory.is_empty() {
         return Err("No item in inventory to equip in new item slot.".to_string());

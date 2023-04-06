@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 
 use serde::{Deserialize, Serialize};
+use serde_json::{json, Value};
 
 use crate::Game;
 use crate::command::roll_modifier::execute_craft;
@@ -16,6 +17,12 @@ pub struct ExecuteExpandModifiersReport {
     leftover_spending_treasure: HashMap<TreasureType, u64>,
 }
 
+pub fn execute_craft_expand_modifiers_json(game: &mut Game, inventory_index: usize, sacrifice_item_indexes: Vec<IndexSpecifier>) -> Value {
+    match execute_craft_expand_modifiers(game, inventory_index, sacrifice_item_indexes) {
+        Ok(result) => json!(result),
+        Err(result) => json!(result)
+    }
+}
 pub fn execute_craft_expand_modifiers(game: &mut Game, inventory_index: usize, mut sacrifice_item_indexes: Vec<IndexSpecifier>) -> Result<ExecuteExpandModifiersReport, String> {
     //validation
     if game.inventory.len() <= inventory_index {

@@ -4,6 +4,7 @@ use std::ops::Div;
 
 use rand::prelude::SliceRandom;
 use serde::{Deserialize, Serialize};
+use serde_json::{json, Value};
 
 use crate::Game;
 use crate::generator::place::new;
@@ -18,6 +19,10 @@ pub struct Report {
     paid_cost: HashMap<TreasureType, u64>,
     new_cost: HashMap<TreasureType, u64>,
     leftover_spending_treasure: HashMap<TreasureType, u64>,
+}
+
+pub fn execute_json(game: &mut Game) -> Value {
+    json!(execute(game))
 }
 
 pub fn execute(game: &mut Game) -> Report {
