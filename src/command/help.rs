@@ -5,8 +5,8 @@ use crate::parser::commands::Command;
 
 #[derive(Clone, PartialEq, Eq, Debug, Serialize, Deserialize)]
 pub struct ExecuteHelpReport {
-    tutorial: String,
-    commands: Vec<String>,
+    tutorial: Box<str>,
+    commands: Vec<Box<str>>,
 }
 
 pub fn execute_json() -> Value {
@@ -14,11 +14,11 @@ pub fn execute_json() -> Value {
 }
 
 pub fn execute() -> ExecuteHelpReport {
-    let tutorial = "Use state, see what you like. Then get Moving, try Move 0. Do some more movement, earn some treasure. Use the treasure to craft items and expand difficulty. Have fun.".to_string();
+    let tutorial = "Use state, see what you like. Then get Moving, try Move 0. Do some more movement, earn some treasure. Use the treasure to craft items and expand difficulty. Have fun.".into();
 
     let mut commands = Vec::new();
     for command in Command::get_all() {
-        commands.push(execute_help_for_command(&command).to_string());
+        commands.push(execute_help_for_command(&command).into());
     }
 
     ExecuteHelpReport {

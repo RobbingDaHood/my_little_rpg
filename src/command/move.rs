@@ -24,7 +24,7 @@ pub struct ItemReport {
     current_resistance_reduction: HashMap<AttackType, u64>,
     treasure_bonus: HashMap<TreasureType, u16>,
     item_gain: u16,
-    effect_description: String,
+    effect_description: Box<str>,
     item_resource_costs: Option<HashMap<Type, u64>>,
     current_item_resources: HashMap<Type, u64>,
 }
@@ -32,14 +32,14 @@ pub struct ItemReport {
 #[derive(Clone, PartialEq, Eq, Debug, Serialize, Deserialize)]
 pub struct ExecuteMoveCommandReport {
     item_report: Vec<ItemReport>,
-    result: String,
+    result: Box<str>,
     new_place: Place,
 }
 
 #[derive(Clone, PartialEq, Eq, Debug, Serialize, Deserialize)]
 pub struct ExecuteMoveCommandErrorReport {
     item_report: Vec<ItemReport>,
-    result: String,
+    result: Box<str>,
 }
 
 pub fn execute_json(game: &mut Game, index: usize) -> Value {
@@ -69,7 +69,7 @@ pub fn execute(game: &mut Game, index: usize) -> Result<ExecuteMoveCommandReport
                     current_resistance_reduction: current_resistance_reduction.clone(),
                     treasure_bonus: treasure_bonus.clone(),
                     item_gain,
-                    effect_description: format!("{:?}", message),
+                    effect_description: message.into(),
                     item_resource_costs: None,
                     current_item_resources: game.item_resources.clone(),
                 });
@@ -85,7 +85,7 @@ pub fn execute(game: &mut Game, index: usize) -> Result<ExecuteMoveCommandReport
             current_resistance_reduction: current_resistance_reduction.clone(),
             treasure_bonus: treasure_bonus.clone(),
             item_gain,
-            effect_description: "Costs paid and all gains executed.".to_string(),
+            effect_description: "Costs paid and all gains executed.".into(),
             item_resource_costs: Some(item_resource_cost),
             current_item_resources: game.item_resources.clone(),
         });
@@ -145,7 +145,7 @@ pub fn execute(game: &mut Game, index: usize) -> Result<ExecuteMoveCommandReport
 
     Err(ExecuteMoveCommandErrorReport {
         item_report,
-        result: "You did not deal enough damage to overcome the challenges in this place.".to_string(),
+        result: "You did not deal enough damage to overcome the challenges in this place.".into(),
     })
 }
 
@@ -154,7 +154,7 @@ pub fn execute(game: &mut Game, index: usize) -> Result<ExecuteMoveCommandReport
 fn report_place_does_not_exist(game: &mut Game, index: usize) -> Result<ExecuteMoveCommandReport, ExecuteMoveCommandErrorReport> {
     Err(ExecuteMoveCommandErrorReport {
         item_report: Vec::new(),
-        result: format!("Error: execute_move_command: Index {} is out of range of places, places is {} long.", index, game.places.len()),
+        result: format!("Error: execute_move_command: Index {} is out of range of places, places is {} long.", index, game.places.len()).into(),
     })
 }
 
@@ -167,7 +167,7 @@ fn update_claim_place_effect(game: &mut Game, index: usize, item_report: Vec<Ite
 
     ExecuteMoveCommandReport {
         item_report,
-        result: "You won and got a new item in the inventory.".to_string(),
+        result: "You won and got a new item in the inventory.".into(),
         new_place: game.places[index].clone(),
     }
 }
@@ -375,7 +375,7 @@ mod tests_int {
 
         let result = result.unwrap_err();
 
-        assert_eq!("You did not deal enough damage to overcome the challenges in this place.".to_string(), result.result);
+        assert_eq!(Into::<Box<str>>::into("You did not deal enough damage to overcome the challenges in this place."), result.result);
         assert_eq!(2, result.item_report.len());
         assert_eq!(None, game.treasure.get(&Gold));
         assert_eq!(Some(&5), game.item_resources.get(&Type::Mana));
@@ -391,7 +391,7 @@ mod tests_int {
         assert!(result.is_ok());
 
         let result = result.unwrap();
-        assert_eq!("You won and got a new item in the inventory.".to_string(), result.result);
+        assert_eq!(Into::<Box<str>>::into("You won and got a new item in the inventory."), result.result);
         assert_eq!(2, result.item_report.len());
         assert_ne!(place, game.places[0]);
         assert_eq!(place.reward.get(&Gold), game.treasure.get(&Gold));
@@ -415,7 +415,7 @@ mod tests_int {
 
         let result = result.unwrap_err();
 
-        assert_eq!("Error: execute_move_command: Index 11 is out of range of places, places is 10 long.".to_string(), result.result);
+        assert_eq!(Into::<Box<str>>::into("Error: execute_move_command: Index 11 is out of range of places, places is 10 long."), result.result);
         assert_eq!(0, result.item_report.len());
         assert_eq!(None, game.treasure.get(&Gold));
     }
@@ -431,7 +431,7 @@ mod tests_int {
 
         let result = result.unwrap_err();
 
-        assert_eq!("You did not deal enough damage to overcome the challenges in this place.".to_string(), result.result);
+        assert_eq!(Into::<Box<str>>::into("You did not deal enough damage to overcome the challenges in this place."), result.result);
         assert_eq!(0, result.item_report.len());
         assert_eq!(None, game.treasure.get(&Gold));
     }
@@ -464,7 +464,7 @@ mod tests_int {
         assert!(result.is_ok());
 
         let result = result.unwrap();
-        assert_eq!("You won and got a new item in the inventory.".to_string(), result.result);
+        assert_eq!(Into::<Box<str>>::into("You won and got a new item in the inventory."), result.result);
         assert_eq!(1, result.item_report.len()); //Only the first item got activated, because that were enough.
         assert_ne!(place, game.places[0]);
         assert_eq!(place.reward.get(&Gold), game.treasure.get(&Gold));
@@ -480,7 +480,7 @@ mod tests_int {
         assert!(result.is_ok());
 
         let result = result.unwrap();
-        assert_eq!("You won and got a new item in the inventory.".to_string(), result.result);
+        assert_eq!(Into::<Box<str>>::into("You won and got a new item in the inventory."), result.result);
         assert_eq!(3, result.item_report.len()); //Now all three have a report.
         assert_ne!(place, game.places[0]);
         assert!(place.reward.get(&Gold).unwrap() < game.treasure.get(&Gold).unwrap());
@@ -532,10 +532,10 @@ mod tests_int {
         assert!(result.is_err());
 
         let result = result.unwrap_err();
-        assert_eq!("You did not deal enough damage to overcome the challenges in this place.".to_string(), result.result);
-        assert_eq!("MyError { kind: ExecuteCommand { error_message: \"Did not fulfill the FlatMinAttackRequirement of 20 Physical damage, only did {} damage.\" } }".to_string(), result.item_report[0].effect_description);
-        assert_eq!("Costs paid and all gains executed.".to_string(), result.item_report[1].effect_description);
-        assert_eq!("Costs paid and all gains executed.".to_string(), result.item_report[2].effect_description);
+        assert_eq!(Into::<Box<str>>::into("You did not deal enough damage to overcome the challenges in this place."), result.result);
+        assert_eq!(Into::<Box<str>>::into("MyError { kind: ExecuteCommand { error_message: \"Did not fulfill the FlatMinAttackRequirement of 20 Physical damage, only did {} damage.\" } }"), result.item_report[0].effect_description);
+        assert_eq!(Into::<Box<str>>::into("Costs paid and all gains executed."), result.item_report[1].effect_description);
+        assert_eq!(Into::<Box<str>>::into("Costs paid and all gains executed."), result.item_report[2].effect_description);
     }
 
     #[test]
@@ -583,10 +583,10 @@ mod tests_int {
         assert!(result.is_err());
 
         let result = result.unwrap_err();
-        assert_eq!("You did not deal enough damage to overcome the challenges in this place.".to_string(), result.result);
-        assert_eq!("Costs paid and all gains executed.".to_string(), result.item_report[0].effect_description);
-        assert_eq!("Costs paid and all gains executed.".to_string(), result.item_report[1].effect_description);
-        assert_eq!("MyError { kind: ExecuteCommand { error_message: \"Did not fulfill the FlatMaxAttackRequirement of 1 Physical damage, did {Physical: 3} damage and that is too much.\" } }".to_string(), result.item_report[2].effect_description);
+        assert_eq!(Into::<Box<str>>::into("You did not deal enough damage to overcome the challenges in this place."), result.result);
+        assert_eq!(Into::<Box<str>>::into("Costs paid and all gains executed."), result.item_report[0].effect_description);
+        assert_eq!(Into::<Box<str>>::into("Costs paid and all gains executed."), result.item_report[1].effect_description);
+        assert_eq!(Into::<Box<str>>::into("MyError { kind: ExecuteCommand { error_message: \"Did not fulfill the FlatMaxAttackRequirement of 1 Physical damage, did {Physical: 3} damage and that is too much.\" } }"), result.item_report[2].effect_description);
     }
 
     #[test]
@@ -610,16 +610,16 @@ mod tests_int {
         };
 
         game.equipped_items.push(first_item_cannot_pay);
-        assert_eq!("MyError { kind: ExecuteCommand { error_message: \"Did not fulfill the PlaceLimitedByIndexModulus: 0 % 6 = 0 and that is not contained in [1, 3, 4].\" } }".to_string(), execute(&mut game, 0).unwrap_err().item_report[0].effect_description);
-        assert_eq!("Costs paid and all gains executed.".to_string(), execute(&mut game, 1).unwrap_err().item_report[0].effect_description);
-        assert_eq!("MyError { kind: ExecuteCommand { error_message: \"Did not fulfill the PlaceLimitedByIndexModulus: 2 % 6 = 2 and that is not contained in [1, 3, 4].\" } }".to_string(), execute(&mut game, 2).unwrap_err().item_report[0].effect_description);
-        assert_eq!("Costs paid and all gains executed.".to_string(), execute(&mut game, 3).unwrap_err().item_report[0].effect_description);
-        assert_eq!("Costs paid and all gains executed.".to_string(), execute(&mut game, 4).unwrap_err().item_report[0].effect_description);
-        assert_eq!("MyError { kind: ExecuteCommand { error_message: \"Did not fulfill the PlaceLimitedByIndexModulus: 5 % 6 = 5 and that is not contained in [1, 3, 4].\" } }".to_string(), execute(&mut game, 5).unwrap_err().item_report[0].effect_description);
-        assert_eq!("MyError { kind: ExecuteCommand { error_message: \"Did not fulfill the PlaceLimitedByIndexModulus: 6 % 6 = 0 and that is not contained in [1, 3, 4].\" } }".to_string(), execute(&mut game, 6).unwrap_err().item_report[0].effect_description);
-        assert_eq!("Costs paid and all gains executed.".to_string(), execute(&mut game, 7).unwrap_err().item_report[0].effect_description);
-        assert_eq!("MyError { kind: ExecuteCommand { error_message: \"Did not fulfill the PlaceLimitedByIndexModulus: 8 % 6 = 2 and that is not contained in [1, 3, 4].\" } }".to_string(), execute(&mut game, 8).unwrap_err().item_report[0].effect_description);
-        assert_eq!("Costs paid and all gains executed.".to_string(), execute(&mut game, 9).unwrap_err().item_report[0].effect_description);
+        assert_eq!(Into::<Box<str>>::into("MyError { kind: ExecuteCommand { error_message: \"Did not fulfill the PlaceLimitedByIndexModulus: 0 % 6 = 0 and that is not contained in [1, 3, 4].\" } }"), execute(&mut game, 0).unwrap_err().item_report[0].effect_description);
+        assert_eq!(Into::<Box<str>>::into("Costs paid and all gains executed."), execute(&mut game, 1).unwrap_err().item_report[0].effect_description);
+        assert_eq!(Into::<Box<str>>::into("MyError { kind: ExecuteCommand { error_message: \"Did not fulfill the PlaceLimitedByIndexModulus: 2 % 6 = 2 and that is not contained in [1, 3, 4].\" } }"), execute(&mut game, 2).unwrap_err().item_report[0].effect_description);
+        assert_eq!(Into::<Box<str>>::into("Costs paid and all gains executed."), execute(&mut game, 3).unwrap_err().item_report[0].effect_description);
+        assert_eq!(Into::<Box<str>>::into("Costs paid and all gains executed."), execute(&mut game, 4).unwrap_err().item_report[0].effect_description);
+        assert_eq!(Into::<Box<str>>::into("MyError { kind: ExecuteCommand { error_message: \"Did not fulfill the PlaceLimitedByIndexModulus: 5 % 6 = 5 and that is not contained in [1, 3, 4].\" } }"), execute(&mut game, 5).unwrap_err().item_report[0].effect_description);
+        assert_eq!(Into::<Box<str>>::into("MyError { kind: ExecuteCommand { error_message: \"Did not fulfill the PlaceLimitedByIndexModulus: 6 % 6 = 0 and that is not contained in [1, 3, 4].\" } }"), execute(&mut game, 6).unwrap_err().item_report[0].effect_description);
+        assert_eq!(Into::<Box<str>>::into("Costs paid and all gains executed."), execute(&mut game, 7).unwrap_err().item_report[0].effect_description);
+        assert_eq!(Into::<Box<str>>::into("MyError { kind: ExecuteCommand { error_message: \"Did not fulfill the PlaceLimitedByIndexModulus: 8 % 6 = 2 and that is not contained in [1, 3, 4].\" } }"), execute(&mut game, 8).unwrap_err().item_report[0].effect_description);
+        assert_eq!(Into::<Box<str>>::into("Costs paid and all gains executed."), execute(&mut game, 9).unwrap_err().item_report[0].effect_description);
     }
 
     #[test]
@@ -654,10 +654,10 @@ mod tests_int {
         assert!(result.is_err());
 
         let result = result.unwrap_err();
-        assert_eq!("You did not deal enough damage to overcome the challenges in this place.".to_string(), result.result);
-        assert_eq!("MyError { kind: ExecuteCommand { error_message: \"Were not able to pay all the costs. Had to pay {Mana: 20}, but only had {} available.\" } }".to_string(), result.item_report[0].effect_description);
-        assert_eq!("Costs paid and all gains executed.".to_string(), result.item_report[1].effect_description);
-        assert_eq!("Costs paid and all gains executed.".to_string(), result.item_report[2].effect_description);
+        assert_eq!(Into::<Box<str>>::into("You did not deal enough damage to overcome the challenges in this place."), result.result);
+        assert_eq!(Into::<Box<str>>::into("MyError { kind: ExecuteCommand { error_message: \"Were not able to pay all the costs. Had to pay {Mana: 20}, but only had {} available.\" } }"), result.item_report[0].effect_description);
+        assert_eq!(Into::<Box<str>>::into("Costs paid and all gains executed."), result.item_report[1].effect_description);
+        assert_eq!(Into::<Box<str>>::into("Costs paid and all gains executed."), result.item_report[2].effect_description);
     }
 
     fn item_with_gains(game: &mut Game) -> Item {
@@ -724,12 +724,12 @@ mod tests_int {
         assert!(result.is_err());
 
         let result = result.unwrap_err();
-        assert_eq!("You did not deal enough damage to overcome the challenges in this place.".to_string(), result.result);
-        assert_eq!("MyError { kind: ExecuteCommand { error_message: \"Did not fulfill the FlatSumMinAttackRequirement of 20 damage, only did {} damage.\" } }".to_string(), result.item_report[0].effect_description);
-        assert_eq!("Costs paid and all gains executed.".to_string(), result.item_report[1].effect_description);
-        assert_eq!("MyError { kind: ExecuteCommand { error_message: \"Did not fulfill the FlatSumMinAttackRequirement of 20 damage, only did {Physical: 10} damage.\" } }".to_string(), result.item_report[2].effect_description);
-        assert_eq!("Costs paid and all gains executed.".to_string(), result.item_report[3].effect_description);
-        assert_eq!("Costs paid and all gains executed.".to_string(), result.item_report[4].effect_description);
+        assert_eq!(Into::<Box<str>>::into("You did not deal enough damage to overcome the challenges in this place."), result.result);
+        assert_eq!(Into::<Box<str>>::into("MyError { kind: ExecuteCommand { error_message: \"Did not fulfill the FlatSumMinAttackRequirement of 20 damage, only did {} damage.\" } }"), result.item_report[0].effect_description);
+        assert_eq!(Into::<Box<str>>::into("Costs paid and all gains executed."), result.item_report[1].effect_description);
+        assert_eq!(Into::<Box<str>>::into("MyError { kind: ExecuteCommand { error_message: \"Did not fulfill the FlatSumMinAttackRequirement of 20 damage, only did {Physical: 10} damage.\" } }"), result.item_report[2].effect_description);
+        assert_eq!(Into::<Box<str>>::into("Costs paid and all gains executed."), result.item_report[3].effect_description);
+        assert_eq!(Into::<Box<str>>::into("Costs paid and all gains executed."), result.item_report[4].effect_description);
     }
 
     #[test]
@@ -779,12 +779,12 @@ mod tests_int {
         assert!(result.is_err());
 
         let result = result.unwrap_err();
-        assert_eq!("You did not deal enough damage to overcome the challenges in this place.".to_string(), result.result);
-        assert_eq!("Costs paid and all gains executed.".to_string(), result.item_report[0].effect_description);
-        assert_eq!("Costs paid and all gains executed.".to_string(), result.item_report[1].effect_description);
-        assert_eq!("Costs paid and all gains executed.".to_string(), result.item_report[2].effect_description);
-        assert_eq!("Costs paid and all gains executed.".to_string(), result.item_report[3].effect_description);
-        assert_eq!("MyError { kind: ExecuteCommand { error_message: \"Did not fulfill the FlatSumMaxAttackRequirement of 20 damage, did {Physical: 22} damage damage and that is too much.\" } }".to_string(), result.item_report[4].effect_description);
+        assert_eq!(Into::<Box<str>>::into("You did not deal enough damage to overcome the challenges in this place."), result.result);
+        assert_eq!(Into::<Box<str>>::into("Costs paid and all gains executed."), result.item_report[0].effect_description);
+        assert_eq!(Into::<Box<str>>::into("Costs paid and all gains executed."), result.item_report[1].effect_description);
+        assert_eq!(Into::<Box<str>>::into("Costs paid and all gains executed."), result.item_report[2].effect_description);
+        assert_eq!(Into::<Box<str>>::into("Costs paid and all gains executed."), result.item_report[3].effect_description);
+        assert_eq!(Into::<Box<str>>::into("MyError { kind: ExecuteCommand { error_message: \"Did not fulfill the FlatSumMaxAttackRequirement of 20 damage, did {Physical: 22} damage damage and that is too much.\" } }"), result.item_report[4].effect_description);
     }
 
     //TODO add tests that check several execute_move_command in a row, for the item resource accumulation.
@@ -821,10 +821,10 @@ mod tests_int {
         assert!(result.is_err());
 
         let result = result.unwrap_err();
-        assert_eq!("You did not deal enough damage to overcome the challenges in this place.".to_string(), result.result);
-        assert_eq!("MyError { kind: ExecuteCommand { error_message: \"Did not fulfill the FlatMinItemResourceRequirement of 20 Mana, only had {}.\" } }".to_string(), result.item_report[0].effect_description);
-        assert_eq!("Costs paid and all gains executed.".to_string(), result.item_report[1].effect_description);
-        assert_eq!("Costs paid and all gains executed.".to_string(), result.item_report[2].effect_description);
+        assert_eq!(Into::<Box<str>>::into("You did not deal enough damage to overcome the challenges in this place."), result.result);
+        assert_eq!(Into::<Box<str>>::into("MyError { kind: ExecuteCommand { error_message: \"Did not fulfill the FlatMinItemResourceRequirement of 20 Mana, only had {}.\" } }"), result.item_report[0].effect_description);
+        assert_eq!(Into::<Box<str>>::into("Costs paid and all gains executed."), result.item_report[1].effect_description);
+        assert_eq!(Into::<Box<str>>::into("Costs paid and all gains executed."), result.item_report[2].effect_description);
     }
 
     #[test]
@@ -860,12 +860,12 @@ mod tests_int {
         assert!(result.is_err());
 
         let result = result.unwrap_err();
-        assert_eq!("You did not deal enough damage to overcome the challenges in this place.".to_string(), result.result);
-        assert_eq!("Costs paid and all gains executed.".to_string(), result.item_report[0].effect_description);
-        assert_eq!("Costs paid and all gains executed.".to_string(), result.item_report[1].effect_description);
-        assert_eq!("Costs paid and all gains executed.".to_string(), result.item_report[2].effect_description);
-        assert_eq!("Costs paid and all gains executed.".to_string(), result.item_report[3].effect_description);
-        assert_eq!("MyError { kind: ExecuteCommand { error_message: \"Did not fulfill the FlatMaxItemResourceRequirement of 20 Mana, had {Mana: 40} and that is too much.\" } }".to_string(), result.item_report[4].effect_description);
+        assert_eq!(Into::<Box<str>>::into("You did not deal enough damage to overcome the challenges in this place."), result.result);
+        assert_eq!(Into::<Box<str>>::into("Costs paid and all gains executed."), result.item_report[0].effect_description);
+        assert_eq!(Into::<Box<str>>::into("Costs paid and all gains executed."), result.item_report[1].effect_description);
+        assert_eq!(Into::<Box<str>>::into("Costs paid and all gains executed."), result.item_report[2].effect_description);
+        assert_eq!(Into::<Box<str>>::into("Costs paid and all gains executed."), result.item_report[3].effect_description);
+        assert_eq!(Into::<Box<str>>::into("MyError { kind: ExecuteCommand { error_message: \"Did not fulfill the FlatMaxItemResourceRequirement of 20 Mana, had {Mana: 40} and that is too much.\" } }"), result.item_report[4].effect_description);
     }
 
     #[test]
@@ -895,16 +895,16 @@ mod tests_int {
         assert!(result.is_err());
 
         let result = result.unwrap_err();
-        assert_eq!("You did not deal enough damage to overcome the challenges in this place.".to_string(), result.result);
-        assert_eq!("MyError { kind: ExecuteCommand { error_message: \"Did not fulfill the FlatMinResistanceRequirement of 18 Fire damage, place only has [(Fire, 17), (Frost, 7), (Darkness, 6), (Nature, 70), (Corruption, 52), (Holy, 89)] damage.\" } }".to_string(), result.item_report[0].effect_description);
+        assert_eq!(Into::<Box<str>>::into("You did not deal enough damage to overcome the challenges in this place."), result.result);
+        assert_eq!(Into::<Box<str>>::into("MyError { kind: ExecuteCommand { error_message: \"Did not fulfill the FlatMinResistanceRequirement of 18 Fire damage, place only has [(Fire, 17), (Frost, 7), (Darkness, 6), (Nature, 70), (Corruption, 52), (Holy, 89)] damage.\" } }"), result.item_report[0].effect_description);
 
         let result = execute(&mut game, 7);
 
         assert!(result.is_err());
 
         let result = result.unwrap_err();
-        assert_eq!("You did not deal enough damage to overcome the challenges in this place.".to_string(), result.result);
-        assert_eq!("Costs paid and all gains executed.".to_string(), result.item_report[0].effect_description);
+        assert_eq!(Into::<Box<str>>::into("You did not deal enough damage to overcome the challenges in this place."), result.result);
+        assert_eq!(Into::<Box<str>>::into("Costs paid and all gains executed."), result.item_report[0].effect_description);
     }
 
     #[test]
@@ -934,16 +934,16 @@ mod tests_int {
         assert!(result.is_err());
 
         let result = result.unwrap_err();
-        assert_eq!("You did not deal enough damage to overcome the challenges in this place.".to_string(), result.result);
-        assert_eq!("Costs paid and all gains executed.".to_string(), result.item_report[0].effect_description);
+        assert_eq!(Into::<Box<str>>::into("You did not deal enough damage to overcome the challenges in this place."), result.result);
+        assert_eq!(Into::<Box<str>>::into("Costs paid and all gains executed."), result.item_report[0].effect_description);
 
         let result = execute(&mut game, 7);
 
         assert!(result.is_err());
 
         let result = result.unwrap_err();
-        assert_eq!("You did not deal enough damage to overcome the challenges in this place.".to_string(), result.result);
-        assert_eq!("MyError { kind: ExecuteCommand { error_message: \"Did not fulfill the FlatMaxResistanceRequirement of 17 Fire damage, place has [(Fire, 20), (Frost, 4), (Light, 11), (Darkness, 37), (Corruption, 80), (Holy, 59)] damage and that is too much.\" } }".to_string(), result.item_report[0].effect_description);
+        assert_eq!(Into::<Box<str>>::into("You did not deal enough damage to overcome the challenges in this place."), result.result);
+        assert_eq!(Into::<Box<str>>::into("MyError { kind: ExecuteCommand { error_message: \"Did not fulfill the FlatMaxResistanceRequirement of 17 Fire damage, place has [(Fire, 20), (Frost, 4), (Light, 11), (Darkness, 37), (Corruption, 80), (Holy, 59)] damage and that is too much.\" } }"), result.item_report[0].effect_description);
     }
 
     #[test]
@@ -973,16 +973,16 @@ mod tests_int {
         assert!(result.is_err());
 
         let result = result.unwrap_err();
-        assert_eq!("You did not deal enough damage to overcome the challenges in this place.".to_string(), result.result);
-        assert_eq!("MyError { kind: ExecuteCommand { error_message: \"Did not fulfill the FlatMinSumResistanceRequirement of 195 damage, place only has 194 damage.\" } }".to_string(), result.item_report[0].effect_description);
+        assert_eq!(Into::<Box<str>>::into("You did not deal enough damage to overcome the challenges in this place."), result.result);
+        assert_eq!(Into::<Box<str>>::into("MyError { kind: ExecuteCommand { error_message: \"Did not fulfill the FlatMinSumResistanceRequirement of 195 damage, place only has 194 damage.\" } }"), result.item_report[0].effect_description);
 
         let result = execute(&mut game, 0);
 
         assert!(result.is_err());
 
         let result = result.unwrap_err();
-        assert_eq!("You did not deal enough damage to overcome the challenges in this place.".to_string(), result.result);
-        assert_eq!("Costs paid and all gains executed.".to_string(), result.item_report[0].effect_description);
+        assert_eq!(Into::<Box<str>>::into("You did not deal enough damage to overcome the challenges in this place."), result.result);
+        assert_eq!(Into::<Box<str>>::into("Costs paid and all gains executed."), result.item_report[0].effect_description);
     }
 
     #[test]
@@ -1012,16 +1012,16 @@ mod tests_int {
         assert!(result.is_err());
 
         let result = result.unwrap_err();
-        assert_eq!("You did not deal enough damage to overcome the challenges in this place.".to_string(), result.result);
-        assert_eq!("Costs paid and all gains executed.".to_string(), result.item_report[0].effect_description);
+        assert_eq!(Into::<Box<str>>::into("You did not deal enough damage to overcome the challenges in this place."), result.result);
+        assert_eq!(Into::<Box<str>>::into("Costs paid and all gains executed."), result.item_report[0].effect_description);
 
         let result = execute(&mut game, 0);
 
         assert!(result.is_err());
 
         let result = result.unwrap_err();
-        assert_eq!("You did not deal enough damage to overcome the challenges in this place.".to_string(), result.result);
-        assert_eq!("MyError { kind: ExecuteCommand { error_message: \"Did not fulfill the FlatMaxSumResistanceRequirement of 194 damage, place has 241 damage and that is too much.\" } }".to_string(), result.item_report[0].effect_description);
+        assert_eq!(Into::<Box<str>>::into("You did not deal enough damage to overcome the challenges in this place."), result.result);
+        assert_eq!(Into::<Box<str>>::into("MyError { kind: ExecuteCommand { error_message: \"Did not fulfill the FlatMaxSumResistanceRequirement of 194 damage, place has 241 damage and that is too much.\" } }"), result.item_report[0].effect_description);
     }
 
     #[test]
@@ -1050,27 +1050,27 @@ mod tests_int {
         assert!(result.is_err());
 
         let result = result.unwrap_err();
-        assert_eq!("You did not deal enough damage to overcome the challenges in this place.".to_string(), result.result);
-        assert_eq!("MyError { kind: ExecuteCommand { error_message: \"Did not fulfill the MinWinsInARow of 1 win, only hase 0 wins in a row.\" } }".to_string(), result.item_report[0].effect_description);
-        assert_eq!("Costs paid and all gains executed.".to_string(), result.item_report[1].effect_description);
+        assert_eq!(Into::<Box<str>>::into("You did not deal enough damage to overcome the challenges in this place."), result.result);
+        assert_eq!(Into::<Box<str>>::into("MyError { kind: ExecuteCommand { error_message: \"Did not fulfill the MinWinsInARow of 1 win, only hase 0 wins in a row.\" } }"), result.item_report[0].effect_description);
+        assert_eq!(Into::<Box<str>>::into("Costs paid and all gains executed."), result.item_report[1].effect_description);
 
         let result = execute(&mut game, 0);
 
         assert!(result.is_ok());
 
         let result = result.unwrap();
-        assert_eq!("You won and got a new item in the inventory.".to_string(), result.result);
-        assert_eq!("MyError { kind: ExecuteCommand { error_message: \"Did not fulfill the MinWinsInARow of 1 win, only hase 0 wins in a row.\" } }".to_string(), result.item_report[0].effect_description);
-        assert_eq!("Costs paid and all gains executed.".to_string(), result.item_report[1].effect_description);
+        assert_eq!(Into::<Box<str>>::into("You won and got a new item in the inventory."), result.result);
+        assert_eq!(Into::<Box<str>>::into("MyError { kind: ExecuteCommand { error_message: \"Did not fulfill the MinWinsInARow of 1 win, only hase 0 wins in a row.\" } }"), result.item_report[0].effect_description);
+        assert_eq!(Into::<Box<str>>::into("Costs paid and all gains executed."), result.item_report[1].effect_description);
 
         let result = execute(&mut game, 9);
 
         assert!(result.is_err());
 
         let result = result.unwrap_err();
-        assert_eq!("You did not deal enough damage to overcome the challenges in this place.".to_string(), result.result);
-        assert_eq!("Costs paid and all gains executed.".to_string(), result.item_report[0].effect_description);
-        assert_eq!("Costs paid and all gains executed.".to_string(), result.item_report[1].effect_description);
+        assert_eq!(Into::<Box<str>>::into("You did not deal enough damage to overcome the challenges in this place."), result.result);
+        assert_eq!(Into::<Box<str>>::into("Costs paid and all gains executed."), result.item_report[0].effect_description);
+        assert_eq!(Into::<Box<str>>::into("Costs paid and all gains executed."), result.item_report[1].effect_description);
     }
 
     #[test]
@@ -1099,27 +1099,27 @@ mod tests_int {
         assert!(result.is_err());
 
         let result = result.unwrap_err();
-        assert_eq!("You did not deal enough damage to overcome the challenges in this place.".to_string(), result.result);
-        assert_eq!("Costs paid and all gains executed.".to_string(), result.item_report[0].effect_description);
-        assert_eq!("Costs paid and all gains executed.".to_string(), result.item_report[1].effect_description);
+        assert_eq!(Into::<Box<str>>::into("You did not deal enough damage to overcome the challenges in this place."), result.result);
+        assert_eq!(Into::<Box<str>>::into("Costs paid and all gains executed."), result.item_report[0].effect_description);
+        assert_eq!(Into::<Box<str>>::into("Costs paid and all gains executed."), result.item_report[1].effect_description);
 
         let result = execute(&mut game, 0);
 
         assert!(result.is_ok());
 
         let result = result.unwrap();
-        assert_eq!("You won and got a new item in the inventory.".to_string(), result.result);
-        assert_eq!("Costs paid and all gains executed.".to_string(), result.item_report[0].effect_description);
-        assert_eq!("Costs paid and all gains executed.".to_string(), result.item_report[1].effect_description);
+        assert_eq!(Into::<Box<str>>::into("You won and got a new item in the inventory."), result.result);
+        assert_eq!(Into::<Box<str>>::into("Costs paid and all gains executed."), result.item_report[0].effect_description);
+        assert_eq!(Into::<Box<str>>::into("Costs paid and all gains executed."), result.item_report[1].effect_description);
 
         let result = execute(&mut game, 9);
 
         assert!(result.is_err());
 
         let result = result.unwrap_err();
-        assert_eq!("You did not deal enough damage to overcome the challenges in this place.".to_string(), result.result);
-        assert_eq!("MyError { kind: ExecuteCommand { error_message: \"Did not fulfill the MaxWinsInARow of 0 win, have 1 wins in a row and that is too much.\" } }".to_string(), result.item_report[0].effect_description);
-        assert_eq!("Costs paid and all gains executed.".to_string(), result.item_report[1].effect_description);
+        assert_eq!(Into::<Box<str>>::into("You did not deal enough damage to overcome the challenges in this place."), result.result);
+        assert_eq!(Into::<Box<str>>::into("MyError { kind: ExecuteCommand { error_message: \"Did not fulfill the MaxWinsInARow of 0 win, have 1 wins in a row and that is too much.\" } }"), result.item_report[0].effect_description);
+        assert_eq!(Into::<Box<str>>::into("Costs paid and all gains executed."), result.item_report[1].effect_description);
     }
 
     #[test]
@@ -1151,8 +1151,8 @@ mod tests_int {
         assert!(result.is_err());
 
         let result = result.unwrap_err();
-        assert_eq!("You did not deal enough damage to overcome the challenges in this place.".to_string(), result.result);
-        assert_eq!("Costs paid and all gains executed.".to_string(), result.item_report[0].effect_description);
+        assert_eq!(Into::<Box<str>>::into("You did not deal enough damage to overcome the challenges in this place."), result.result);
+        assert_eq!(Into::<Box<str>>::into("Costs paid and all gains executed."), result.item_report[0].effect_description);
         assert_eq!(600, *result.item_report[0].current_damage.get(&AttackType::Physical).unwrap());
     }
 
@@ -1184,8 +1184,8 @@ mod tests_int {
         assert!(result.is_err());
 
         let result = result.unwrap_err();
-        assert_eq!("You did not deal enough damage to overcome the challenges in this place.".to_string(), result.result);
-        assert_eq!("Costs paid and all gains executed.".to_string(), result.item_report[0].effect_description);
+        assert_eq!(Into::<Box<str>>::into("You did not deal enough damage to overcome the challenges in this place."), result.result);
+        assert_eq!(Into::<Box<str>>::into("Costs paid and all gains executed."), result.item_report[0].effect_description);
         assert_eq!(200, *result.item_report[0].current_resistance_reduction.get(&AttackType::Physical).unwrap());
     }
 
@@ -1218,8 +1218,8 @@ mod tests_int {
         assert!(result.is_err());
 
         let result = result.unwrap_err();
-        assert_eq!("You did not deal enough damage to overcome the challenges in this place.".to_string(), result.result);
-        assert_eq!("Costs paid and all gains executed.".to_string(), result.item_report[0].effect_description);
+        assert_eq!(Into::<Box<str>>::into("You did not deal enough damage to overcome the challenges in this place."), result.result);
+        assert_eq!(Into::<Box<str>>::into("Costs paid and all gains executed."), result.item_report[0].effect_description);
         assert_eq!(600, *result.item_report[0].current_resistance_reduction.get(&AttackType::Physical).unwrap());
     }
 
@@ -1251,8 +1251,8 @@ mod tests_int {
         assert!(result.is_err());
 
         let result = result.unwrap_err();
-        assert_eq!("You did not deal enough damage to overcome the challenges in this place.".to_string(), result.result);
-        assert_eq!("Costs paid and all gains executed.".to_string(), result.item_report[0].effect_description);
+        assert_eq!(Into::<Box<str>>::into("You did not deal enough damage to overcome the challenges in this place."), result.result);
+        assert_eq!(Into::<Box<str>>::into("Costs paid and all gains executed."), result.item_report[0].effect_description);
         assert_eq!(200, *result.item_report[0].current_damage.get(&AttackType::Holy).unwrap());
     }
 
@@ -1285,8 +1285,8 @@ mod tests_int {
         assert!(result.is_err());
 
         let result = result.unwrap_err();
-        assert_eq!("You did not deal enough damage to overcome the challenges in this place.".to_string(), result.result);
-        assert_eq!("Costs paid and all gains executed.".to_string(), result.item_report[0].effect_description);
+        assert_eq!(Into::<Box<str>>::into("You did not deal enough damage to overcome the challenges in this place."), result.result);
+        assert_eq!(Into::<Box<str>>::into("Costs paid and all gains executed."), result.item_report[0].effect_description);
         assert_eq!(600, *result.item_report[0].current_damage.get(&AttackType::Holy).unwrap());
     }
 
@@ -1318,8 +1318,8 @@ mod tests_int {
         assert!(result.is_err());
 
         let result = result.unwrap_err();
-        assert_eq!("You did not deal enough damage to overcome the challenges in this place.".to_string(), result.result);
-        assert_eq!("Costs paid and all gains executed.".to_string(), result.item_report[0].effect_description);
+        assert_eq!(Into::<Box<str>>::into("You did not deal enough damage to overcome the challenges in this place."), result.result);
+        assert_eq!(Into::<Box<str>>::into("Costs paid and all gains executed."), result.item_report[0].effect_description);
         assert_eq!(200, *result.item_report[0].current_damage.get(&AttackType::Darkness).unwrap());
     }
 
@@ -1352,8 +1352,8 @@ mod tests_int {
         assert!(result.is_err());
 
         let result = result.unwrap_err();
-        assert_eq!("You did not deal enough damage to overcome the challenges in this place.".to_string(), result.result);
-        assert_eq!("Costs paid and all gains executed.".to_string(), result.item_report[0].effect_description);
+        assert_eq!(Into::<Box<str>>::into("You did not deal enough damage to overcome the challenges in this place."), result.result);
+        assert_eq!(Into::<Box<str>>::into("Costs paid and all gains executed."), result.item_report[0].effect_description);
         assert_eq!(400, *result.item_report[0].current_damage.get(&AttackType::Darkness).unwrap());
     }
 
@@ -1386,8 +1386,8 @@ mod tests_int {
         assert!(result.is_err());
 
         let result = result.unwrap_err();
-        assert_eq!("You did not deal enough damage to overcome the challenges in this place.".to_string(), result.result);
-        assert_eq!("Costs paid and all gains executed.".to_string(), result.item_report[0].effect_description);
+        assert_eq!(Into::<Box<str>>::into("You did not deal enough damage to overcome the challenges in this place."), result.result);
+        assert_eq!(Into::<Box<str>>::into("Costs paid and all gains executed."), result.item_report[0].effect_description);
         assert_eq!(600, *result.item_report[0].current_damage.get(&AttackType::Darkness).unwrap());
     }
 
@@ -1414,8 +1414,8 @@ mod tests_int {
         assert!(result.is_ok());
 
         let result = result.unwrap();
-        assert_eq!("You won and got a new item in the inventory.".to_string(), result.result);
-        assert_eq!("Costs paid and all gains executed.".to_string(), result.item_report[0].effect_description);
+        assert_eq!(Into::<Box<str>>::into("You won and got a new item in the inventory."), result.result);
+        assert_eq!(Into::<Box<str>>::into("Costs paid and all gains executed."), result.item_report[0].effect_description);
         assert_eq!(500, *result.item_report[1].treasure_bonus.get(&Gold).unwrap());
 
         assert_eq!(old_place.reward.get(&Gold).unwrap() * 6, *game.treasure.get(&Gold).unwrap());
@@ -1442,8 +1442,8 @@ mod tests_int {
         assert!(result.is_ok());
 
         let result = result.unwrap();
-        assert_eq!("You won and got a new item in the inventory.".to_string(), result.result);
-        assert_eq!("Costs paid and all gains executed.".to_string(), result.item_report[0].effect_description);
+        assert_eq!(Into::<Box<str>>::into("You won and got a new item in the inventory."), result.result);
+        assert_eq!(Into::<Box<str>>::into("Costs paid and all gains executed."), result.item_report[0].effect_description);
         assert_eq!(201, result.item_report[1].item_gain);
 
         assert_eq!(old_inventory_count + 201, game.inventory.len());

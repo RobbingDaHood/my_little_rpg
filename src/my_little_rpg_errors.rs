@@ -17,6 +17,12 @@ pub struct MyError {
     pub kind: MyErrorKind,
 }
 
+impl From<MyError> for Box<str> {
+    fn from(error: MyError) -> Self {
+        format!("{:?}", error).into()
+    }
+}
+
 //TODO Add general help message to all errors
 impl fmt::Display for MyErrorKind {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
