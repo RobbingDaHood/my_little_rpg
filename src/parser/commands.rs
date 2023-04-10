@@ -22,8 +22,8 @@ impl Command {
             AddModifier(0, Vec::new()),
             Help,
             ReorderInventory,
-            SaveTheWorld("String".to_string(), None),
-            LoadTheWorld("String".to_string(), None),
+            SaveTheWorld("String".into(), None),
+            LoadTheWorld("String".into(), None),
         ]
     }
 
@@ -81,12 +81,13 @@ impl Command {
             })
     }
 
-    fn try_parse_string(string_to_parse: &str) -> Result<String, MyError> {
+    fn try_parse_string(string_to_parse: &str) -> Result<Box<str>, MyError> {
         string_to_parse.parse::<String>()
             .map_err(|error| {
                 let error_message = format!("The following parameter {}, got the following error while parsing: {:?}", string_to_parse, error);
                 MyError::create_parse_command_error(error_message)
             })
+            .map(String::into)
     }
 
     fn try_parse_add_modifier(command_parts: &Vec<&str>) -> Result<Command, MyError> {
@@ -270,12 +271,12 @@ mod tests_int {
         assert_eq!(Err(MyError::create_parse_command_error("The following parameter a, got the following error while parsing: ParseIntError { kind: InvalidDigit }".to_string())), Command::try_from(Into::<Box<str>>::into("RerollModifier 21 22 +a")));
         assert_eq!(Err(MyError::create_parse_command_error("21-23 created an underflow!".to_string())), Command::try_from(Into::<Box<str>>::into("RerollModifier 21 22 -23")));
 
-        assert_eq!(Command::SaveTheWorld("a".to_string(), Some("b".to_string())), Command::try_from(Into::<Box<str>>::into("SaveTheWorld a b")).unwrap());
-        assert_eq!(Command::SaveTheWorld("a".to_string(), None), Command::try_from(Into::<Box<str>>::into("SaveTheWorld a")).unwrap());
+        assert_eq!(Command::SaveTheWorld("a".into(), Some("b".into())), Command::try_from(Into::<Box<str>>::into("SaveTheWorld a b")).unwrap());
+        assert_eq!(Command::SaveTheWorld("a".into(), None), Command::try_from(Into::<Box<str>>::into("SaveTheWorld a")).unwrap());
         assert_eq!(Err(MyError::create_parse_command_error("Trouble parsing SaveTheWorld command, it needs a save game name and optionally a path to the savegame (remember to end the path with /). Default location is ./save_games/. Got [\"SaveTheWorld\"]".to_string())), Command::try_from(Into::<Box<str>>::into("SaveTheWorld")));
 
-        assert_eq!(Command::LoadTheWorld("a".to_string(), Some("b".to_string())), Command::try_from(Into::<Box<str>>::into("LoadTheWorld a b")).unwrap());
-        assert_eq!(Command::LoadTheWorld("a".to_string(), None), Command::try_from(Into::<Box<str>>::into("LoadTheWorld a")).unwrap());
+        assert_eq!(Command::LoadTheWorld("a".into(), Some("b".into())), Command::try_from(Into::<Box<str>>::into("LoadTheWorld a b")).unwrap());
+        assert_eq!(Command::LoadTheWorld("a".into(), None), Command::try_from(Into::<Box<str>>::into("LoadTheWorld a")).unwrap());
         assert_eq!(Err(MyError::create_parse_command_error("Trouble parsing LoadTheWorld command, it needs a save game name and optionally a path to the savegame (remember to end the path with /). Default location is ./save_games/. Got [\"LoadTheWorld\"]".to_string())), Command::try_from(Into::<Box<str>>::into("LoadTheWorld")));
 
         assert_eq!(Err(MyError::create_parse_command_error("Command not known. Got [\"InvalidCommand\"]".to_string())), Command::try_from(Into::<Box<str>>::into("InvalidCommand")));

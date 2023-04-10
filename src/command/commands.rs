@@ -20,6 +20,6 @@ pub enum Command {
     AddModifier(usize, Vec<IndexSpecifier>),
     Help,
     ReorderInventory,
-    SaveTheWorld(String, Option<String>),
-    LoadTheWorld(String, Option<String>),
+    SaveTheWorld(Box<str>, Option<Box<str>>),
+    LoadTheWorld(Box<str>, Option<Box<str>>),
 }

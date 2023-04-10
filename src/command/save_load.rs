@@ -6,24 +6,25 @@ use serde_json::{json, Value};
 use crate::Game;
 use crate::my_little_rpg_errors::MyError;
 
-pub fn execute_save_command_json(game: &Game, save_name: &str, save_path: Option<String>) -> Value {
+pub fn execute_save_command_json(game: &Game, save_name: &str, save_path: Option<Box<str>>) -> Value {
     match execute_save_command(game, save_name, save_path) {
-        Ok(result) | Err(result)=> json!(result)
+        Ok(result) => json!(result),
+        Err(result) => json!(result)
     }
 }
 
-pub fn execute_save_command(game: &Game, save_name: &str, save_path: Option<String>) -> Result<String, String> {
-    let file_path = get_file_path(save_name, save_path)?;
+pub fn execute_save_command(game: &Game, save_name: &str, save_path: Option<Box<str>>) -> Result<Box<str>, MyError> {
+    let file_path = &*get_file_path(save_name, save_path)?;
     return match fs::write(
         file_path,
         format!("{}", json!(game)).as_bytes(),
     ) {
-        Err(error_message) => Err(format!("Failed saving the world! Reason: {}", error_message)),
-        Ok(_) => Ok("You saved the world!".to_string())
+        Err(error_message) => Err(MyError::create_save_load_error(format!("Failed saving the world! Reason: {}", error_message))),
+        Ok(_) => Ok("You saved the world!".into())
     };
 }
 
-pub fn execute_load_command_json(game: &mut Game, save_name: &str, save_path: Option<String>) -> Value {
+pub fn execute_load_command_json(game: &mut Game, save_name: &str, save_path: Option<Box<str>>) -> Value {
     match execute_load_command(save_name, save_path) {
         Ok(new_game) => {
             *game = new_game;
@@ -33,8 +34,8 @@ pub fn execute_load_command_json(game: &mut Game, save_name: &str, save_path: Op
     }
 }
 
-pub fn execute_load_command(save_name: &str, save_path: Option<String>) -> Result<Game, MyError> {
-    let file_path = get_file_path(save_name, save_path)?;
+pub fn execute_load_command(save_name: &str, save_path: Option<Box<str>>) -> Result<Game, MyError> {
+    let file_path = &*get_file_path(save_name, save_path)?;
     //TODO better way of flattening this?!
     fs::read(file_path)
         .map_err(|error| {
@@ -50,15 +51,15 @@ pub fn execute_load_command(save_name: &str, save_path: Option<String>) -> Resul
         )
 }
 
-fn get_file_path(save_name: &str, save_path: Option<String>) -> Result<String, String> {
-    let save_path = match save_path {
+fn get_file_path(save_name: &str, save_path: Option<Box<str>>) -> Result<Box<str>, MyError> {
+    let save_path: Box<str> = match save_path {
         Some(path) => path,
-        None => "./save_games/".to_string()
+        None => "./save_games/".into()
     };
 
-    match create_dir_all(&save_path) {
-        Err(error_message) => Err(format!("Failed creating the folder for the save games, Reason: {}", error_message)),
-        Ok(_) => Ok(format!("{}{}.json", save_path, save_name))
+    match create_dir_all(save_path.as_ref()) {
+        Err(error_message) => Err(MyError::create_save_load_error(format!("Failed creating the folder for the save games, Reason: {}", error_message))),
+        Ok(_) => Ok(format!("{}{}.json", save_path, save_name).into())
     }
 }
 
@@ -81,8 +82,8 @@ mod tests_int {
         for _i in 1..1000 {
             let mut game = new_testing(Some([1; 16]));
             game.treasure.insert(Gold, 1000);
-            execute_save_command(&game, "save_load_seeding_test", Some("./testing/".to_string())).unwrap();
-            let mut parsed_game = execute_load_command("save_load_seeding_test", Some("./testing/".to_string())).unwrap();
+            execute_save_command(&game, "save_load_seeding_test", Some("./testing/".into())).unwrap();
+            let mut parsed_game = execute_load_command("save_load_seeding_test", Some("./testing/".into())).unwrap();
 
             assert_eq!(game, parsed_game);
 

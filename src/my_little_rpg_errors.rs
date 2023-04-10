@@ -24,6 +24,7 @@ impl fmt::Display for MyErrorKind {
     }
 }
 
+//TODO use the other methods instead; or consider if this from can take two parameters
 impl From<String> for MyError {
     fn from(em: String) -> Self {
         MyError { kind: MyErrorKind::ParseCommandError { error_message: em.into() } }
