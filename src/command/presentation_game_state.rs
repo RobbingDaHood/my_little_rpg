@@ -57,7 +57,7 @@ pub struct PresentationPlace {
 pub struct PresentationItem {
     index: usize,
     item: Item,
-    crafting_action_costs: Result<ItemCosts, String>, //TODO Insert this into items, in a way where we do not need to maintain a second item model
+    crafting_action_costs: Result<ItemCosts, Box<str>>, //TODO Insert this into items, in a way where we do not need to maintain a second item model
 }
 
 #[derive(Clone, PartialEq, Eq, Debug, Serialize, Deserialize)]
@@ -85,7 +85,7 @@ pub fn execute(game: &mut Game) -> PresentationGameState {
         .map(|(index, item)| PresentationItem {
             index,
             item,
-            crafting_action_costs: Err("Equipped items cannot be crafted on.".to_string()),
+            crafting_action_costs: Err("Equipped items cannot be crafted on.".into()),
         })
         .collect();
     let inventory: Vec<PresentationItem> = game.inventory.iter()

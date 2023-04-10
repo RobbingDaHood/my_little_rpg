@@ -7,14 +7,14 @@ pub fn execute_json(game: &mut Game) -> Value {
     json!(execute(game))
 }
 
-pub fn execute(game: &mut Game) -> String {
+pub fn execute(game: &mut Game) -> Box<str> {
     let reordered_inventory = game.inventory.clone().into_iter()
         .filter(Option::is_some)
         .collect::<Vec<Option<Item>>>();
 
     game.inventory = reordered_inventory;
 
-    "Inventory is reordered.".to_string()
+    "Inventory is reordered.".into()
 }
 
 
@@ -43,7 +43,7 @@ mod tests_int {
 
         game.inventory = vec![item.clone(), None, item.clone(), None, None, item];
 
-        assert_eq!("Inventory is reordered.".to_string(), execute(&mut game));
+        assert_eq!(Into::<Box<str>>::into("Inventory is reordered."), execute(&mut game));
 
         assert_eq!(3, game.inventory.len());
         assert_eq!(0, game.inventory.iter().filter(|i| i.is_none()).count());
