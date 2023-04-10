@@ -5,6 +5,7 @@ use serde_json::{json, Value};
 
 use crate::Game;
 use crate::generator::place::new;
+use crate::my_little_rpg_errors::MyError;
 use crate::the_world::attack_types::AttackType;
 use crate::the_world::item::{CraftingInfo, Item};
 use crate::the_world::item_modifier::Modifier;
@@ -68,7 +69,7 @@ pub fn execute(game: &mut Game, index: usize) -> Result<ExecuteMoveCommandReport
                     current_resistance_reduction: current_resistance_reduction.clone(),
                     treasure_bonus: treasure_bonus.clone(),
                     item_gain,
-                    effect_description: message.to_string(),
+                    effect_description: format!("{:?}", message),
                     item_resource_costs: None,
                     current_item_resources: game.item_resources.clone(),
                 });
@@ -257,7 +258,7 @@ fn calculate_are_all_costs_payable(current_item_resources: &HashMap<Type, u64>, 
     are_all_costs_payable
 }
 
-fn evaluate_item_costs(item: &Item, current_damage: &HashMap<AttackType, u64>, game: &Game, index: usize) -> Result<HashMap<Type, u64>, String> {
+fn evaluate_item_costs(item: &Item, current_damage: &HashMap<AttackType, u64>, game: &Game, index: usize) -> Result<HashMap<Type, u64>, MyError> {
     let mut item_resource_cost = HashMap::new();
     for modifier in &item.modifiers {
         for cost in &modifier.costs {
@@ -265,70 +266,70 @@ fn evaluate_item_costs(item: &Item, current_damage: &HashMap<AttackType, u64>, g
                 Cost::FlatItemResource(item_resource_type, amount) => *item_resource_cost.entry(item_resource_type.clone()).or_insert(0) += amount,
                 Cost::FlatMinItemResourceRequirement(item_resource_type, amount) => {
                     if *game.item_resources.get(item_resource_type).unwrap_or(&0) < *amount {
-                        return Err(format!("Did not fulfill the FlatMinItemResourceRequirement of {} {:?}, only had {:?}.", amount, item_resource_type, game.item_resources.clone()));
+                        return Err(MyError::create_execute_command_error(format!("Did not fulfill the FlatMinItemResourceRequirement of {} {:?}, only had {:?}.", amount, item_resource_type, game.item_resources.clone())));
                     }
                 }
                 Cost::FlatMaxItemResourceRequirement(item_resource_type, amount) => {
                     if *game.item_resources.get(item_resource_type).unwrap_or(&0) > *amount {
-                        return Err(format!("Did not fulfill the FlatMaxItemResourceRequirement of {} {:?}, had {:?} and that is too much.", amount, item_resource_type, game.item_resources.clone()));
+                        return Err(MyError::create_execute_command_error(format!("Did not fulfill the FlatMaxItemResourceRequirement of {} {:?}, had {:?} and that is too much.", amount, item_resource_type, game.item_resources.clone())));
                     }
                 }
                 Cost::FlatMinAttackRequirement(attack_type, amount) => {
                     if current_damage.get(attack_type).unwrap_or(&0) < amount {
-                        return Err(format!("Did not fulfill the FlatMinAttackRequirement of {} {:?} damage, only did {:?} damage.", amount, attack_type, current_damage));
+                        return Err(MyError::create_execute_command_error(format!("Did not fulfill the FlatMinAttackRequirement of {} {:?} damage, only did {:?} damage.", amount, attack_type, current_damage)));
                     }
                 }
                 Cost::FlatMaxAttackRequirement(attack_type, amount) => {
                     if current_damage.get(attack_type).unwrap_or(&0) > amount {
-                        return Err(format!("Did not fulfill the FlatMaxAttackRequirement of {} {:?} damage, did {:?} damage and that is too much.", amount, attack_type, current_damage));
+                        return Err(MyError::create_execute_command_error(format!("Did not fulfill the FlatMaxAttackRequirement of {} {:?} damage, did {:?} damage and that is too much.", amount, attack_type, current_damage)));
                     }
                 }
                 Cost::FlatSumMinAttackRequirement(amount) => {
                     if current_damage.values().sum::<u64>() < *amount {
-                        return Err(format!("Did not fulfill the FlatSumMinAttackRequirement of {} damage, only did {:?} damage.", amount, current_damage));
+                        return Err(MyError::create_execute_command_error(format!("Did not fulfill the FlatSumMinAttackRequirement of {} damage, only did {:?} damage.", amount, current_damage)));
                     }
                 }
                 Cost::FlatSumMaxAttackRequirement(amount) => {
                     if current_damage.values().sum::<u64>() > *amount {
-                        return Err(format!("Did not fulfill the FlatSumMaxAttackRequirement of {} damage, did {:?} damage damage and that is too much.", amount, current_damage));
+                        return Err(MyError::create_execute_command_error(format!("Did not fulfill the FlatSumMaxAttackRequirement of {} damage, did {:?} damage damage and that is too much.", amount, current_damage)));
                     }
                 }
                 Cost::PlaceLimitedByIndexModulus(modulus, valid_values) => {
                     let modulus_value = index.rem_euclid(usize::from(*modulus));
                     if !valid_values.contains(&u8::try_from(modulus_value).unwrap()) {
-                        return Err(format!("Did not fulfill the PlaceLimitedByIndexModulus: {} % {} = {} and that is not contained in {:?}.", index, modulus, modulus_value, valid_values));
+                        return Err(MyError::create_execute_command_error(format!("Did not fulfill the PlaceLimitedByIndexModulus: {} % {} = {} and that is not contained in {:?}.", index, modulus, modulus_value, valid_values)));
                     }
                 }
                 Cost::FlatMinResistanceRequirement(attack_type, amount) => {
                     if game.places[index].resistance.get(attack_type).unwrap_or(&0) < amount {
-                        return Err(format!("Did not fulfill the FlatMinResistanceRequirement of {} {:?} damage, place only has {:?} damage.", amount, attack_type, AttackType::order_map(&game.places[index].resistance)));
+                        return Err(MyError::create_execute_command_error(format!("Did not fulfill the FlatMinResistanceRequirement of {} {:?} damage, place only has {:?} damage.", amount, attack_type, AttackType::order_map(&game.places[index].resistance))));
                     }
                 }
                 Cost::FlatMaxResistanceRequirement(attack_type, amount) => {
                     if game.places[index].resistance.get(attack_type).unwrap_or(&0) > amount {
-                        return Err(format!("Did not fulfill the FlatMaxResistanceRequirement of {} {:?} damage, place has {:?} damage and that is too much.", amount, attack_type, AttackType::order_map(&game.places[index].resistance)));
+                        return Err(MyError::create_execute_command_error(format!("Did not fulfill the FlatMaxResistanceRequirement of {} {:?} damage, place has {:?} damage and that is too much.", amount, attack_type, AttackType::order_map(&game.places[index].resistance))));
                     }
                 }
                 Cost::FlatMinSumResistanceRequirement(amount) => {
                     let damage_sum = game.places[index].resistance.values().sum::<u64>();
                     if damage_sum < *amount {
-                        return Err(format!("Did not fulfill the FlatMinSumResistanceRequirement of {} damage, place only has {:?} damage.", amount, damage_sum));
+                        return Err(MyError::create_execute_command_error(format!("Did not fulfill the FlatMinSumResistanceRequirement of {} damage, place only has {:?} damage.", amount, damage_sum)));
                     }
                 }
                 Cost::FlatMaxSumResistanceRequirement(amount) => {
                     let damage_sum = game.places[index].resistance.values().sum::<u64>();
                     if damage_sum > *amount {
-                        return Err(format!("Did not fulfill the FlatMaxSumResistanceRequirement of {} damage, place has {:?} damage and that is too much.", amount, damage_sum));
+                        return Err(MyError::create_execute_command_error(format!("Did not fulfill the FlatMaxSumResistanceRequirement of {} damage, place has {:?} damage and that is too much.", amount, damage_sum)));
                     }
                 }
                 Cost::MinWinsInARow(amount) => {
                     if game.game_statistics.wins_in_a_row < u64::from(*amount) {
-                        return Err(format!("Did not fulfill the MinWinsInARow of {} win, only hase {:?} wins in a row.", amount, game.game_statistics.wins_in_a_row));
+                        return Err(MyError::create_execute_command_error(format!("Did not fulfill the MinWinsInARow of {} win, only hase {:?} wins in a row.", amount, game.game_statistics.wins_in_a_row)));
                     }
                 }
                 Cost::MaxWinsInARow(amount) => {
                     if game.game_statistics.wins_in_a_row > u64::from(*amount) {
-                        return Err(format!("Did not fulfill the MaxWinsInARow of {} win, have {:?} wins in a row and that is too much.", amount, game.game_statistics.wins_in_a_row));
+                        return Err(MyError::create_execute_command_error(format!("Did not fulfill the MaxWinsInARow of {} win, have {:?} wins in a row and that is too much.", amount, game.game_statistics.wins_in_a_row)));
                     }
                 }
             }
@@ -336,7 +337,7 @@ fn evaluate_item_costs(item: &Item, current_damage: &HashMap<AttackType, u64>, g
     }
 
     if !calculate_are_all_costs_payable(&game.item_resources, &item_resource_cost) {
-        return Err(format!("Were not able to pay all the costs. Had to pay {:?}, but only had {:?} available.", item_resource_cost, game.item_resources));
+        return Err(MyError::create_execute_command_error(format!("Were not able to pay all the costs. Had to pay {:?}, but only had {:?} available.", item_resource_cost, game.item_resources)));
     }
 
     Ok(item_resource_cost)
@@ -532,7 +533,7 @@ mod tests_int {
 
         let result = result.unwrap_err();
         assert_eq!("You did not deal enough damage to overcome the challenges in this place.".to_string(), result.result);
-        assert_eq!("Did not fulfill the FlatMinAttackRequirement of 20 Physical damage, only did {} damage.".to_string(), result.item_report[0].effect_description);
+        assert_eq!("MyError { kind: ExecuteCommand { error_message: \"Did not fulfill the FlatMinAttackRequirement of 20 Physical damage, only did {} damage.\" } }".to_string(), result.item_report[0].effect_description);
         assert_eq!("Costs paid and all gains executed.".to_string(), result.item_report[1].effect_description);
         assert_eq!("Costs paid and all gains executed.".to_string(), result.item_report[2].effect_description);
     }
@@ -585,7 +586,7 @@ mod tests_int {
         assert_eq!("You did not deal enough damage to overcome the challenges in this place.".to_string(), result.result);
         assert_eq!("Costs paid and all gains executed.".to_string(), result.item_report[0].effect_description);
         assert_eq!("Costs paid and all gains executed.".to_string(), result.item_report[1].effect_description);
-        assert_eq!("Did not fulfill the FlatMaxAttackRequirement of 1 Physical damage, did {Physical: 3} damage and that is too much.".to_string(), result.item_report[2].effect_description);
+        assert_eq!("MyError { kind: ExecuteCommand { error_message: \"Did not fulfill the FlatMaxAttackRequirement of 1 Physical damage, did {Physical: 3} damage and that is too much.\" } }".to_string(), result.item_report[2].effect_description);
     }
 
     #[test]
@@ -609,15 +610,15 @@ mod tests_int {
         };
 
         game.equipped_items.push(first_item_cannot_pay);
-        assert_eq!("Did not fulfill the PlaceLimitedByIndexModulus: 0 % 6 = 0 and that is not contained in [1, 3, 4].".to_string(), execute(&mut game, 0).unwrap_err().item_report[0].effect_description);
+        assert_eq!("MyError { kind: ExecuteCommand { error_message: \"Did not fulfill the PlaceLimitedByIndexModulus: 0 % 6 = 0 and that is not contained in [1, 3, 4].\" } }".to_string(), execute(&mut game, 0).unwrap_err().item_report[0].effect_description);
         assert_eq!("Costs paid and all gains executed.".to_string(), execute(&mut game, 1).unwrap_err().item_report[0].effect_description);
-        assert_eq!("Did not fulfill the PlaceLimitedByIndexModulus: 2 % 6 = 2 and that is not contained in [1, 3, 4].".to_string(), execute(&mut game, 2).unwrap_err().item_report[0].effect_description);
+        assert_eq!("MyError { kind: ExecuteCommand { error_message: \"Did not fulfill the PlaceLimitedByIndexModulus: 2 % 6 = 2 and that is not contained in [1, 3, 4].\" } }".to_string(), execute(&mut game, 2).unwrap_err().item_report[0].effect_description);
         assert_eq!("Costs paid and all gains executed.".to_string(), execute(&mut game, 3).unwrap_err().item_report[0].effect_description);
         assert_eq!("Costs paid and all gains executed.".to_string(), execute(&mut game, 4).unwrap_err().item_report[0].effect_description);
-        assert_eq!("Did not fulfill the PlaceLimitedByIndexModulus: 5 % 6 = 5 and that is not contained in [1, 3, 4].".to_string(), execute(&mut game, 5).unwrap_err().item_report[0].effect_description);
-        assert_eq!("Did not fulfill the PlaceLimitedByIndexModulus: 6 % 6 = 0 and that is not contained in [1, 3, 4].".to_string(), execute(&mut game, 6).unwrap_err().item_report[0].effect_description);
+        assert_eq!("MyError { kind: ExecuteCommand { error_message: \"Did not fulfill the PlaceLimitedByIndexModulus: 5 % 6 = 5 and that is not contained in [1, 3, 4].\" } }".to_string(), execute(&mut game, 5).unwrap_err().item_report[0].effect_description);
+        assert_eq!("MyError { kind: ExecuteCommand { error_message: \"Did not fulfill the PlaceLimitedByIndexModulus: 6 % 6 = 0 and that is not contained in [1, 3, 4].\" } }".to_string(), execute(&mut game, 6).unwrap_err().item_report[0].effect_description);
         assert_eq!("Costs paid and all gains executed.".to_string(), execute(&mut game, 7).unwrap_err().item_report[0].effect_description);
-        assert_eq!("Did not fulfill the PlaceLimitedByIndexModulus: 8 % 6 = 2 and that is not contained in [1, 3, 4].".to_string(), execute(&mut game, 8).unwrap_err().item_report[0].effect_description);
+        assert_eq!("MyError { kind: ExecuteCommand { error_message: \"Did not fulfill the PlaceLimitedByIndexModulus: 8 % 6 = 2 and that is not contained in [1, 3, 4].\" } }".to_string(), execute(&mut game, 8).unwrap_err().item_report[0].effect_description);
         assert_eq!("Costs paid and all gains executed.".to_string(), execute(&mut game, 9).unwrap_err().item_report[0].effect_description);
     }
 
@@ -654,7 +655,7 @@ mod tests_int {
 
         let result = result.unwrap_err();
         assert_eq!("You did not deal enough damage to overcome the challenges in this place.".to_string(), result.result);
-        assert_eq!("Were not able to pay all the costs. Had to pay {Mana: 20}, but only had {} available.".to_string(), result.item_report[0].effect_description);
+        assert_eq!("MyError { kind: ExecuteCommand { error_message: \"Were not able to pay all the costs. Had to pay {Mana: 20}, but only had {} available.\" } }".to_string(), result.item_report[0].effect_description);
         assert_eq!("Costs paid and all gains executed.".to_string(), result.item_report[1].effect_description);
         assert_eq!("Costs paid and all gains executed.".to_string(), result.item_report[2].effect_description);
     }
@@ -724,9 +725,9 @@ mod tests_int {
 
         let result = result.unwrap_err();
         assert_eq!("You did not deal enough damage to overcome the challenges in this place.".to_string(), result.result);
-        assert_eq!("Did not fulfill the FlatSumMinAttackRequirement of 20 damage, only did {} damage.".to_string(), result.item_report[0].effect_description);
+        assert_eq!("MyError { kind: ExecuteCommand { error_message: \"Did not fulfill the FlatSumMinAttackRequirement of 20 damage, only did {} damage.\" } }".to_string(), result.item_report[0].effect_description);
         assert_eq!("Costs paid and all gains executed.".to_string(), result.item_report[1].effect_description);
-        assert_eq!("Did not fulfill the FlatSumMinAttackRequirement of 20 damage, only did {Physical: 10} damage.".to_string(), result.item_report[2].effect_description);
+        assert_eq!("MyError { kind: ExecuteCommand { error_message: \"Did not fulfill the FlatSumMinAttackRequirement of 20 damage, only did {Physical: 10} damage.\" } }".to_string(), result.item_report[2].effect_description);
         assert_eq!("Costs paid and all gains executed.".to_string(), result.item_report[3].effect_description);
         assert_eq!("Costs paid and all gains executed.".to_string(), result.item_report[4].effect_description);
     }
@@ -783,7 +784,7 @@ mod tests_int {
         assert_eq!("Costs paid and all gains executed.".to_string(), result.item_report[1].effect_description);
         assert_eq!("Costs paid and all gains executed.".to_string(), result.item_report[2].effect_description);
         assert_eq!("Costs paid and all gains executed.".to_string(), result.item_report[3].effect_description);
-        assert_eq!("Did not fulfill the FlatSumMaxAttackRequirement of 20 damage, did {Physical: 22} damage damage and that is too much.".to_string(), result.item_report[4].effect_description);
+        assert_eq!("MyError { kind: ExecuteCommand { error_message: \"Did not fulfill the FlatSumMaxAttackRequirement of 20 damage, did {Physical: 22} damage damage and that is too much.\" } }".to_string(), result.item_report[4].effect_description);
     }
 
     //TODO add tests that check several execute_move_command in a row, for the item resource accumulation.
@@ -821,7 +822,7 @@ mod tests_int {
 
         let result = result.unwrap_err();
         assert_eq!("You did not deal enough damage to overcome the challenges in this place.".to_string(), result.result);
-        assert_eq!("Did not fulfill the FlatMinItemResourceRequirement of 20 Mana, only had {}.".to_string(), result.item_report[0].effect_description);
+        assert_eq!("MyError { kind: ExecuteCommand { error_message: \"Did not fulfill the FlatMinItemResourceRequirement of 20 Mana, only had {}.\" } }".to_string(), result.item_report[0].effect_description);
         assert_eq!("Costs paid and all gains executed.".to_string(), result.item_report[1].effect_description);
         assert_eq!("Costs paid and all gains executed.".to_string(), result.item_report[2].effect_description);
     }
@@ -864,7 +865,7 @@ mod tests_int {
         assert_eq!("Costs paid and all gains executed.".to_string(), result.item_report[1].effect_description);
         assert_eq!("Costs paid and all gains executed.".to_string(), result.item_report[2].effect_description);
         assert_eq!("Costs paid and all gains executed.".to_string(), result.item_report[3].effect_description);
-        assert_eq!("Did not fulfill the FlatMaxItemResourceRequirement of 20 Mana, had {Mana: 40} and that is too much.".to_string(), result.item_report[4].effect_description);
+        assert_eq!("MyError { kind: ExecuteCommand { error_message: \"Did not fulfill the FlatMaxItemResourceRequirement of 20 Mana, had {Mana: 40} and that is too much.\" } }".to_string(), result.item_report[4].effect_description);
     }
 
     #[test]
@@ -895,7 +896,7 @@ mod tests_int {
 
         let result = result.unwrap_err();
         assert_eq!("You did not deal enough damage to overcome the challenges in this place.".to_string(), result.result);
-        assert_eq!("Did not fulfill the FlatMinResistanceRequirement of 18 Fire damage, place only has [(Fire, 17), (Frost, 7), (Darkness, 6), (Nature, 70), (Corruption, 52), (Holy, 89)] damage.".to_string(), result.item_report[0].effect_description);
+        assert_eq!("MyError { kind: ExecuteCommand { error_message: \"Did not fulfill the FlatMinResistanceRequirement of 18 Fire damage, place only has [(Fire, 17), (Frost, 7), (Darkness, 6), (Nature, 70), (Corruption, 52), (Holy, 89)] damage.\" } }".to_string(), result.item_report[0].effect_description);
 
         let result = execute(&mut game, 7);
 
@@ -942,7 +943,7 @@ mod tests_int {
 
         let result = result.unwrap_err();
         assert_eq!("You did not deal enough damage to overcome the challenges in this place.".to_string(), result.result);
-        assert_eq!("Did not fulfill the FlatMaxResistanceRequirement of 17 Fire damage, place has [(Fire, 20), (Frost, 4), (Light, 11), (Darkness, 37), (Corruption, 80), (Holy, 59)] damage and that is too much.".to_string(), result.item_report[0].effect_description);
+        assert_eq!("MyError { kind: ExecuteCommand { error_message: \"Did not fulfill the FlatMaxResistanceRequirement of 17 Fire damage, place has [(Fire, 20), (Frost, 4), (Light, 11), (Darkness, 37), (Corruption, 80), (Holy, 59)] damage and that is too much.\" } }".to_string(), result.item_report[0].effect_description);
     }
 
     #[test]
@@ -973,7 +974,7 @@ mod tests_int {
 
         let result = result.unwrap_err();
         assert_eq!("You did not deal enough damage to overcome the challenges in this place.".to_string(), result.result);
-        assert_eq!("Did not fulfill the FlatMinSumResistanceRequirement of 195 damage, place only has 194 damage.".to_string(), result.item_report[0].effect_description);
+        assert_eq!("MyError { kind: ExecuteCommand { error_message: \"Did not fulfill the FlatMinSumResistanceRequirement of 195 damage, place only has 194 damage.\" } }".to_string(), result.item_report[0].effect_description);
 
         let result = execute(&mut game, 0);
 
@@ -1020,7 +1021,7 @@ mod tests_int {
 
         let result = result.unwrap_err();
         assert_eq!("You did not deal enough damage to overcome the challenges in this place.".to_string(), result.result);
-        assert_eq!("Did not fulfill the FlatMaxSumResistanceRequirement of 194 damage, place has 241 damage and that is too much.".to_string(), result.item_report[0].effect_description);
+        assert_eq!("MyError { kind: ExecuteCommand { error_message: \"Did not fulfill the FlatMaxSumResistanceRequirement of 194 damage, place has 241 damage and that is too much.\" } }".to_string(), result.item_report[0].effect_description);
     }
 
     #[test]
@@ -1050,7 +1051,7 @@ mod tests_int {
 
         let result = result.unwrap_err();
         assert_eq!("You did not deal enough damage to overcome the challenges in this place.".to_string(), result.result);
-        assert_eq!("Did not fulfill the MinWinsInARow of 1 win, only hase 0 wins in a row.".to_string(), result.item_report[0].effect_description);
+        assert_eq!("MyError { kind: ExecuteCommand { error_message: \"Did not fulfill the MinWinsInARow of 1 win, only hase 0 wins in a row.\" } }".to_string(), result.item_report[0].effect_description);
         assert_eq!("Costs paid and all gains executed.".to_string(), result.item_report[1].effect_description);
 
         let result = execute(&mut game, 0);
@@ -1059,7 +1060,7 @@ mod tests_int {
 
         let result = result.unwrap();
         assert_eq!("You won and got a new item in the inventory.".to_string(), result.result);
-        assert_eq!("Did not fulfill the MinWinsInARow of 1 win, only hase 0 wins in a row.".to_string(), result.item_report[0].effect_description);
+        assert_eq!("MyError { kind: ExecuteCommand { error_message: \"Did not fulfill the MinWinsInARow of 1 win, only hase 0 wins in a row.\" } }".to_string(), result.item_report[0].effect_description);
         assert_eq!("Costs paid and all gains executed.".to_string(), result.item_report[1].effect_description);
 
         let result = execute(&mut game, 9);
@@ -1117,7 +1118,7 @@ mod tests_int {
 
         let result = result.unwrap_err();
         assert_eq!("You did not deal enough damage to overcome the challenges in this place.".to_string(), result.result);
-        assert_eq!("Did not fulfill the MaxWinsInARow of 0 win, have 1 wins in a row and that is too much.".to_string(), result.item_report[0].effect_description);
+        assert_eq!("MyError { kind: ExecuteCommand { error_message: \"Did not fulfill the MaxWinsInARow of 0 win, have 1 wins in a row and that is too much.\" } }".to_string(), result.item_report[0].effect_description);
         assert_eq!("Costs paid and all gains executed.".to_string(), result.item_report[1].effect_description);
     }
 

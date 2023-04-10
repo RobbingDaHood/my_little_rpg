@@ -5,6 +5,7 @@ use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
 
 use crate::Game;
+use crate::my_little_rpg_errors::MyError;
 use crate::the_world::attack_types::AttackType;
 use crate::the_world::difficulty::Difficulty;
 use crate::the_world::treasure_types::{pay_crafting_cost, TreasureType};
@@ -25,7 +26,7 @@ pub fn execute_json(game: &mut Game) -> Value {
     }
 }
 
-pub fn execute(game: &mut Game) -> Result<ExecuteExpandMinElementReport, String> {
+pub fn execute(game: &mut Game) -> Result<ExecuteExpandMinElementReport, MyError> {
     //Crafting cost
     let crafting_cost = execute_expand_min_element_calculate_cost(game);
     let crafting_gold_cost = crafting_cost.get(&Gold).unwrap();
@@ -36,12 +37,10 @@ pub fn execute(game: &mut Game) -> Result<ExecuteExpandMinElementReport, String>
         .collect();
 
     if max_possible_elements.is_empty() {
-        return Err("There are no element minimum values that can be upgraded, consider expanding a max element value.".to_string());
+        return Err(MyError::create_execute_command_error("There are no element minimum values that can be upgraded, consider expanding a max element value.".to_string()));
     }
 
-    if let Err(error_message) = pay_crafting_cost(game, &crafting_cost) {
-        return Err(error_message);
-    };
+    pay_crafting_cost(game, &crafting_cost)?;
 
     //Increase min of existing element
     let picked_element = game.random_generator_state.gen_range(0..max_possible_elements.len());
@@ -67,6 +66,7 @@ mod tests_int {
     use crate::command::expand_min_element::execute as execute_expand_min_element;
     use crate::command::r#move::execute;
     use crate::generator::game::{new, new_testing};
+    use crate::my_little_rpg_errors::MyError;
     use crate::the_world::treasure_types::TreasureType::Gold;
 
     #[test]
@@ -75,13 +75,13 @@ mod tests_int {
         assert_eq!(1, game.difficulty.min_resistance.len());
         assert_eq!(1, game.difficulty.min_resistance.len());
 
-        assert_eq!(Err("There are no element minimum values that can be upgraded, consider expanding a max element value.".to_string()), execute_expand_min_element(&mut game));
+        assert_eq!(Err(MyError::create_execute_command_error("There are no element minimum values that can be upgraded, consider expanding a max element value.".to_string())), execute_expand_min_element(&mut game));
 
         for _i in 0..1000 {
             assert!(execute(&mut game, 0).is_ok());
         }
 
-        assert_eq!(Err("There are no element minimum values that can be upgraded, consider expanding a max element value.".to_string()), execute_expand_min_element(&mut game));
+        assert_eq!(Err(MyError::create_execute_command_error("There are no element minimum values that can be upgraded, consider expanding a max element value.".to_string())), execute_expand_min_element(&mut game));
         assert!(game.treasure.get(&Gold).unwrap() > &0);
         assert_eq!(1, game.difficulty.min_resistance.len());
         assert_eq!(1, game.difficulty.min_resistance.len());
@@ -89,7 +89,7 @@ mod tests_int {
         assert!(execute_expand_max_element(&mut game).is_ok());
 
         assert!(execute_expand_min_element(&mut game).is_ok());
-        assert_eq!(Err("There are no element minimum values that can be upgraded, consider expanding a max element value.".to_string()), execute_expand_min_element(&mut game));
+        assert_eq!(Err(MyError::create_execute_command_error("There are no element minimum values that can be upgraded, consider expanding a max element value.".to_string())), execute_expand_min_element(&mut game));
     }
 
 

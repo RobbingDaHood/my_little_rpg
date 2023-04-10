@@ -3,6 +3,7 @@ use std::collections::HashMap;
 use serde::{Deserialize, Serialize};
 
 use crate::Game;
+use crate::my_little_rpg_errors::MyError;
 use crate::the_world::treasure_types::TreasureType::Gold;
 
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize, Eq, Hash)]
@@ -18,11 +19,11 @@ impl TreasureType {
     }
 }
 
-pub fn pay_crafting_cost(game: &mut Game, crafting_cost: &HashMap<TreasureType, u64>) -> Result<(), String> {
+pub fn pay_crafting_cost(game: &mut Game, crafting_cost: &HashMap<TreasureType, u64>) -> Result<(), MyError> {
     if calculate_are_all_treasure_payable(&game.treasure, crafting_cost) {
         update_all_treasure(&mut game.treasure, crafting_cost);
     } else {
-        return Err(format!("Cant pay the crafting cost, the cost is {:?} and you only have {:?}", crafting_cost, game.treasure));
+        return Err(MyError::create_execute_command_error(format!("Cant pay the crafting cost, the cost is {:?} and you only have {:?}", crafting_cost, game.treasure)));
     }
     Ok(())
 }

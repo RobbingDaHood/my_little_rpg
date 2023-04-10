@@ -5,6 +5,7 @@ use serde_json::{json, Value};
 
 use crate::Game;
 use crate::generator::place::new;
+use crate::my_little_rpg_errors::MyError;
 use crate::the_world::place::Place;
 use crate::the_world::treasure_types::{pay_crafting_cost, TreasureType};
 use crate::the_world::treasure_types::TreasureType::Gold;
@@ -24,12 +25,10 @@ pub fn execute_json(game: &mut Game) -> Value {
     }
 }
 
-pub fn execute(game: &mut Game) -> Result<ExecuteExpandPlacesReport, String> {
+pub fn execute(game: &mut Game) -> Result<ExecuteExpandPlacesReport, MyError> {
     //Crafting cost
     let crafting_cost = execute_expand_places_calculate_cost(game);
-    if let Err(error_message) = pay_crafting_cost(game, &crafting_cost) {
-        return Err(error_message);
-    };
+    pay_crafting_cost(game, &crafting_cost)?;
 
     //Create new place
     let new_place = new(game);
@@ -52,6 +51,7 @@ mod tests_int {
     use crate::command::expand_places::execute;
     use crate::command::r#move::execute as execute_move_command;
     use crate::generator::game::new_testing;
+    use crate::my_little_rpg_errors::MyError;
     use crate::the_world::treasure_types::TreasureType::Gold;
 
     #[test]
@@ -59,7 +59,7 @@ mod tests_int {
         let mut game = new_testing(Some([1; 16]));
         assert_eq!(10, game.places.len());
 
-        assert_eq!(Err("Cant pay the crafting cost, the cost is {Gold: 100} and you only have {}".to_string()), execute(&mut game));
+        assert_eq!(Err(MyError::create_execute_command_error("Cant pay the crafting cost, the cost is {Gold: 100} and you only have {}".to_string())), execute(&mut game));
 
         assert!(execute_move_command(&mut game, 0).is_err());
         assert!(execute_move_command(&mut game, 0).is_ok());
