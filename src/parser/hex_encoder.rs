@@ -8,8 +8,7 @@ pub fn decode_hex(s: &str) -> Result<Vec<u8>, MyError> {
     if offending_chars.is_empty() {
         decode_hex_unsafe(&s)
     } else {
-        //TODO use a more specific type of error here!
-        Err(MyError::from(format!("{:?} is not hexdigit(s)!", offending_chars)))
+        Err(MyError::create_parse_command_error(format!("{:?} is not hexdigit(s)!", offending_chars)))
     }
 }
 
@@ -23,7 +22,7 @@ fn decode_hex_unsafe(s: &&str) -> Result<Vec<u8>, MyError> {
     (0..s.len())
         .step_by(2)
         .map(|i| u8::from_str_radix(&s[i..i + 2], 16))
-        .map(|i| i.map_err(|s| MyError::from(s.to_string())))
+        .map(|i| i.map_err(|s| MyError::create_parse_command_error(s.to_string())))
         .collect()
 }
 

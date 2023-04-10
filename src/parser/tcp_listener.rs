@@ -87,14 +87,14 @@ impl Listener {
     fn read_command(stream: &mut TcpStream) -> Result<Box<str>, MyError> {
         let mut buffer = [0; 1024];
         stream.set_read_timeout(Some(Duration::from_secs(1)))
-            .map_err(|e| MyError::from(format!("Got error from setting timeout on reading tcp input, aborting: {}", e))
+            .map_err(|e| MyError::create_network_error(format!("Got error from setting timeout on reading tcp input, aborting: {}", e))
             )?;
         let buffer_size = stream.read(&mut buffer)
-            .map_err(|e| MyError::from(format!("Got error from reading command, aborting: {}", e))
+            .map_err(|e| MyError::create_network_error(format!("Got error from reading command, aborting: {}", e))
             )?;
         let command = &buffer[..buffer_size];
         let command_as_string = String::from_utf8(command.to_vec())
-            .map_err(|e| MyError::from(format!("Failed parsing the command, got error: {}", e))
+            .map_err(|e| MyError::create_parse_command_error(format!("Failed parsing the command, got error: {}", e))
             )?;
         println!("Received request with following command: {}", command_as_string);
         Ok(command_as_string.into())
