@@ -22,6 +22,7 @@ pub enum AttackType {
 //TODO: Could also create a resource if more than half damage goes through; Then that resource could be used in crafting and modifiers.
 
 impl AttackType {
+    //TODO replace all get_all with static fields; or at least them return that.
     pub fn get_all() -> Vec<AttackType> {
         vec![
             Physical,

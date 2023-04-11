@@ -27,7 +27,8 @@ pub fn execute_json(game: &mut Game) -> Value {
 }
 
 pub fn execute(game: &mut Game) -> Result<ExecuteExpandElementsReport, MyError> {
-    if game.difficulty.max_resistance.len() >= AttackType::get_all().len() {
+    let difficulty_max_resistance_number = game.difficulty.max_resistance.len();
+    if difficulty_max_resistance_number >= AttackType::get_all().len() {
         return Err(MyError::create_execute_command_error("Already at maximum elements.".to_string()));
     }
 
@@ -36,12 +37,12 @@ pub fn execute(game: &mut Game) -> Result<ExecuteExpandElementsReport, MyError> 
     pay_crafting_cost(game, &crafting_cost)?;
 
     //Add new element
-    let new_element = AttackType::get_all()[game.difficulty.max_resistance.len()].clone();
+    let new_element = &AttackType::get_all()[difficulty_max_resistance_number];
     game.difficulty.max_resistance.insert(new_element.clone(), 2);
     game.difficulty.min_resistance.insert(new_element.clone(), 1);
 
     Ok(ExecuteExpandElementsReport {
-        new_element_type: new_element,
+        new_element_type: new_element.clone(),
         paid_cost: crafting_cost.clone(),
         new_cost: execute_expand_elements_calculate_cost(game),
         leftover_spending_treasure: game.treasure.clone(),

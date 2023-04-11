@@ -47,7 +47,7 @@ pub fn execute(game: &mut Game, inventory_index: usize, modifier_index: usize, m
 
     let calculated_sacrifice_item_indexes =  calculate_absolute_item_indexes(game, inventory_index, &sacrifice_item_indexes)?;
 
-    for sacrifice_item_index in calculated_sacrifice_item_indexes.clone() {
+    for &sacrifice_item_index in &calculated_sacrifice_item_indexes[..] {
         let sacrificed_item = game.inventory[sacrifice_item_index].as_ref().unwrap();
         if sacrificed_item.modifiers.len() <= modifier_index {
             return Err(MyError::create_execute_command_error(format!("sacrifice_item_index {} need to have at least {} modifiers but it only had {}", sacrifice_item_index, modifier_index + 1, sacrificed_item.modifiers.len())));
@@ -55,7 +55,7 @@ pub fn execute(game: &mut Game, inventory_index: usize, modifier_index: usize, m
     }
 
     //Crafting cost
-    for sacrifice_item_index in calculated_sacrifice_item_indexes {
+    for &sacrifice_item_index in &calculated_sacrifice_item_indexes[..] {
         game.inventory[sacrifice_item_index] = None;
     }
 
@@ -71,7 +71,7 @@ pub fn execute(game: &mut Game, inventory_index: usize, modifier_index: usize, m
 }
 
 pub fn execute_craft_reroll_modifier_calculate_cost(game: &Game, inventory_index: usize) -> u16 {
-    match game.inventory[inventory_index].clone() {
+    match &game.inventory[inventory_index] {
         Some(item) => u16::try_from(item.modifiers.len()).unwrap_or(u16::MAX),
         None => 0
     }

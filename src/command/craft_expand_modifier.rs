@@ -52,8 +52,8 @@ pub fn execute_craft_expand_modifiers(game: &mut Game, inventory_index: usize, m
 
     let calculated_sacrifice_item_indexes = calculate_absolute_item_indexes(game, inventory_index, &sacrifice_item_indexes)?;
 
-    for sacrifice_item_index in calculated_sacrifice_item_indexes.clone() {
-        let sacrificed_item = game.inventory[sacrifice_item_index].as_ref().unwrap();
+    for sacrifice_item_index in &calculated_sacrifice_item_indexes {
+        let sacrificed_item = game.inventory[*sacrifice_item_index].as_ref().unwrap();
         if sacrificed_item.modifiers.len() < inventory_item.modifiers.len() {
             return Err(MyError::create_execute_command_error(format!("sacrifice_item_index {} need to have at least {} modifiers but it only had {}", sacrifice_item_index, inventory_item.modifiers.len(), sacrificed_item.modifiers.len())));
         }
@@ -69,7 +69,8 @@ pub fn execute_craft_expand_modifiers(game: &mut Game, inventory_index: usize, m
     game.inventory[inventory_index].as_mut().unwrap().modifiers.push(new_item_modifier);
 
     Ok(ExecuteExpandModifiersReport {
-        new_item: game.inventory[inventory_index].as_ref().unwrap().clone(),
+        //TODO replace all unwrap and expect with better error handling
+        new_item: game.inventory[inventory_index].clone().unwrap(),
         paid_cost: cost,
         new_cost: execute_craft_expand_modifiers_calculate_cost(game, inventory_index),
         leftover_spending_treasure: game.treasure.clone(),
@@ -77,7 +78,7 @@ pub fn execute_craft_expand_modifiers(game: &mut Game, inventory_index: usize, m
 }
 
 pub fn execute_craft_expand_modifiers_calculate_cost(game: &Game, inventory_index: usize) -> usize {
-    match game.inventory[inventory_index].clone() {
+    match &game.inventory[inventory_index] {
         Some(item) => item.modifiers.len() * 2,
         None => 0
     }
