@@ -551,7 +551,7 @@ mod tests_int {
 
         let result = result.unwrap_err();
         assert_eq!(Into::<Box<str>>::into("You did not deal enough damage to overcome the challenges in this place."), result.result);
-        assert_eq!(Into::<Box<str>>::into("MyError { kind: ExecuteCommand { error_message: \"Did not fulfill the FlatMinResistanceRequirement of 18 Fire damage, place only has [(Fire, 17), (Frost, 7), (Darkness, 6), (Nature, 70), (Corruption, 52), (Holy, 89)] damage.\" } }"), result.item_report[0].effect_description);
+        assert_eq!(Into::<Box<str>>::into("MyError { kind: ExecuteCommand { error_message: \"Did not fulfill the FlatMinResistanceRequirement of 18 Fire damage, place only has 17 damage.\" } }"), result.item_report[0].effect_description);
 
         let result = execute(&mut game, 7);
 
@@ -598,7 +598,7 @@ mod tests_int {
 
         let result = result.unwrap_err();
         assert_eq!(Into::<Box<str>>::into("You did not deal enough damage to overcome the challenges in this place."), result.result);
-        assert_eq!(Into::<Box<str>>::into("MyError { kind: ExecuteCommand { error_message: \"Did not fulfill the FlatMaxResistanceRequirement of 17 Fire damage, place has [(Fire, 20), (Frost, 4), (Light, 11), (Darkness, 37), (Corruption, 80), (Holy, 59)] damage and that is too much.\" } }"), result.item_report[0].effect_description);
+        assert_eq!(Into::<Box<str>>::into("MyError { kind: ExecuteCommand { error_message: \"Did not fulfill the FlatMaxResistanceRequirement of 17 Fire damage, place has 20 damage and that is too much.\" } }"), result.item_report[0].effect_description);
     }
 
     #[test]

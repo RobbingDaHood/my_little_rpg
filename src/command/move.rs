@@ -206,15 +206,15 @@ fn update_gain_effect(current_damage: &mut HashMap<AttackType, u64>, current_res
     }
 }
 
-fn get_attack_type_with_min_amount(place: &Place) -> AttackType {
-    AttackType::order_map(&place.resistance).into_iter()
+fn get_attack_type_with_min_amount(place: &Place) -> &AttackType {
+    place.resistance.iter()
         .min_by(|(_, a_attack_amount), (_, b_attack_amount)| a_attack_amount.cmp(b_attack_amount))
         .map(|(attack_type, _)| attack_type)
         .unwrap()
 }
 
-fn get_attack_type_with_max_amount(place: &Place) -> AttackType {
-    AttackType::order_map(&place.resistance).into_iter()
+fn get_attack_type_with_max_amount(place: &Place) -> &AttackType {
+    place.resistance.iter()
         .max_by(|(_, a_attack_amount), (_, b_attack_amount)| a_attack_amount.cmp(b_attack_amount))
         .map(|(attack_type, _)| attack_type)
         .unwrap()
@@ -303,13 +303,15 @@ fn evaluate_item_costs(item: &Item, current_damage: &HashMap<AttackType, u64>, g
                     }
                 }
                 Cost::FlatMinResistanceRequirement(attack_type, amount) => {
-                    if game.places[index].resistance.get(attack_type).unwrap_or(&0) < amount {
-                        return Err(MyError::create_execute_command_error(format!("Did not fulfill the FlatMinResistanceRequirement of {} {:?} damage, place only has {:?} damage.", amount, attack_type, AttackType::order_map(&game.places[index].resistance))));
+                    let resistance_amount_place = game.places[index].resistance.get(attack_type).unwrap_or(&0);
+                    if resistance_amount_place < amount {
+                        return Err(MyError::create_execute_command_error(format!("Did not fulfill the FlatMinResistanceRequirement of {} {:?} damage, place only has {:?} damage.", amount, attack_type, resistance_amount_place)));
                     }
                 }
                 Cost::FlatMaxResistanceRequirement(attack_type, amount) => {
-                    if game.places[index].resistance.get(attack_type).unwrap_or(&0) > amount {
-                        return Err(MyError::create_execute_command_error(format!("Did not fulfill the FlatMaxResistanceRequirement of {} {:?} damage, place has {:?} damage and that is too much.", amount, attack_type, AttackType::order_map(&game.places[index].resistance))));
+                    let resistance_amount_place = game.places[index].resistance.get(attack_type).unwrap_or(&0);
+                    if resistance_amount_place > amount {
+                        return Err(MyError::create_execute_command_error(format!("Did not fulfill the FlatMaxResistanceRequirement of {} {:?} damage, place has {:?} damage and that is too much.", amount, attack_type, resistance_amount_place)));
                     }
                 }
                 Cost::FlatMinSumResistanceRequirement(amount) => {
