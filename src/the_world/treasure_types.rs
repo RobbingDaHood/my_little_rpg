@@ -19,6 +19,7 @@ impl TreasureType {
     }
 }
 
+//TODO consider moving code and add some tests
 pub fn pay_crafting_cost(game: &mut Game, crafting_cost: &HashMap<TreasureType, u64>) -> Result<(), MyError> {
     if calculate_are_all_treasure_payable(&game.treasure, crafting_cost) {
         update_all_treasure(&mut game.treasure, crafting_cost);

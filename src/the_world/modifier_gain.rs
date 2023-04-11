@@ -21,6 +21,7 @@ pub enum Gain {
 }
 
 impl Gain {
+    //TODO Consider if the code could be simplified with default implementation
     pub fn get_all_given_attack_types(attack_types: Vec<AttackType>) -> Vec<Gain> {
         let mut result = Vec::new();
 

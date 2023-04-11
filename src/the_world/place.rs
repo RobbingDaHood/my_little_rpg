@@ -14,6 +14,7 @@ pub struct Place {
 }
 
 impl Place {
+    //TODO consider moving function and tests
     pub fn claim_rewards(&self, attacks: &HashMap<attack_types::AttackType, u64>) -> Option<HashMap<TreasureType, u64>> {
         let are_all_resistance_defeated = self.resistance.iter()
             .all(|(resistance_type, resistance_value)|

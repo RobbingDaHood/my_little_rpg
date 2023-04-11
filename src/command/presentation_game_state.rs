@@ -28,7 +28,7 @@ pub struct PresentationGameState {
     pub(crate) equipped_items: Vec<PresentationItem>,
     pub(crate) inventory: Vec<PresentationItem>,
     pub(crate) difficulty: Difficulty,
-    pub(crate) treasure: HashMap<TreasureType, u64>,
+    pub(crate) treasure: HashMap<TreasureType, u64>, //TODO use type alias or newtype; instead of u64 create a treasure(u64) type
     pub(crate) item_resources: HashMap<Type, u64>,
     pub(crate) crafting_action_costs: PlaceCosts,
     pub(crate) seed: Box<str>,
@@ -85,7 +85,7 @@ pub fn execute(game: &mut Game) -> PresentationGameState {
         .map(|(index, item)| PresentationItem {
             index,
             item,
-            crafting_action_costs: Err("Equipped items cannot be crafted on.".into()),
+            crafting_action_costs: Err("Equipped items cannot be crafted on.".into()), //TODD make this nicer; it is just an info and not an error.
         })
         .collect();
     let inventory: Vec<PresentationItem> = game.inventory.iter()

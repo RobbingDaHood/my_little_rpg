@@ -21,6 +21,7 @@ pub mod test_util {
     use crate::the_world::item::{CraftingInfo, Item};
     use crate::the_world::item_modifier::Modifier;
 
+    //TODO consider replacing with a default method
     pub fn create_item(game: &Game) -> Item {
         Item {
             modifiers: vec![

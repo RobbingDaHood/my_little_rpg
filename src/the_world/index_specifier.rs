@@ -10,6 +10,7 @@ pub enum IndexSpecifier {
     RelativeNegative(usize),
 }
 
+//TODO consider moving and at least test this
 pub fn calculate_absolute_item_indexes(
     game: &Game,
     inventory_index: usize,
