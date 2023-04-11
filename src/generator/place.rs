@@ -25,12 +25,13 @@ pub fn new(game: &mut Game) -> Place {
     let maximum_elements = min(relevant_attack_types.len(), game.difficulty.max_simultaneous_resistances as usize);
     let resistance_numbers = game.random_generator_state.gen_range(minimum_elements..=maximum_elements);
 
-    let attack_types = AttackType::order_set(&game.difficulty.min_resistance.keys().collect());
+    let mut possible_attack_types : Vec<&AttackType> = game.difficulty.min_resistance.keys().collect();
+    possible_attack_types.sort();
 
     let mut resistance_sum = 0;
     let mut count_elements = 0;
     while count_elements < resistance_numbers {
-        let attack_type = attack_types.choose(&mut game.random_generator_state).unwrap();
+        let attack_type = *possible_attack_types.choose(&mut game.random_generator_state).unwrap();
 
         let min_value = game.difficulty.min_resistance.get(attack_type).unwrap();
         let max_value = game.difficulty.max_resistance.get(attack_type).unwrap();

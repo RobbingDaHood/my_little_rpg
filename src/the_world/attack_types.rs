@@ -6,7 +6,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::the_world::attack_types::AttackType::{Corruption, Darkness, Fire, Frost, Holy, Light, Lightning, Nature, Physical};
 
-#[derive(Clone, PartialEq, Debug, Serialize, Deserialize, Eq, Hash)]
+#[derive(Clone, PartialEq, Debug, Serialize, Deserialize, Eq, Hash, PartialOrd, Ord)]
 pub enum AttackType {
     Physical,
     Fire,
@@ -37,13 +37,6 @@ impl AttackType {
             Corruption,
             Holy,
         ]
-    }
-
-    pub fn order_set(collection: &HashSet<&AttackType>) -> Vec<AttackType> {
-        AttackType::get_all().iter()
-            .filter(|attack_type| collection.contains(attack_type))
-            .cloned()
-            .collect::<Vec<AttackType>>()
     }
 }
 
