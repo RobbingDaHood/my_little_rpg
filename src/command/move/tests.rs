@@ -477,7 +477,7 @@ mod tests_int {
 
         let result = result.unwrap_err();
         assert_eq!(Into::<Box<str>>::into("You did not deal enough damage to overcome the challenges in this place."), result.result);
-        assert_eq!(Into::<Box<str>>::into("MyError { kind: ExecuteCommand { error_message: \"Did not fulfill the FlatMinItemResourceRequirement of 20 Mana, only had {}.\" } }"), result.item_report[0].effect_description);
+        assert_eq!(Into::<Box<str>>::into("MyError { kind: ExecuteCommand { error_message: \"Did not fulfill the FlatMinItemResourceRequirement of 20 Mana, only had 0.\" } }"), result.item_report[0].effect_description);
         assert_eq!(Into::<Box<str>>::into("Costs paid and all gains executed."), result.item_report[1].effect_description);
         assert_eq!(Into::<Box<str>>::into("Costs paid and all gains executed."), result.item_report[2].effect_description);
     }
@@ -520,7 +520,7 @@ mod tests_int {
         assert_eq!(Into::<Box<str>>::into("Costs paid and all gains executed."), result.item_report[1].effect_description);
         assert_eq!(Into::<Box<str>>::into("Costs paid and all gains executed."), result.item_report[2].effect_description);
         assert_eq!(Into::<Box<str>>::into("Costs paid and all gains executed."), result.item_report[3].effect_description);
-        assert_eq!(Into::<Box<str>>::into("MyError { kind: ExecuteCommand { error_message: \"Did not fulfill the FlatMaxItemResourceRequirement of 20 Mana, had {Mana: 40} and that is too much.\" } }"), result.item_report[4].effect_description);
+        assert_eq!(Into::<Box<str>>::into("MyError { kind: ExecuteCommand { error_message: \"Did not fulfill the FlatMaxItemResourceRequirement of 20 Mana, had 40 and that is too much.\" } }"), result.item_report[4].effect_description);
     }
 
     #[test]

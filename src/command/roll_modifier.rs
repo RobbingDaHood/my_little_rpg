@@ -2,7 +2,7 @@ mod tests;
 
 use std::cmp::{max, min};
 use std::collections::HashSet;
-use std::ops::Add;
+use std::ops::{Add, Div, Mul};
 
 use rand::Rng;
 use rand_pcg::Lcg64Xsh32;
@@ -196,10 +196,9 @@ fn add_flat_item_resource(random_generator_state: &mut Lcg64Xsh32, modifier_cost
 }
 
 fn execute_craft_roll_modifier_benefits(random_generator_state: &mut Lcg64Xsh32, crafting_info: &CraftingInfo, cost: u64, minimum_elements: usize, maximum_elements: usize) -> Vec<Gain> {
-    let attack_types = AttackType::get_all().iter()
+    let attack_types = AttackType::get_all().into_iter()
         .filter(|attack_type| crafting_info.possible_rolls.min_resistance.contains_key(attack_type))
-        .cloned()
-        .collect::<Vec<AttackType>>();
+        .collect();
 
     let mut leftover_cost = cost;
 
@@ -218,13 +217,7 @@ fn execute_craft_roll_modifier_benefits(random_generator_state: &mut Lcg64Xsh32,
         modifier_gain.push(
             match &all_modifier_gain_options[modifier_index] { //TODO do the same with costs.
                 FlatDamage(attack_type, _) => {
-                    let min_damage = *crafting_info.possible_rolls.min_resistance.get(attack_type).unwrap_or(&0);
-                    let max_damage = *crafting_info.possible_rolls.max_resistance.get(attack_type).unwrap_or(&1);
-                    let damage = random_generator_state.gen_range(min_damage..=max_damage);
-                    let damage = damage / 2;
-                    let damage = max(1, damage);
-                    let damage = damage + cost_bonus * 2;
-
+                    let damage = randomize_flat_damage(random_generator_state, crafting_info, cost_bonus, attack_type);
                     FlatDamage(attack_type.clone(), damage)
                 }
                 PercentageIncreaseDamage(attack_type, _) => {
@@ -234,13 +227,7 @@ fn execute_craft_roll_modifier_benefits(random_generator_state: &mut Lcg64Xsh32,
                     FlatItemResource(item_resource_type.clone(), max(1, cost_bonus * 2))
                 }
                 FlatResistanceReduction(attack_type, _) => {
-                    let min_damage = *crafting_info.possible_rolls.min_resistance.get(attack_type).unwrap_or(&0);
-                    let max_damage = *crafting_info.possible_rolls.max_resistance.get(attack_type).unwrap_or(&1);
-                    let damage = random_generator_state.gen_range(min_damage..=max_damage);
-                    let damage = damage / 2;
-                    let damage = max(1, damage);
-                    let damage = damage + cost_bonus * 2;
-
+                    let damage = randomize_flat_damage(random_generator_state, crafting_info, cost_bonus, attack_type);
                     FlatResistanceReduction(attack_type.clone(), damage)
                 }
                 PercentageIncreaseResistanceReduction(attack_type, _) => {
@@ -268,4 +255,15 @@ fn execute_craft_roll_modifier_benefits(random_generator_state: &mut Lcg64Xsh32,
         );
     }
     modifier_gain
+}
+
+fn randomize_flat_damage(random_generator_state: &mut Lcg64Xsh32, crafting_info: &CraftingInfo, cost_bonus: u64, attack_type: &AttackType) -> u64 {
+    let min_damage = *crafting_info.possible_rolls.min_resistance.get(attack_type).unwrap_or(&0);
+    let max_damage = *crafting_info.possible_rolls.max_resistance.get(attack_type).unwrap_or(&1);
+    let damage = random_generator_state.gen_range(min_damage..=max_damage)
+        .div(2)
+        .max(1)
+        .checked_mul(cost_bonus * 2)
+        .unwrap_or(u64::MAX);
+    damage
 }

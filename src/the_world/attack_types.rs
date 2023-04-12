@@ -1,4 +1,5 @@
 use std::collections::{HashMap, HashSet};
+use std::ops::Deref;
 use rand::prelude::SliceRandom;
 use rand_pcg::Lcg64Xsh32;
 
@@ -18,8 +19,6 @@ pub enum AttackType {
     Corruption,
     Holy,
 }
-
-pub type AttackValue = (AttackType, u64);
 
 //TODO: Could also create a resource if more than half damage goes through; Then that resource could be used in crafting and modifiers.
 
@@ -41,11 +40,7 @@ impl AttackType {
 }
 
 pub fn get_random_attack_type_from_unlocked(random_generator_state: &mut Lcg64Xsh32, unlocks: &HashMap<AttackType, u64>) -> AttackType {
-    let attack_type = AttackType::get_all().into_iter()
-        .filter(|attack_type| unlocks.contains_key(attack_type))
-        .collect::<Vec<AttackType>>()
-        .choose(random_generator_state)
-        .unwrap()
-        .clone();
-    attack_type
+    let mut attack_values: Vec<&AttackType> = unlocks.keys().collect();
+    attack_values.sort();
+    attack_values.choose(random_generator_state).unwrap().deref().clone()
 }

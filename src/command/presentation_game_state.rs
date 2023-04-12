@@ -109,6 +109,7 @@ pub fn execute(game: &mut Game) -> PresentationGameState {
         execute_reduce_difficulty: execute_execute_reduce_difficulty_cost(),
     };
 
+    //TODO can I do all these presentation models without cloning so much?
     PresentationGameState {
         places,
         equipped_items,

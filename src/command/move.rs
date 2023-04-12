@@ -1,5 +1,3 @@
-mod tests;
-
 use std::collections::HashMap;
 
 use serde::{Deserialize, Serialize};
@@ -16,6 +14,8 @@ use crate::the_world::modifier_cost::Cost;
 use crate::the_world::modifier_gain::Gain;
 use crate::the_world::place::Place;
 use crate::the_world::treasure_types::TreasureType;
+
+mod tests;
 
 // TODO this file have too many responsibilities
 
@@ -50,6 +50,7 @@ pub fn execute_json(game: &mut Game, index: usize) -> Value {
         Err(result) => json!(result)
     }
 }
+
 pub fn execute(game: &mut Game, index: usize) -> Result<ExecuteMoveCommandReport, ExecuteMoveCommandErrorReport> {
     if game.places.len() <= index { return report_place_does_not_exist(game, index); }
 
@@ -98,7 +99,7 @@ pub fn execute(game: &mut Game, index: usize) -> Result<ExecuteMoveCommandReport
                 let current_damage_amount = current_damage.get(attack_type).unwrap_or(&0);
                 let current_resistance_reduction_amount = current_resistance_reduction.get(attack_type).unwrap_or(&0);
                 let merged_damage = current_damage_amount.checked_add(*current_resistance_reduction_amount).unwrap_or(u64::MAX);
-                (attack_type.clone(), merged_damage)
+                (attack_type, merged_damage)
             })
             .collect();
 
@@ -110,13 +111,13 @@ pub fn execute(game: &mut Game, index: usize) -> Result<ExecuteMoveCommandReport
             game.game_statistics.wins_in_a_row += 1;
             game.game_statistics.loses_in_a_row = 0;
 
-            let modified_rewards = rewards.iter()
+            let modified_rewards = rewards.into_iter()
                 .map(|(treasure_type, treasure_amount)|
-                    match treasure_bonus.get(treasure_type) {
-                        None => (treasure_type.clone(), *treasure_amount),
+                    match treasure_bonus.get(&treasure_type) {
+                        None => (treasure_type, treasure_amount),
                         Some(multiplier_as_percentage) => {
-                            let multiplied_treasure_value = add_multiplier_to_base(*multiplier_as_percentage, *treasure_amount);
-                            (treasure_type.clone(), multiplied_treasure_value)
+                            let multiplied_treasure_value = add_multiplier_to_base(*multiplier_as_percentage, treasure_amount);
+                            (treasure_type, multiplied_treasure_value)
                         }
                     }
                 )
@@ -221,13 +222,9 @@ fn get_attack_type_with_max_amount(place: &Place) -> &AttackType {
 }
 
 fn add_multiplier_to_attack_type_base(attack_type_base: &mut HashMap<AttackType, u64>, attack_type: &AttackType, multiplier_as_percentage: u16) {
-    match attack_type_base.get(attack_type) {
-        None => {}
-        Some(attack_value) => {
-            let multiplied_attack_value = add_multiplier_to_base(multiplier_as_percentage, *attack_value);
-            attack_type_base.insert(attack_type.clone(), multiplied_attack_value);
-        }
-    }
+    attack_type_base.entry(attack_type.clone())
+        .and_modify(|attack_value|
+            *attack_value = add_multiplier_to_base(multiplier_as_percentage, *attack_value));
 }
 
 fn add_multiplier_to_base(multiplier_as_percentage: u16, base_value: u64) -> u64 {
@@ -267,13 +264,15 @@ fn evaluate_item_costs(item: &Item, current_damage: &HashMap<AttackType, u64>, g
             match cost {
                 Cost::FlatItemResource(item_resource_type, amount) => *item_resource_cost.entry(item_resource_type.clone()).or_insert(0) += amount,
                 Cost::FlatMinItemResourceRequirement(item_resource_type, amount) => {
-                    if *game.item_resources.get(item_resource_type).unwrap_or(&0) < *amount {
-                        return Err(MyError::create_execute_command_error(format!("Did not fulfill the FlatMinItemResourceRequirement of {} {:?}, only had {:?}.", amount, item_resource_type, game.item_resources.clone())));
+                    let resource_amount = game.item_resources.get(item_resource_type).unwrap_or(&0);
+                    if resource_amount < amount {
+                        return Err(MyError::create_execute_command_error(format!("Did not fulfill the FlatMinItemResourceRequirement of {} {:?}, only had {}.", amount, item_resource_type, resource_amount)));
                     }
                 }
                 Cost::FlatMaxItemResourceRequirement(item_resource_type, amount) => {
-                    if *game.item_resources.get(item_resource_type).unwrap_or(&0) > *amount {
-                        return Err(MyError::create_execute_command_error(format!("Did not fulfill the FlatMaxItemResourceRequirement of {} {:?}, had {:?} and that is too much.", amount, item_resource_type, game.item_resources.clone())));
+                    let resource_amount = game.item_resources.get(item_resource_type).unwrap_or(&0);
+                    if resource_amount > amount {
+                        return Err(MyError::create_execute_command_error(format!("Did not fulfill the FlatMaxItemResourceRequirement of {} {:?}, had {:?} and that is too much.", amount, item_resource_type, resource_amount)));
                     }
                 }
                 Cost::FlatMinAttackRequirement(attack_type, amount) => {

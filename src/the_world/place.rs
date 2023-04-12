@@ -15,7 +15,7 @@ pub struct Place {
 
 impl Place {
     //TODO consider moving function and tests
-    pub fn claim_rewards(&self, attacks: &HashMap<attack_types::AttackType, u64>) -> Option<HashMap<TreasureType, u64>> {
+    pub fn claim_rewards(&self, attacks: &HashMap<&attack_types::AttackType, u64>) -> Option<HashMap<TreasureType, u64>> {
         let are_all_resistance_defeated = self.resistance.iter()
             .all(|(resistance_type, resistance_value)|
                 match attacks.get(resistance_type) {
@@ -76,7 +76,6 @@ mod tests_int {
             min_resistance: HashMap::new(),
             max_simultaneous_resistances: 0,
             min_simultaneous_resistances: 0,
-
         };
 
         let place = Place {
@@ -85,7 +84,11 @@ mod tests_int {
             item_reward_possible_rolls,
         };
 
-        assert_eq!(Some(reward), place.claim_rewards(&resistance));
+        let attacks: HashMap<&AttackType, u64> = resistance.iter()
+            .map(|(attack_stype, amount)| (attack_stype, *amount))
+            .collect();
+
+        assert_eq!(Some(reward), place.claim_rewards(&attacks));
     }
 
     #[test]
@@ -119,6 +122,10 @@ mod tests_int {
 
         resistance.remove(&AttackType::Physical);
 
-        assert_eq!(None, place.claim_rewards(&resistance));
+        let attacks: HashMap<&AttackType, u64> = resistance.iter()
+            .map(|(attack_stype, amount)| (attack_stype, *amount))
+            .collect();
+
+        assert_eq!(None, place.claim_rewards(&attacks));
     }
 }
