@@ -1,16 +1,16 @@
-mod tests;
-
 use std::collections::HashMap;
 
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
 
-use crate::Game;
 use crate::command::roll_modifier::execute_craft;
+use crate::Game;
 use crate::my_little_rpg_errors::MyError;
 use crate::the_world::index_specifier::{calculate_absolute_item_indexes, IndexSpecifier};
 use crate::the_world::item::Item;
 use crate::the_world::treasure_types::TreasureType;
+
+mod tests;
 
 #[derive(Clone, PartialEq, Eq, Debug, Serialize, Deserialize)]
 pub struct ExecuteExpandModifiersReport {
@@ -26,19 +26,18 @@ pub fn execute_craft_expand_modifiers_json(game: &mut Game, inventory_index: usi
         Err(result) => json!(result)
     }
 }
+
 pub fn execute_craft_expand_modifiers(game: &mut Game, inventory_index: usize, mut sacrifice_item_indexes: Vec<IndexSpecifier>) -> Result<ExecuteExpandModifiersReport, MyError> {
     //validation
     if game.inventory.len() <= inventory_index {
-        return Err(MyError::create_execute_command_error( format!("inventory_index {} is not within the range of the inventory {}", inventory_index, game.inventory.len())));
+        return Err(MyError::create_execute_command_error(format!("inventory_index {} is not within the range of the inventory {}", inventory_index, game.inventory.len())));
     }
-    if game.inventory[inventory_index].is_none() {
-        return Err(MyError::create_execute_command_error( format!("inventory_index {} is empty.", inventory_index)));
-    }
-    let inventory_item = game.inventory[inventory_index].as_ref().unwrap();
+    let inventory_item = game.inventory[inventory_index].as_ref()
+        .ok_or_else(|| MyError::create_execute_command_error(format!("inventory_index {} is empty.", inventory_index)))?;
     if usize::from(inventory_item.crafting_info.possible_rolls.min_simultaneous_resistances) <= inventory_item.modifiers.len() {
         return Err(MyError::create_execute_command_error(format!("inventory_index.possible_rolls.min_simultaneous_resistances {} need to be bigger than inventory_index current number of modifiers {} for it to be expanded.",
-                           inventory_item.crafting_info.possible_rolls.min_simultaneous_resistances,
-                           inventory_item.modifiers.len()))
+                                                                 inventory_item.crafting_info.possible_rolls.min_simultaneous_resistances,
+                                                                 inventory_item.modifiers.len()))
         );
     }
 

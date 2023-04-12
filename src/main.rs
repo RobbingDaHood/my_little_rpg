@@ -28,7 +28,7 @@ fn parse_seed(src: &str) -> Result<[u8; 16], String> {
     }
     match decode_hex(src) {
         Err(e) => Err(format!("{:?}", e)),
-        Ok(r) => Ok(r.try_into().unwrap()) //We know the size fits
+        Ok(r) => Ok(r.try_into().expect("We know the size fits!")) //
     }
 }
 
