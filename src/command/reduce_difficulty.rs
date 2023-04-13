@@ -1,17 +1,22 @@
-use std::cmp::{max, min};
-use std::collections::HashMap;
-use std::ops::Div;
+use std::{
+    cmp::{max, min},
+    collections::HashMap,
+    ops::Div,
+};
 
 use rand::prelude::SliceRandom;
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
 
-use crate::generator::place::new;
-use crate::the_world::attack_types::get_random_attack_type_from_unlocked;
-use crate::the_world::difficulty::Difficulty;
-use crate::the_world::treasure_types::TreasureType;
-use crate::the_world::treasure_types::TreasureType::Gold;
-use crate::Game;
+use crate::{
+    generator::place::new,
+    the_world::{
+        attack_types::get_random_attack_type_from_unlocked,
+        difficulty::Difficulty,
+        treasure_types::{TreasureType, TreasureType::Gold},
+    },
+    Game,
+};
 
 mod tests;
 

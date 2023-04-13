@@ -2,9 +2,7 @@ use std::collections::HashMap;
 
 use serde::{Deserialize, Serialize};
 
-use crate::the_world::attack_types;
-use crate::the_world::difficulty::Difficulty;
-use crate::the_world::treasure_types::TreasureType;
+use crate::the_world::{attack_types, difficulty::Difficulty, treasure_types::TreasureType};
 
 #[derive(Clone, PartialEq, Eq, Debug, Serialize, Deserialize)]
 pub struct Place {
@@ -22,12 +20,12 @@ impl Place {
         let are_all_resistance_defeated =
             self.resistance
                 .iter()
-                .all(
-                    |(resistance_type, resistance_value)| match attacks.get(resistance_type) {
+                .all(|(resistance_type, resistance_value)| {
+                    match attacks.get(resistance_type) {
                         None => false,
                         Some(attack_value) => attack_value >= resistance_value,
-                    },
-                );
+                    }
+                });
         if are_all_resistance_defeated {
             Some(self.reward.clone())
         } else {
@@ -40,9 +38,7 @@ impl Place {
 mod tests_int {
     use std::collections::HashMap;
 
-    use crate::the_world::attack_types::AttackType;
-    use crate::the_world::difficulty::Difficulty;
-    use crate::the_world::place::Place;
+    use crate::the_world::{attack_types::AttackType, difficulty::Difficulty, place::Place};
 
     #[test]
     fn claim_rewards_no_resistance() {

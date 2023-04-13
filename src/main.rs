@@ -4,8 +4,7 @@ use structopt::StructOpt;
 
 use the_world::game::Game;
 
-use crate::parser::hex_encoder::decode_hex;
-use crate::parser::tcp_listener::Listener;
+use crate::parser::{hex_encoder::decode_hex, tcp_listener::Listener};
 
 mod command;
 mod generator;

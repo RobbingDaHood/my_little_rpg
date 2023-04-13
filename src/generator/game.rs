@@ -1,20 +1,23 @@
 use std::collections::HashMap;
 
-use rand::RngCore;
-use rand::SeedableRng;
+use rand::{RngCore, SeedableRng};
 use rand_pcg::{Lcg64Xsh32, Pcg32};
 
-use crate::generator::place::new as new_place;
-use crate::parser::hex_encoder::encode_hex;
-use crate::the_world::attack_types::AttackType;
-use crate::the_world::difficulty::Difficulty;
-use crate::the_world::game_statistics::GameStatistics;
-use crate::the_world::item::{CraftingInfo, Item};
-use crate::the_world::item_modifier::Modifier;
-use crate::the_world::item_resource::Type;
-use crate::the_world::modifier_cost::Cost;
-use crate::the_world::modifier_gain::Gain;
-use crate::Game;
+use crate::{
+    generator::place::new as new_place,
+    parser::hex_encoder::encode_hex,
+    the_world::{
+        attack_types::AttackType,
+        difficulty::Difficulty,
+        game_statistics::GameStatistics,
+        item::{CraftingInfo, Item},
+        item_modifier::Modifier,
+        item_resource::Type,
+        modifier_cost::Cost,
+        modifier_gain::Gain,
+    },
+    Game,
+};
 
 mod tests;
 

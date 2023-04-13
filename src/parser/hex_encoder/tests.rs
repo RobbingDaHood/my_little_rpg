@@ -1,7 +1,6 @@
 #[cfg(test)]
 mod tests_int {
-    use crate::decode_hex;
-    use crate::parser::hex_encoder::encode_hex;
+    use crate::{decode_hex, parser::hex_encoder::encode_hex};
 
     //TODO add more tests
     #[test]

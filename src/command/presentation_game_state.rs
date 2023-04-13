@@ -3,24 +3,26 @@ use std::collections::HashMap;
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
 
-use crate::command::craft_expand_modifier::execute_craft_expand_modifiers_calculate_cost;
-use crate::command::craft_reroll_modifier::execute_craft_reroll_modifier_calculate_cost;
-use crate::command::expand_elements::execute_expand_elements_calculate_cost;
-use crate::command::expand_equipment_slots::execute_expand_equipment_slots_calculate_cost;
-use crate::command::expand_max_element::execute_expand_max_element_calculate_cost;
-use crate::command::expand_max_simultaneous_element::execute_expand_max_simultaneous_element_calculate_cost;
-use crate::command::expand_min_element::execute_expand_min_element_calculate_cost;
-use crate::command::expand_min_simultanius_element::execute_expand_min_simultaneous_element_calculate_cost;
-use crate::command::expand_places::execute_expand_places_calculate_cost;
-use crate::command::reduce_difficulty::execute_execute_reduce_difficulty_cost;
-use crate::parser::hex_encoder::encode_hex;
-use crate::the_world::difficulty::Difficulty;
-use crate::the_world::game_statistics::GameStatistics;
-use crate::the_world::item::Item;
-use crate::the_world::item_resource::Type;
-use crate::the_world::place::Place;
-use crate::the_world::treasure_types::TreasureType;
-use crate::Game;
+use crate::{
+    command::{
+        craft_expand_modifier::execute_craft_expand_modifiers_calculate_cost,
+        craft_reroll_modifier::execute_craft_reroll_modifier_calculate_cost,
+        expand_elements::execute_expand_elements_calculate_cost,
+        expand_equipment_slots::execute_expand_equipment_slots_calculate_cost,
+        expand_max_element::execute_expand_max_element_calculate_cost,
+        expand_max_simultaneous_element::execute_expand_max_simultaneous_element_calculate_cost,
+        expand_min_element::execute_expand_min_element_calculate_cost,
+        expand_min_simultanius_element::execute_expand_min_simultaneous_element_calculate_cost,
+        expand_places::execute_expand_places_calculate_cost,
+        reduce_difficulty::execute_execute_reduce_difficulty_cost,
+    },
+    parser::hex_encoder::encode_hex,
+    the_world::{
+        difficulty::Difficulty, game_statistics::GameStatistics, item::Item, item_resource::Type,
+        place::Place, treasure_types::TreasureType,
+    },
+    Game,
+};
 
 #[derive(Clone, PartialEq, Eq, Debug, Serialize, Deserialize)]
 pub struct PresentationGameState {
@@ -84,10 +86,12 @@ pub fn execute(game: &mut Game) -> PresentationGameState {
         .iter()
         .cloned()
         .enumerate()
-        .map(|(index, item)| PresentationItem {
-            index,
-            item,
-            crafting_action_costs: Err("Equipped items cannot be crafted on.".into()), //TODD make this nicer; it is just an info and not an error.
+        .map(|(index, item)| {
+            PresentationItem {
+                index,
+                item,
+                crafting_action_costs: Err("Equipped items cannot be crafted on.".into()), //TODD make this nicer; it is just an info and not an error.
+            }
         })
         .collect();
     let inventory: Vec<PresentationItem> = game
@@ -95,10 +99,12 @@ pub fn execute(game: &mut Game) -> PresentationGameState {
         .iter()
         .enumerate()
         .filter(|item| item.1.is_some())
-        .map(|(index, item)| PresentationItem {
-            index,
-            item: item.as_ref().unwrap().clone(),
-            crafting_action_costs: Ok(calculate_item_cost(game, index)),
+        .map(|(index, item)| {
+            PresentationItem {
+                index,
+                item: item.as_ref().unwrap().clone(),
+                crafting_action_costs: Ok(calculate_item_cost(game, index)),
+            }
         })
         .collect();
 
@@ -131,7 +137,10 @@ pub fn execute(game: &mut Game) -> PresentationGameState {
     }
 }
 
-fn calculate_item_cost(game: &Game, item_index: usize) -> ItemCosts {
+fn calculate_item_cost(
+    game: &Game,
+    item_index: usize,
+) -> ItemCosts {
     let add_modifier = execute_craft_expand_modifiers_calculate_cost(game, item_index);
     let reroll_modifier = execute_craft_reroll_modifier_calculate_cost(game, item_index);
     ItemCosts {

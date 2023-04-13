@@ -56,3 +56,5 @@ The main difference is that text based games locks you into text based UI; You c
 # Code format
 
 Code is formatted using: https://github.com/rust-lang/rustfmt
+
+# Project is using the nightly toolchain

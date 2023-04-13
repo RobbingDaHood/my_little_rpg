@@ -2,9 +2,7 @@ use std::collections::HashMap;
 
 use serde::{Deserialize, Serialize};
 
-use crate::my_little_rpg_errors::MyError;
-use crate::the_world::treasure_types::TreasureType::Gold;
-use crate::Game;
+use crate::{my_little_rpg_errors::MyError, the_world::treasure_types::TreasureType::Gold, Game};
 
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize, Eq, Hash)]
 pub enum TreasureType {

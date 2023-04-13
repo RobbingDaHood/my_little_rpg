@@ -1,15 +1,17 @@
 use serde::{Deserialize, Serialize};
 
-use crate::the_world::attack_types::AttackType;
-use crate::the_world::item_resource::Type;
-use crate::the_world::modifier_gain::Gain::{
-    FlatDamage, FlatDamageAgainstHighestResistance, FlatDamageAgainstLowestResistance,
-    FlatIncreaseRewardedItems, FlatItemResource, FlatResistanceReduction, PercentageIncreaseDamage,
-    PercentageIncreaseDamageAgainstHighestResistance,
-    PercentageIncreaseDamageAgainstLowestResistance, PercentageIncreaseResistanceReduction,
-    PercentageIncreaseTreasure,
+use crate::the_world::{
+    attack_types::AttackType,
+    item_resource::Type,
+    modifier_gain::Gain::{
+        FlatDamage, FlatDamageAgainstHighestResistance, FlatDamageAgainstLowestResistance,
+        FlatIncreaseRewardedItems, FlatItemResource, FlatResistanceReduction,
+        PercentageIncreaseDamage, PercentageIncreaseDamageAgainstHighestResistance,
+        PercentageIncreaseDamageAgainstLowestResistance, PercentageIncreaseResistanceReduction,
+        PercentageIncreaseTreasure,
+    },
+    treasure_types::TreasureType,
 };
-use crate::the_world::treasure_types::TreasureType;
 
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize, Eq, Hash)]
 pub enum Gain {

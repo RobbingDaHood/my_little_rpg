@@ -1,10 +1,11 @@
 #[cfg(test)]
 mod tests_int {
-    use crate::command::expand_equipment_slots::execute;
-    use crate::generator::game::new;
-    use crate::my_little_rpg_errors::MyError;
-    use crate::the_world::item::test_util::create_item;
-    use crate::the_world::treasure_types::TreasureType::Gold;
+    use crate::{
+        command::expand_equipment_slots::execute,
+        generator::game::new,
+        my_little_rpg_errors::MyError,
+        the_world::{item::test_util::create_item, treasure_types::TreasureType::Gold},
+    };
 
     #[test]
     fn test_execute_expand_equipment_slots() {

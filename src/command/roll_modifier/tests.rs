@@ -2,13 +2,14 @@
 mod tests_int {
     use std::collections::HashMap;
 
-    use crate::command::roll_modifier::execute_craft;
-    use crate::generator::game::new_testing;
-    use crate::the_world::item_modifier::Modifier;
-    use crate::the_world::item_resource::Type;
-    use crate::the_world::modifier_cost::Cost;
-    use crate::the_world::modifier_gain::Gain;
-    use crate::the_world::treasure_types::TreasureType;
+    use crate::{
+        command::roll_modifier::execute_craft,
+        generator::game::new_testing,
+        the_world::{
+            item_modifier::Modifier, item_resource::Type, modifier_cost::Cost, modifier_gain::Gain,
+            treasure_types::TreasureType,
+        },
+    };
 
     #[test]
     fn basic_test() {
@@ -60,10 +61,12 @@ mod tests_int {
                 .min_resistance
                 .keys()
                 .cloned()
-                .filter(|attack_type| cost_modifiers
-                    .get(&Cost::FlatMinAttackRequirement(attack_type.clone(), 0))
-                    .unwrap()
-                    == &0)
+                .filter(|attack_type| {
+                    cost_modifiers
+                        .get(&Cost::FlatMinAttackRequirement(attack_type.clone(), 0))
+                        .unwrap()
+                        == &0
+                })
                 .count()
         );
 
@@ -73,10 +76,12 @@ mod tests_int {
                 .min_resistance
                 .keys()
                 .cloned()
-                .filter(|attack_type| cost_modifiers
-                    .get(&Cost::FlatMaxAttackRequirement(attack_type.clone(), 0))
-                    .unwrap()
-                    == &0)
+                .filter(|attack_type| {
+                    cost_modifiers
+                        .get(&Cost::FlatMaxAttackRequirement(attack_type.clone(), 0))
+                        .unwrap()
+                        == &0
+                })
                 .count()
         );
 
@@ -104,10 +109,12 @@ mod tests_int {
             0,
             Type::get_all()
                 .into_iter()
-                .filter(|item_resource| cost_modifiers
-                    .get(&Cost::FlatItemResource(item_resource.clone(), 0))
-                    .unwrap()
-                    == &0)
+                .filter(|item_resource| {
+                    cost_modifiers
+                        .get(&Cost::FlatItemResource(item_resource.clone(), 0))
+                        .unwrap()
+                        == &0
+                })
                 .count()
         );
 
@@ -115,13 +122,15 @@ mod tests_int {
             0,
             Type::get_all()
                 .into_iter()
-                .filter(|item_resource| cost_modifiers
-                    .get(&Cost::FlatMinItemResourceRequirement(
-                        item_resource.clone(),
-                        0
-                    ))
-                    .unwrap()
-                    == &0)
+                .filter(|item_resource| {
+                    cost_modifiers
+                        .get(&Cost::FlatMinItemResourceRequirement(
+                            item_resource.clone(),
+                            0,
+                        ))
+                        .unwrap()
+                        == &0
+                })
                 .count()
         );
 
@@ -129,13 +138,15 @@ mod tests_int {
             0,
             Type::get_all()
                 .into_iter()
-                .filter(|item_resource| cost_modifiers
-                    .get(&Cost::FlatMaxItemResourceRequirement(
-                        item_resource.clone(),
-                        0
-                    ))
-                    .unwrap()
-                    == &0)
+                .filter(|item_resource| {
+                    cost_modifiers
+                        .get(&Cost::FlatMaxItemResourceRequirement(
+                            item_resource.clone(),
+                            0,
+                        ))
+                        .unwrap()
+                        == &0
+                })
                 .count()
         );
 
@@ -145,10 +156,12 @@ mod tests_int {
                 .min_resistance
                 .keys()
                 .cloned()
-                .filter(|attack_type| cost_modifiers
-                    .get(&Cost::FlatMinResistanceRequirement(attack_type.clone(), 0))
-                    .unwrap()
-                    == &0)
+                .filter(|attack_type| {
+                    cost_modifiers
+                        .get(&Cost::FlatMinResistanceRequirement(attack_type.clone(), 0))
+                        .unwrap()
+                        == &0
+                })
                 .count()
         );
 
@@ -158,10 +171,12 @@ mod tests_int {
                 .min_resistance
                 .keys()
                 .cloned()
-                .filter(|attack_type| cost_modifiers
-                    .get(&Cost::FlatMaxResistanceRequirement(attack_type.clone(), 0))
-                    .unwrap()
-                    == &0)
+                .filter(|attack_type| {
+                    cost_modifiers
+                        .get(&Cost::FlatMaxResistanceRequirement(attack_type.clone(), 0))
+                        .unwrap()
+                        == &0
+                })
                 .count()
         );
 
@@ -186,10 +201,12 @@ mod tests_int {
                 .min_resistance
                 .keys()
                 .cloned()
-                .filter(|attack_type| gain_modifiers
-                    .get(&Gain::FlatDamage(attack_type.clone(), 0))
-                    .unwrap()
-                    == &0)
+                .filter(|attack_type| {
+                    gain_modifiers
+                        .get(&Gain::FlatDamage(attack_type.clone(), 0))
+                        .unwrap()
+                        == &0
+                })
                 .count()
         );
 
@@ -197,10 +214,12 @@ mod tests_int {
             0,
             Type::get_all()
                 .into_iter()
-                .filter(|item_resource| gain_modifiers
-                    .get(&Gain::FlatItemResource(item_resource.clone(), 0))
-                    .unwrap()
-                    == &0)
+                .filter(|item_resource| {
+                    gain_modifiers
+                        .get(&Gain::FlatItemResource(item_resource.clone(), 0))
+                        .unwrap()
+                        == &0
+                })
                 .count()
         );
 
@@ -210,10 +229,12 @@ mod tests_int {
                 .min_resistance
                 .keys()
                 .cloned()
-                .filter(|attack_type| gain_modifiers
-                    .get(&Gain::PercentageIncreaseDamage(attack_type.clone(), 0))
-                    .unwrap()
-                    == &0)
+                .filter(|attack_type| {
+                    gain_modifiers
+                        .get(&Gain::PercentageIncreaseDamage(attack_type.clone(), 0))
+                        .unwrap()
+                        == &0
+                })
                 .count()
         );
 
@@ -223,10 +244,12 @@ mod tests_int {
                 .min_resistance
                 .keys()
                 .cloned()
-                .filter(|attack_type| gain_modifiers
-                    .get(&Gain::FlatResistanceReduction(attack_type.clone(), 0))
-                    .unwrap()
-                    == &0)
+                .filter(|attack_type| {
+                    gain_modifiers
+                        .get(&Gain::FlatResistanceReduction(attack_type.clone(), 0))
+                        .unwrap()
+                        == &0
+                })
                 .count()
         );
 
@@ -236,13 +259,15 @@ mod tests_int {
                 .min_resistance
                 .keys()
                 .cloned()
-                .filter(|attack_type| gain_modifiers
-                    .get(&Gain::PercentageIncreaseResistanceReduction(
-                        attack_type.clone(),
-                        0
-                    ))
-                    .unwrap()
-                    == &0)
+                .filter(|attack_type| {
+                    gain_modifiers
+                        .get(&Gain::PercentageIncreaseResistanceReduction(
+                            attack_type.clone(),
+                            0,
+                        ))
+                        .unwrap()
+                        == &0
+                })
                 .count()
         );
 
@@ -275,10 +300,12 @@ mod tests_int {
             0,
             TreasureType::get_all()
                 .into_iter()
-                .filter(|treasure_type| gain_modifiers
-                    .get(&Gain::PercentageIncreaseTreasure(treasure_type.clone(), 0))
-                    .unwrap()
-                    == &0)
+                .filter(|treasure_type| {
+                    gain_modifiers
+                        .get(&Gain::PercentageIncreaseTreasure(treasure_type.clone(), 0))
+                        .unwrap()
+                        == &0
+                })
                 .count()
         );
 
@@ -290,7 +317,10 @@ mod tests_int {
         );
     }
 
-    fn setup_gains(gain_modifiers: &mut HashMap<Gain, u32>, result: Modifier) {
+    fn setup_gains(
+        gain_modifiers: &mut HashMap<Gain, u32>,
+        result: Modifier,
+    ) {
         for gain in result.gains {
             match gain {
                 Gain::FlatItemResource(item_resource, _) => {
@@ -341,7 +371,10 @@ mod tests_int {
         }
     }
 
-    fn setup_costs(cost_modifiers: &mut HashMap<Cost, u32>, result: &Modifier) {
+    fn setup_costs(
+        cost_modifiers: &mut HashMap<Cost, u32>,
+        result: &Modifier,
+    ) {
         for cost in result.costs.clone() {
             match cost {
                 Cost::FlatItemResource(item_resource, _) => {

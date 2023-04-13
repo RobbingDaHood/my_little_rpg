@@ -4,12 +4,15 @@ use rand::Rng;
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
 
-use crate::my_little_rpg_errors::MyError;
-use crate::the_world::attack_types::AttackType;
-use crate::the_world::difficulty::Difficulty;
-use crate::the_world::treasure_types::TreasureType::Gold;
-use crate::the_world::treasure_types::{pay_crafting_cost, TreasureType};
-use crate::Game;
+use crate::{
+    my_little_rpg_errors::MyError,
+    the_world::{
+        attack_types::AttackType,
+        difficulty::Difficulty,
+        treasure_types::{pay_crafting_cost, TreasureType, TreasureType::Gold},
+    },
+    Game,
+};
 
 mod tests;
 
@@ -45,7 +48,11 @@ pub fn execute(game: &mut Game) -> Result<ExecuteExpandMinElementReport, MyError
         .collect();
 
     if max_possible_elements.is_empty() {
-        return Err(MyError::create_execute_command_error("There are no element minimum values that can be upgraded, consider expanding a max element value.".to_string()));
+        return Err(MyError::create_execute_command_error(
+            "There are no element minimum values that can be upgraded, consider expanding a max \
+             element value."
+                .to_string(),
+        ));
     }
 
     //Increase min of existing element

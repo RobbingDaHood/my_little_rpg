@@ -1,5 +1,7 @@
-use std::collections::{HashMap, HashSet};
-use std::ops::Deref;
+use std::{
+    collections::{HashMap, HashSet},
+    ops::Deref,
+};
 
 use rand::prelude::SliceRandom;
 use rand_pcg::Lcg64Xsh32;

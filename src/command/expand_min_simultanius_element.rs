@@ -3,10 +3,11 @@ use std::collections::HashMap;
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
 
-use crate::my_little_rpg_errors::MyError;
-use crate::the_world::treasure_types::TreasureType::Gold;
-use crate::the_world::treasure_types::{pay_crafting_cost, TreasureType};
-use crate::Game;
+use crate::{
+    my_little_rpg_errors::MyError,
+    the_world::treasure_types::{pay_crafting_cost, TreasureType, TreasureType::Gold},
+    Game,
+};
 
 mod tests;
 
@@ -26,11 +27,16 @@ pub fn execute_expand_min_simultaneous_element_json(game: &mut Game) -> Value {
 }
 
 pub fn execute_expand_min_simultaneous_element(
-    game: &mut Game,
+    game: &mut Game
 ) -> Result<ExecuteExpandMaxSimultaneousElementReport, MyError> {
     if game.difficulty.min_simultaneous_resistances >= game.difficulty.max_simultaneous_resistances
     {
-        return Err(MyError::create_execute_command_error(format!("execute_expand_min_simultaneous_element {} is already equal to max_simultaneous_resistances {}. Consider calling ExpandMaxSimultaneousElement.", game.difficulty.max_simultaneous_resistances, game.difficulty.max_resistance.len())));
+        return Err(MyError::create_execute_command_error(format!(
+            "execute_expand_min_simultaneous_element {} is already equal to \
+             max_simultaneous_resistances {}. Consider calling ExpandMaxSimultaneousElement.",
+            game.difficulty.max_simultaneous_resistances,
+            game.difficulty.max_resistance.len()
+        )));
     }
 
     //Crafting cost
@@ -49,7 +55,7 @@ pub fn execute_expand_min_simultaneous_element(
 }
 
 pub fn execute_expand_min_simultaneous_element_calculate_cost(
-    game: &mut Game,
+    game: &mut Game
 ) -> HashMap<TreasureType, u64> {
     HashMap::from([(
         Gold,

@@ -1,10 +1,11 @@
 #[cfg(test)]
 mod tests_int {
-    use crate::command::craft_expand_modifier::execute_craft_expand_modifiers;
-    use crate::generator::game::new_testing;
-    use crate::my_little_rpg_errors::MyError;
-    use crate::the_world::index_specifier::IndexSpecifier;
-    use crate::the_world::treasure_types::TreasureType::Gold;
+    use crate::{
+        command::craft_expand_modifier::execute_craft_expand_modifiers,
+        generator::game::new_testing,
+        my_little_rpg_errors::MyError,
+        the_world::{index_specifier::IndexSpecifier, treasure_types::TreasureType::Gold},
+    };
 
     #[test]
     fn test_execute_expand_modifiers_absolute() {
@@ -34,7 +35,23 @@ mod tests_int {
 
         let old_item = game.inventory[0].clone();
 
-        assert_eq!(Err(MyError::create_execute_command_error("index_specifier Absolute(2) is already present in calculated sacrifice indexes {2}".to_string())), execute_craft_expand_modifiers(&mut game, 0, vec![IndexSpecifier::Absolute(2), IndexSpecifier::Absolute(2), IndexSpecifier::Absolute(2), IndexSpecifier::Absolute(2)]));
+        assert_eq!(
+            Err(MyError::create_execute_command_error(
+                "index_specifier Absolute(2) is already present in calculated sacrifice indexes \
+                 {2}"
+                .to_string()
+            )),
+            execute_craft_expand_modifiers(
+                &mut game,
+                0,
+                vec![
+                    IndexSpecifier::Absolute(2),
+                    IndexSpecifier::Absolute(2),
+                    IndexSpecifier::Absolute(2),
+                    IndexSpecifier::Absolute(2)
+                ]
+            )
+        );
         let result = execute_craft_expand_modifiers(
             &mut game,
             0,
@@ -131,7 +148,18 @@ mod tests_int {
             .crafting_info
             .possible_rolls
             .min_simultaneous_resistances = 0;
-        assert_eq!(Err(MyError::create_execute_command_error("inventory_index.possible_rolls.min_simultaneous_resistances 0 need to be bigger than inventory_index current number of modifiers 2 for it to be expanded.".to_string())), execute_craft_expand_modifiers(&mut game, 0, vec![IndexSpecifier::Absolute(1), IndexSpecifier::Absolute(2)]));
+        assert_eq!(
+            Err(MyError::create_execute_command_error(
+                "inventory_index.possible_rolls.min_simultaneous_resistances 0 need to be bigger \
+                 than inventory_index current number of modifiers 2 for it to be expanded."
+                    .to_string()
+            )),
+            execute_craft_expand_modifiers(
+                &mut game,
+                0,
+                vec![IndexSpecifier::Absolute(1), IndexSpecifier::Absolute(2)]
+            )
+        );
     }
 
     #[test]
@@ -168,7 +196,21 @@ mod tests_int {
 
         game.inventory[7] = None;
         game.inventory[8] = None;
-        assert_eq!(Err(MyError::create_execute_command_error("index_specifier: RelativePositive(1) did not find any items in inventory from relative point 7 until end of inventory.".to_string())), execute_craft_expand_modifiers(&mut game, 6, vec![IndexSpecifier::RelativePositive(1), IndexSpecifier::RelativePositive(1)]));
+        assert_eq!(
+            Err(MyError::create_execute_command_error(
+                "index_specifier: RelativePositive(1) did not find any items in inventory from \
+                 relative point 7 until end of inventory."
+                    .to_string()
+            )),
+            execute_craft_expand_modifiers(
+                &mut game,
+                6,
+                vec![
+                    IndexSpecifier::RelativePositive(1),
+                    IndexSpecifier::RelativePositive(1)
+                ]
+            )
+        );
     }
 
     #[test]
@@ -206,7 +248,21 @@ mod tests_int {
 
         game.inventory[1] = None;
         game.inventory[0] = None;
-        assert_eq!(Err(MyError::create_execute_command_error("index_specifier: RelativeNegative(1) did not find any items in inventory from relative point 1 until start of inventory.".to_string())), execute_craft_expand_modifiers(&mut game, 2, vec![IndexSpecifier::RelativeNegative(1), IndexSpecifier::RelativeNegative(1)]));
+        assert_eq!(
+            Err(MyError::create_execute_command_error(
+                "index_specifier: RelativeNegative(1) did not find any items in inventory from \
+                 relative point 1 until start of inventory."
+                    .to_string()
+            )),
+            execute_craft_expand_modifiers(
+                &mut game,
+                2,
+                vec![
+                    IndexSpecifier::RelativeNegative(1),
+                    IndexSpecifier::RelativeNegative(1)
+                ]
+            )
+        );
     }
 
     #[test]
@@ -244,11 +300,53 @@ mod tests_int {
         game.inventory[7] = None;
         game.inventory[1] = None;
         game.inventory[0] = None;
-        assert_eq!(Err(MyError::create_execute_command_error("index_specifier: RelativeNegative(1) did not find any items in inventory from relative point 1 until start of inventory.".to_string())), execute_craft_expand_modifiers(&mut game, 2, vec![IndexSpecifier::RelativeNegative(1), IndexSpecifier::RelativePositive(1)]));
-        assert_eq!(Err(MyError::create_execute_command_error("index_specifier: RelativeNegative(1) did not find any items in inventory from relative point 1 until start of inventory.".to_string())), execute_craft_expand_modifiers(&mut game, 2, vec![IndexSpecifier::RelativePositive(1), IndexSpecifier::RelativeNegative(1)]));
+        assert_eq!(
+            Err(MyError::create_execute_command_error(
+                "index_specifier: RelativeNegative(1) did not find any items in inventory from \
+                 relative point 1 until start of inventory."
+                    .to_string()
+            )),
+            execute_craft_expand_modifiers(
+                &mut game,
+                2,
+                vec![
+                    IndexSpecifier::RelativeNegative(1),
+                    IndexSpecifier::RelativePositive(1)
+                ]
+            )
+        );
+        assert_eq!(
+            Err(MyError::create_execute_command_error(
+                "index_specifier: RelativeNegative(1) did not find any items in inventory from \
+                 relative point 1 until start of inventory."
+                    .to_string()
+            )),
+            execute_craft_expand_modifiers(
+                &mut game,
+                2,
+                vec![
+                    IndexSpecifier::RelativePositive(1),
+                    IndexSpecifier::RelativeNegative(1)
+                ]
+            )
+        );
 
         game.inventory[8] = None;
-        assert_eq!(Err(MyError::create_execute_command_error("index_specifier: RelativePositive(1) did not find any items in inventory from relative point 3 until end of inventory.".to_string())), execute_craft_expand_modifiers(&mut game, 2, vec![IndexSpecifier::RelativePositive(1), IndexSpecifier::RelativeNegative(1)]));
+        assert_eq!(
+            Err(MyError::create_execute_command_error(
+                "index_specifier: RelativePositive(1) did not find any items in inventory from \
+                 relative point 3 until end of inventory."
+                    .to_string()
+            )),
+            execute_craft_expand_modifiers(
+                &mut game,
+                2,
+                vec![
+                    IndexSpecifier::RelativePositive(1),
+                    IndexSpecifier::RelativeNegative(1)
+                ]
+            )
+        );
     }
 
     #[test]

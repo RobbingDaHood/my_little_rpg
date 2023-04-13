@@ -3,12 +3,15 @@ use std::collections::HashMap;
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
 
-use crate::generator::place::new;
-use crate::my_little_rpg_errors::MyError;
-use crate::the_world::place::Place;
-use crate::the_world::treasure_types::TreasureType::Gold;
-use crate::the_world::treasure_types::{pay_crafting_cost, TreasureType};
-use crate::Game;
+use crate::{
+    generator::place::new,
+    my_little_rpg_errors::MyError,
+    the_world::{
+        place::Place,
+        treasure_types::{pay_crafting_cost, TreasureType, TreasureType::Gold},
+    },
+    Game,
+};
 
 mod tests;
 

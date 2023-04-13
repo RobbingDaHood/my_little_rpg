@@ -1,11 +1,14 @@
 #[cfg(test)]
 mod tests_int {
-    use crate::command::expand_max_element::execute as execute_expand_max_element;
-    use crate::command::expand_min_element::execute as execute_expand_min_element;
-    use crate::command::r#move::execute;
-    use crate::generator::game::{new, new_testing};
-    use crate::my_little_rpg_errors::MyError;
-    use crate::the_world::treasure_types::TreasureType::Gold;
+    use crate::{
+        command::{
+            expand_max_element::execute as execute_expand_max_element,
+            expand_min_element::execute as execute_expand_min_element, r#move::execute,
+        },
+        generator::game::{new, new_testing},
+        my_little_rpg_errors::MyError,
+        the_world::treasure_types::TreasureType::Gold,
+    };
 
     #[test]
     fn test_execute_expand_min_element() {
@@ -13,13 +16,27 @@ mod tests_int {
         assert_eq!(1, game.difficulty.min_resistance.len());
         assert_eq!(1, game.difficulty.min_resistance.len());
 
-        assert_eq!(Err(MyError::create_execute_command_error("There are no element minimum values that can be upgraded, consider expanding a max element value.".to_string())), execute_expand_min_element(&mut game));
+        assert_eq!(
+            Err(MyError::create_execute_command_error(
+                "There are no element minimum values that can be upgraded, consider expanding a \
+                 max element value."
+                    .to_string()
+            )),
+            execute_expand_min_element(&mut game)
+        );
 
         for _i in 0..1000 {
             assert!(execute(&mut game, 0).is_ok());
         }
 
-        assert_eq!(Err(MyError::create_execute_command_error("There are no element minimum values that can be upgraded, consider expanding a max element value.".to_string())), execute_expand_min_element(&mut game));
+        assert_eq!(
+            Err(MyError::create_execute_command_error(
+                "There are no element minimum values that can be upgraded, consider expanding a \
+                 max element value."
+                    .to_string()
+            )),
+            execute_expand_min_element(&mut game)
+        );
         assert!(game.treasure.get(&Gold).unwrap() > &0);
         assert_eq!(1, game.difficulty.min_resistance.len());
         assert_eq!(1, game.difficulty.min_resistance.len());
@@ -27,7 +44,14 @@ mod tests_int {
         assert!(execute_expand_max_element(&mut game).is_ok());
 
         assert!(execute_expand_min_element(&mut game).is_ok());
-        assert_eq!(Err(MyError::create_execute_command_error("There are no element minimum values that can be upgraded, consider expanding a max element value.".to_string())), execute_expand_min_element(&mut game));
+        assert_eq!(
+            Err(MyError::create_execute_command_error(
+                "There are no element minimum values that can be upgraded, consider expanding a \
+                 max element value."
+                    .to_string()
+            )),
+            execute_expand_min_element(&mut game)
+        );
     }
 
     #[test]

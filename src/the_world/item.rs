@@ -1,7 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use crate::the_world::difficulty::Difficulty;
-use crate::the_world::item_modifier::Modifier;
+use crate::the_world::{difficulty::Difficulty, item_modifier::Modifier};
 
 #[derive(Clone, PartialEq, Eq, Debug, Serialize, Deserialize)]
 pub struct Item {
@@ -17,9 +16,13 @@ pub struct CraftingInfo {
 
 #[cfg(test)]
 pub mod test_util {
-    use crate::the_world::item::{CraftingInfo, Item};
-    use crate::the_world::item_modifier::Modifier;
-    use crate::Game;
+    use crate::{
+        the_world::{
+            item::{CraftingInfo, Item},
+            item_modifier::Modifier,
+        },
+        Game,
+    };
 
     //TODO consider replacing with a default method
     pub fn create_item(game: &Game) -> Item {

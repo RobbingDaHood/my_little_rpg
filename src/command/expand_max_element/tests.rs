@@ -1,10 +1,11 @@
 #[cfg(test)]
 mod tests_int {
-    use crate::command::expand_max_element::execute;
-    use crate::command::r#move::execute as execute_move_command;
-    use crate::generator::game::{new, new_testing};
-    use crate::my_little_rpg_errors::MyError;
-    use crate::the_world::treasure_types::TreasureType::Gold;
+    use crate::{
+        command::{expand_max_element::execute, r#move::execute as execute_move_command},
+        generator::game::{new, new_testing},
+        my_little_rpg_errors::MyError,
+        the_world::treasure_types::TreasureType::Gold,
+    };
 
     #[test]
     fn test_execute_expand_max_element() {

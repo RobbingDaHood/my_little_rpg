@@ -3,14 +3,16 @@ use std::collections::HashMap;
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
 
-use crate::command::roll_modifier::execute_craft;
-use crate::my_little_rpg_errors::MyError;
-use crate::the_world::index_specifier::{
-    calculate_absolute_item_indexes, ErrorConditions, IndexSpecifier,
+use crate::{
+    command::roll_modifier::execute_craft,
+    my_little_rpg_errors::MyError,
+    the_world::{
+        index_specifier::{calculate_absolute_item_indexes, ErrorConditions, IndexSpecifier},
+        item::Item,
+        treasure_types::TreasureType,
+    },
+    Game,
 };
-use crate::the_world::item::Item;
-use crate::the_world::treasure_types::TreasureType;
-use crate::Game;
 
 mod tests;
 
@@ -59,10 +61,15 @@ pub fn execute_craft_expand_modifiers(
             .min_simultaneous_resistances,
     ) <= inventory_item.modifiers.len()
     {
-        return Err(MyError::create_execute_command_error(format!("inventory_index.possible_rolls.min_simultaneous_resistances {} need to be bigger than inventory_index current number of modifiers {} for it to be expanded.",
-                                                                 inventory_item.crafting_info.possible_rolls.min_simultaneous_resistances,
-                                                                 inventory_item.modifiers.len()))
-        );
+        return Err(MyError::create_execute_command_error(format!(
+            "inventory_index.possible_rolls.min_simultaneous_resistances {} need to be bigger \
+             than inventory_index current number of modifiers {} for it to be expanded.",
+            inventory_item
+                .crafting_info
+                .possible_rolls
+                .min_simultaneous_resistances,
+            inventory_item.modifiers.len()
+        )));
     }
 
     let cost = execute_craft_expand_modifiers_calculate_cost(&game, inventory_index);
@@ -134,7 +141,10 @@ fn get_index_specifier_error_conditions(inventory_item: &Item) -> ErrorCondition
     }
 }
 
-pub fn execute_craft_expand_modifiers_calculate_cost(game: &Game, inventory_index: usize) -> usize {
+pub fn execute_craft_expand_modifiers_calculate_cost(
+    game: &Game,
+    inventory_index: usize,
+) -> usize {
     match &game.inventory[inventory_index] {
         Some(item) => item.modifiers.len() * 2,
         None => 0,

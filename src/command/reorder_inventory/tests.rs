@@ -1,9 +1,13 @@
 #[cfg(test)]
 mod tests_int {
-    use crate::command::reorder_inventory::execute;
-    use crate::generator::game::new_testing;
-    use crate::the_world::item::{CraftingInfo, Item};
-    use crate::the_world::item_modifier::Modifier;
+    use crate::{
+        command::reorder_inventory::execute,
+        generator::game::new_testing,
+        the_world::{
+            item::{CraftingInfo, Item},
+            item_modifier::Modifier,
+        },
+    };
 
     #[test]
     fn test_execute_equip_item() {

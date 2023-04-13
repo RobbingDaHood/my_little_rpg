@@ -2,8 +2,7 @@ use std::mem;
 
 use serde_json::{json, Value};
 
-use crate::the_world::item::Item;
-use crate::Game;
+use crate::{the_world::item::Item, Game};
 
 mod tests;
 

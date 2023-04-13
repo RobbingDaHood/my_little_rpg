@@ -2,9 +2,7 @@ use std::collections::HashSet;
 
 use serde::{Deserialize, Serialize};
 
-use crate::my_little_rpg_errors::MyError;
-use crate::the_world::item::Item;
-use crate::Game;
+use crate::{my_little_rpg_errors::MyError, the_world::item::Item, Game};
 
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize, Eq, Hash)]
 pub enum IndexSpecifier {
@@ -46,30 +44,36 @@ fn get_index(
     error_conditions: &ErrorConditions,
 ) -> Result<usize, MyError> {
     match index_specifier {
-        IndexSpecifier::Absolute(index) => get_absolute_index(
-            game,
-            inventory_index,
-            calculated_selected_item_indexes,
-            index_specifier,
-            index,
-            error_conditions,
-        ),
-        IndexSpecifier::RelativePositive(relative_index) => get_relative_positive_index(
-            game,
-            inventory_index,
-            calculated_selected_item_indexes,
-            index_specifier,
-            relative_index,
-            error_conditions,
-        ),
-        IndexSpecifier::RelativeNegative(relative_index) => get_relative_negative_index(
-            game,
-            inventory_index,
-            calculated_selected_item_indexes,
-            index_specifier,
-            relative_index,
-            error_conditions,
-        ),
+        IndexSpecifier::Absolute(index) => {
+            get_absolute_index(
+                game,
+                inventory_index,
+                calculated_selected_item_indexes,
+                index_specifier,
+                index,
+                error_conditions,
+            )
+        }
+        IndexSpecifier::RelativePositive(relative_index) => {
+            get_relative_positive_index(
+                game,
+                inventory_index,
+                calculated_selected_item_indexes,
+                index_specifier,
+                relative_index,
+                error_conditions,
+            )
+        }
+        IndexSpecifier::RelativeNegative(relative_index) => {
+            get_relative_negative_index(
+                game,
+                inventory_index,
+                calculated_selected_item_indexes,
+                index_specifier,
+                relative_index,
+                error_conditions,
+            )
+        }
     }
 }
 
@@ -134,10 +138,25 @@ fn get_relative_positive_index(
     error_conditions: &ErrorConditions,
 ) -> Result<usize, MyError> {
     let start_index = inventory_index + relative_index;
-    game.inventory.iter().enumerate().skip(start_index).flat_map(|(index, item)| match item {
-        None => None,
-        Some(unwrapped_item) => Some((index, unwrapped_item))
-    }).find(|(i, _)| !calculated_selected_item_indexes.contains(i)).map(|(index, item)| handle_conditions(&index, error_conditions, item)).ok_or_else(|| MyError::create_execute_command_error(format!("index_specifier: {:?} did not find any items in inventory from relative point {} until end of inventory.", index_specifier, start_index)))?
+    game.inventory
+        .iter()
+        .enumerate()
+        .skip(start_index)
+        .flat_map(|(index, item)| {
+            match item {
+                None => None,
+                Some(unwrapped_item) => Some((index, unwrapped_item)),
+            }
+        })
+        .find(|(i, _)| !calculated_selected_item_indexes.contains(i))
+        .map(|(index, item)| handle_conditions(&index, error_conditions, item))
+        .ok_or_else(|| {
+            MyError::create_execute_command_error(format!(
+                "index_specifier: {:?} did not find any items in inventory from relative point {} \
+                 until end of inventory.",
+                index_specifier, start_index
+            ))
+        })?
 }
 
 fn get_relative_negative_index(
@@ -149,8 +168,23 @@ fn get_relative_negative_index(
     error_conditions: &ErrorConditions,
 ) -> Result<usize, MyError> {
     let start_index = inventory_index - relative_index;
-    game.inventory[..=start_index].iter().enumerate().rev().flat_map(|(index, item)| match item {
-        None => None,
-        Some(unwrapped_item) => Some((index, unwrapped_item))
-    }).find(|(i, _)| !calculated_selected_item_indexes.contains(i)).map(|(index, item)| handle_conditions(&index, error_conditions, item)).ok_or_else(|| MyError::create_execute_command_error(format!("index_specifier: {:?} did not find any items in inventory from relative point {} until start of inventory.", index_specifier, start_index)))?
+    game.inventory[..=start_index]
+        .iter()
+        .enumerate()
+        .rev()
+        .flat_map(|(index, item)| {
+            match item {
+                None => None,
+                Some(unwrapped_item) => Some((index, unwrapped_item)),
+            }
+        })
+        .find(|(i, _)| !calculated_selected_item_indexes.contains(i))
+        .map(|(index, item)| handle_conditions(&index, error_conditions, item))
+        .ok_or_else(|| {
+            MyError::create_execute_command_error(format!(
+                "index_specifier: {:?} did not find any items in inventory from relative point {} \
+                 until start of inventory.",
+                index_specifier, start_index
+            ))
+        })?
 }

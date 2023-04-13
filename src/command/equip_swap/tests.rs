@@ -1,8 +1,10 @@
 #[cfg(test)]
 mod tests_int {
-    use crate::command::equip_swap::{execute_equip_item, execute_swap_equipped_item};
-    use crate::generator::game::new_testing;
-    use crate::my_little_rpg_errors::MyError;
+    use crate::{
+        command::equip_swap::{execute_equip_item, execute_swap_equipped_item},
+        generator::game::new_testing,
+        my_little_rpg_errors::MyError,
+    };
 
     #[test]
     fn test_execute_equip_item() {

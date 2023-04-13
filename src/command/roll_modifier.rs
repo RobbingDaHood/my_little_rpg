@@ -1,23 +1,28 @@
-use std::cmp::{max, min};
-use std::collections::HashSet;
-use std::ops::{Add, Div, Mul};
+use std::{
+    cmp::{max, min},
+    collections::HashSet,
+    ops::{Add, Div, Mul},
+};
 
 use rand::Rng;
 use rand_pcg::Lcg64Xsh32;
 
-use crate::the_world::attack_types::{get_random_attack_type_from_unlocked, AttackType};
-use crate::the_world::item::CraftingInfo;
-use crate::the_world::item_modifier::Modifier;
-use crate::the_world::item_resource::Type;
-use crate::the_world::modifier_cost::Cost;
-use crate::the_world::modifier_gain::Gain;
-use crate::the_world::modifier_gain::Gain::FlatDamage;
-use crate::the_world::modifier_gain::Gain::{
-    FlatDamageAgainstHighestResistance, FlatDamageAgainstLowestResistance,
-    FlatIncreaseRewardedItems, FlatItemResource, FlatResistanceReduction, PercentageIncreaseDamage,
-    PercentageIncreaseDamageAgainstHighestResistance,
-    PercentageIncreaseDamageAgainstLowestResistance, PercentageIncreaseResistanceReduction,
-    PercentageIncreaseTreasure,
+use crate::the_world::{
+    attack_types::{get_random_attack_type_from_unlocked, AttackType},
+    item::CraftingInfo,
+    item_modifier::Modifier,
+    item_resource::Type,
+    modifier_cost::Cost,
+    modifier_gain::{
+        Gain,
+        Gain::{
+            FlatDamage, FlatDamageAgainstHighestResistance, FlatDamageAgainstLowestResistance,
+            FlatIncreaseRewardedItems, FlatItemResource, FlatResistanceReduction,
+            PercentageIncreaseDamage, PercentageIncreaseDamageAgainstHighestResistance,
+            PercentageIncreaseDamageAgainstLowestResistance, PercentageIncreaseResistanceReduction,
+            PercentageIncreaseTreasure,
+        },
+    },
 };
 
 mod tests;
@@ -77,91 +82,115 @@ fn execute_craft_roll_modifier_costs(
     for _i in 0..number_of_costs {
         if accumulated_cost < max_cost {
             accumulated_cost += match random_generator_state.gen_range(0..14) {
-                0 => add_flat_min_attack(
-                    random_generator_state,
-                    crafting_info,
-                    &mut modifier_costs,
-                    accumulated_cost,
-                    max_cost,
-                ),
-                1 => add_flat_max_attack(
-                    random_generator_state,
-                    crafting_info,
-                    &mut modifier_costs,
-                    accumulated_cost,
-                    max_cost,
-                ),
-                2 => add_place_limited_by_index_modulus(
-                    random_generator_state,
-                    crafting_info,
-                    &mut modifier_costs,
-                ),
-                3 => add_flat_sum_min_attach(
-                    random_generator_state,
-                    crafting_info,
-                    &mut modifier_costs,
-                    accumulated_cost,
-                    max_cost,
-                ),
-                4 => add_flat_sum_max_attack(
-                    random_generator_state,
-                    crafting_info,
-                    &mut modifier_costs,
-                    accumulated_cost,
-                    max_cost,
-                ),
-                5 => add_flat_min_item_resource(
-                    random_generator_state,
-                    &mut modifier_costs,
-                    accumulated_cost,
-                    max_cost,
-                ),
-                6 => add_flat_max_item_resource(
-                    random_generator_state,
-                    &mut modifier_costs,
-                    accumulated_cost,
-                    max_cost,
-                ),
-                7 => add_min_resistance(
-                    random_generator_state,
-                    crafting_info,
-                    &mut modifier_costs,
-                    accumulated_cost,
-                    max_cost,
-                ),
-                8 => add_flat_max_resistance(
-                    random_generator_state,
-                    crafting_info,
-                    &mut modifier_costs,
-                    accumulated_cost,
-                    max_cost,
-                ),
-                9 => add_flat_min_sum_resistance(
-                    random_generator_state,
-                    crafting_info,
-                    &mut modifier_costs,
-                    accumulated_cost,
-                    max_cost,
-                ),
-                10 => add_flat_max_sum_resistance(
-                    random_generator_state,
-                    crafting_info,
-                    &mut modifier_costs,
-                    accumulated_cost,
-                    max_cost,
-                ),
+                0 => {
+                    add_flat_min_attack(
+                        random_generator_state,
+                        crafting_info,
+                        &mut modifier_costs,
+                        accumulated_cost,
+                        max_cost,
+                    )
+                }
+                1 => {
+                    add_flat_max_attack(
+                        random_generator_state,
+                        crafting_info,
+                        &mut modifier_costs,
+                        accumulated_cost,
+                        max_cost,
+                    )
+                }
+                2 => {
+                    add_place_limited_by_index_modulus(
+                        random_generator_state,
+                        crafting_info,
+                        &mut modifier_costs,
+                    )
+                }
+                3 => {
+                    add_flat_sum_min_attach(
+                        random_generator_state,
+                        crafting_info,
+                        &mut modifier_costs,
+                        accumulated_cost,
+                        max_cost,
+                    )
+                }
+                4 => {
+                    add_flat_sum_max_attack(
+                        random_generator_state,
+                        crafting_info,
+                        &mut modifier_costs,
+                        accumulated_cost,
+                        max_cost,
+                    )
+                }
+                5 => {
+                    add_flat_min_item_resource(
+                        random_generator_state,
+                        &mut modifier_costs,
+                        accumulated_cost,
+                        max_cost,
+                    )
+                }
+                6 => {
+                    add_flat_max_item_resource(
+                        random_generator_state,
+                        &mut modifier_costs,
+                        accumulated_cost,
+                        max_cost,
+                    )
+                }
+                7 => {
+                    add_min_resistance(
+                        random_generator_state,
+                        crafting_info,
+                        &mut modifier_costs,
+                        accumulated_cost,
+                        max_cost,
+                    )
+                }
+                8 => {
+                    add_flat_max_resistance(
+                        random_generator_state,
+                        crafting_info,
+                        &mut modifier_costs,
+                        accumulated_cost,
+                        max_cost,
+                    )
+                }
+                9 => {
+                    add_flat_min_sum_resistance(
+                        random_generator_state,
+                        crafting_info,
+                        &mut modifier_costs,
+                        accumulated_cost,
+                        max_cost,
+                    )
+                }
+                10 => {
+                    add_flat_max_sum_resistance(
+                        random_generator_state,
+                        crafting_info,
+                        &mut modifier_costs,
+                        accumulated_cost,
+                        max_cost,
+                    )
+                }
                 11 => {
                     add_min_wins_in_row(random_generator_state, crafting_info, &mut modifier_costs)
                 }
                 12 => {
                     add_max_wins_in_row(random_generator_state, crafting_info, &mut modifier_costs)
                 }
-                _ => add_flat_item_resource(
-                    random_generator_state,
-                    &mut modifier_costs,
-                    accumulated_cost,
-                    max_cost,
-                ),
+                _ => {
+                    add_flat_item_resource(
+                        random_generator_state,
+                        &mut modifier_costs,
+                        accumulated_cost,
+                        max_cost,
+                    )
+                }
             }
         }
     }
@@ -521,10 +550,12 @@ fn execute_craft_roll_modifier_benefits(
                 );
                 FlatDamage(attack_type.clone(), damage)
             }
-            PercentageIncreaseDamage(attack_type, _) => PercentageIncreaseDamage(
-                attack_type.clone(),
-                u16::try_from(cost_bonus).unwrap_or(u16::MAX).max(1),
-            ),
+            PercentageIncreaseDamage(attack_type, _) => {
+                PercentageIncreaseDamage(
+                    attack_type.clone(),
+                    u16::try_from(cost_bonus).unwrap_or(u16::MAX).max(1),
+                )
+            }
             FlatItemResource(item_resource_type, _) => {
                 FlatItemResource(item_resource_type.clone(), max(1, cost_bonus * 2))
             }
@@ -561,13 +592,18 @@ fn execute_craft_roll_modifier_benefits(
                         .unwrap_or(u16::MAX),
                 )
             }
-            PercentageIncreaseTreasure(treasure_type, _) => PercentageIncreaseTreasure(
-                treasure_type.clone(),
-                u16::try_from(cost_bonus).unwrap_or(u16::MAX).max(1),
-            ),
-            FlatIncreaseRewardedItems(_) => FlatIncreaseRewardedItems(
-                u16::try_from(cost_bonus.checked_div(10).unwrap_or(1).max(1)).unwrap_or(u16::MAX),
-            ),
+            PercentageIncreaseTreasure(treasure_type, _) => {
+                PercentageIncreaseTreasure(
+                    treasure_type.clone(),
+                    u16::try_from(cost_bonus).unwrap_or(u16::MAX).max(1),
+                )
+            }
+            FlatIncreaseRewardedItems(_) => {
+                FlatIncreaseRewardedItems(
+                    u16::try_from(cost_bonus.checked_div(10).unwrap_or(1).max(1))
+                        .unwrap_or(u16::MAX),
+                )
+            }
         });
     }
     modifier_gain

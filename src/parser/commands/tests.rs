@@ -1,8 +1,9 @@
 #[cfg(test)]
 mod tests_int {
-    use crate::my_little_rpg_errors::MyError;
-    use crate::parser::commands::Command;
-    use crate::the_world::index_specifier::IndexSpecifier;
+    use crate::{
+        my_little_rpg_errors::MyError, parser::commands::Command,
+        the_world::index_specifier::IndexSpecifier,
+    };
 
     #[test]
     fn try_from() {
@@ -63,8 +64,22 @@ mod tests_int {
             )),
             Command::try_from(Into::<Box<str>>::into("Move"))
         );
-        assert_eq!(Err(MyError::create_parse_command_error("The following parameter -1, got the following error while parsing: ParseIntError { kind: InvalidDigit }".to_string())), Command::try_from(Into::<Box<str>>::into("Move -1")));
-        assert_eq!(Err(MyError::create_parse_command_error("The following parameter B, got the following error while parsing: ParseIntError { kind: InvalidDigit }".to_string())), Command::try_from(Into::<Box<str>>::into("Move B")));
+        assert_eq!(
+            Err(MyError::create_parse_command_error(
+                "The following parameter -1, got the following error while parsing: ParseIntError \
+                 { kind: InvalidDigit }"
+                    .to_string()
+            )),
+            Command::try_from(Into::<Box<str>>::into("Move -1"))
+        );
+        assert_eq!(
+            Err(MyError::create_parse_command_error(
+                "The following parameter B, got the following error while parsing: ParseIntError \
+                 { kind: InvalidDigit }"
+                    .to_string()
+            )),
+            Command::try_from(Into::<Box<str>>::into("Move B"))
+        );
 
         assert_eq!(
             Command::AddModifier(
@@ -89,13 +104,62 @@ mod tests_int {
             ),
             Command::try_from(Into::<Box<str>>::into("AddModifier 22 +1,-2,3")).unwrap()
         );
-        assert_eq!(Err(MyError::create_parse_command_error("Trouble parsing AddModifier command, it needs the index of the item and a list comma seperated list of items to sacrifice. Got [\"AddModifier\"]".to_string())), Command::try_from(Into::<Box<str>>::into("AddModifier")));
-        assert_eq!(Err(MyError::create_parse_command_error("The following parameter -1, got the following error while parsing: ParseIntError { kind: InvalidDigit }".to_string())), Command::try_from(Into::<Box<str>>::into("AddModifier -1")));
-        assert_eq!(Err(MyError::create_parse_command_error("The following parameter -1, got the following error while parsing: ParseIntError { kind: InvalidDigit }".to_string())), Command::try_from(Into::<Box<str>>::into("AddModifier -1  1,2,3")));
-        assert_eq!(Err(MyError::create_parse_command_error("The following parameter B, got the following error while parsing: ParseIntError { kind: InvalidDigit }".to_string())), Command::try_from(Into::<Box<str>>::into("AddModifier B 1,2,3")));
-        assert_eq!(Err(MyError::create_parse_command_error("The following parameter b, got the following error while parsing: ParseIntError { kind: InvalidDigit }".to_string())), Command::try_from(Into::<Box<str>>::into("AddModifier 1 b")));
-        assert_eq!(Err(MyError::create_parse_command_error("The following parameter b, got the following error while parsing: ParseIntError { kind: InvalidDigit }".to_string())), Command::try_from(Into::<Box<str>>::into("AddModifier 1 +b")));
-        assert_eq!(Err(MyError::create_parse_command_error("The following parameter b, got the following error while parsing: ParseIntError { kind: InvalidDigit }".to_string())), Command::try_from(Into::<Box<str>>::into("AddModifier 1 -b")));
+        assert_eq!(
+            Err(MyError::create_parse_command_error(
+                "Trouble parsing AddModifier command, it needs the index of the item and a list \
+                 comma seperated list of items to sacrifice. Got [\"AddModifier\"]"
+                    .to_string()
+            )),
+            Command::try_from(Into::<Box<str>>::into("AddModifier"))
+        );
+        assert_eq!(
+            Err(MyError::create_parse_command_error(
+                "The following parameter -1, got the following error while parsing: ParseIntError \
+                 { kind: InvalidDigit }"
+                    .to_string()
+            )),
+            Command::try_from(Into::<Box<str>>::into("AddModifier -1"))
+        );
+        assert_eq!(
+            Err(MyError::create_parse_command_error(
+                "The following parameter -1, got the following error while parsing: ParseIntError \
+                 { kind: InvalidDigit }"
+                    .to_string()
+            )),
+            Command::try_from(Into::<Box<str>>::into("AddModifier -1  1,2,3"))
+        );
+        assert_eq!(
+            Err(MyError::create_parse_command_error(
+                "The following parameter B, got the following error while parsing: ParseIntError \
+                 { kind: InvalidDigit }"
+                    .to_string()
+            )),
+            Command::try_from(Into::<Box<str>>::into("AddModifier B 1,2,3"))
+        );
+        assert_eq!(
+            Err(MyError::create_parse_command_error(
+                "The following parameter b, got the following error while parsing: ParseIntError \
+                 { kind: InvalidDigit }"
+                    .to_string()
+            )),
+            Command::try_from(Into::<Box<str>>::into("AddModifier 1 b"))
+        );
+        assert_eq!(
+            Err(MyError::create_parse_command_error(
+                "The following parameter b, got the following error while parsing: ParseIntError \
+                 { kind: InvalidDigit }"
+                    .to_string()
+            )),
+            Command::try_from(Into::<Box<str>>::into("AddModifier 1 +b"))
+        );
+        assert_eq!(
+            Err(MyError::create_parse_command_error(
+                "The following parameter b, got the following error while parsing: ParseIntError \
+                 { kind: InvalidDigit }"
+                    .to_string()
+            )),
+            Command::try_from(Into::<Box<str>>::into("AddModifier 1 -b"))
+        );
         assert_eq!(
             Err(MyError::create_parse_command_error(
                 "1-22 created an underflow!".to_string()
@@ -107,21 +171,91 @@ mod tests_int {
             Command::Equip(21, 22),
             Command::try_from(Into::<Box<str>>::into("Equip 21 22")).unwrap()
         );
-        assert_eq!(Err(MyError::create_parse_command_error("Trouble parsing Equip command, it needs index of inventory and index of equipment slot. Got [\"Equip\"]".to_string())), Command::try_from(Into::<Box<str>>::into("Equip")));
-        assert_eq!(Err(MyError::create_parse_command_error("The following parameter -1, got the following error while parsing: ParseIntError { kind: InvalidDigit }".to_string())), Command::try_from(Into::<Box<str>>::into("Equip -1 22")));
-        assert_eq!(Err(MyError::create_parse_command_error("The following parameter -1, got the following error while parsing: ParseIntError { kind: InvalidDigit }".to_string())), Command::try_from(Into::<Box<str>>::into("Equip 21 -1")));
-        assert_eq!(Err(MyError::create_parse_command_error("The following parameter B, got the following error while parsing: ParseIntError { kind: InvalidDigit }".to_string())), Command::try_from(Into::<Box<str>>::into("Equip B 22")));
-        assert_eq!(Err(MyError::create_parse_command_error("The following parameter B, got the following error while parsing: ParseIntError { kind: InvalidDigit }".to_string())), Command::try_from(Into::<Box<str>>::into("Equip 21 B")));
+        assert_eq!(
+            Err(MyError::create_parse_command_error(
+                "Trouble parsing Equip command, it needs index of inventory and index of \
+                 equipment slot. Got [\"Equip\"]"
+                    .to_string()
+            )),
+            Command::try_from(Into::<Box<str>>::into("Equip"))
+        );
+        assert_eq!(
+            Err(MyError::create_parse_command_error(
+                "The following parameter -1, got the following error while parsing: ParseIntError \
+                 { kind: InvalidDigit }"
+                    .to_string()
+            )),
+            Command::try_from(Into::<Box<str>>::into("Equip -1 22"))
+        );
+        assert_eq!(
+            Err(MyError::create_parse_command_error(
+                "The following parameter -1, got the following error while parsing: ParseIntError \
+                 { kind: InvalidDigit }"
+                    .to_string()
+            )),
+            Command::try_from(Into::<Box<str>>::into("Equip 21 -1"))
+        );
+        assert_eq!(
+            Err(MyError::create_parse_command_error(
+                "The following parameter B, got the following error while parsing: ParseIntError \
+                 { kind: InvalidDigit }"
+                    .to_string()
+            )),
+            Command::try_from(Into::<Box<str>>::into("Equip B 22"))
+        );
+        assert_eq!(
+            Err(MyError::create_parse_command_error(
+                "The following parameter B, got the following error while parsing: ParseIntError \
+                 { kind: InvalidDigit }"
+                    .to_string()
+            )),
+            Command::try_from(Into::<Box<str>>::into("Equip 21 B"))
+        );
 
         assert_eq!(
             Command::SwapEquipment(21, 22),
             Command::try_from(Into::<Box<str>>::into("SwapEquipment 21 22")).unwrap()
         );
-        assert_eq!(Err(MyError::create_parse_command_error("Trouble parsing SwapEquipment command, it needs index of inventory and index of equipment slot. Got [\"SwapEquipment\"]".to_string())), Command::try_from(Into::<Box<str>>::into("SwapEquipment")));
-        assert_eq!(Err(MyError::create_parse_command_error("The following parameter -1, got the following error while parsing: ParseIntError { kind: InvalidDigit }".to_string())), Command::try_from(Into::<Box<str>>::into("SwapEquipment -1 22")));
-        assert_eq!(Err(MyError::create_parse_command_error("The following parameter -1, got the following error while parsing: ParseIntError { kind: InvalidDigit }".to_string())), Command::try_from(Into::<Box<str>>::into("SwapEquipment 21 -1")));
-        assert_eq!(Err(MyError::create_parse_command_error("The following parameter B, got the following error while parsing: ParseIntError { kind: InvalidDigit }".to_string())), Command::try_from(Into::<Box<str>>::into("SwapEquipment B 22")));
-        assert_eq!(Err(MyError::create_parse_command_error("The following parameter B, got the following error while parsing: ParseIntError { kind: InvalidDigit }".to_string())), Command::try_from(Into::<Box<str>>::into("SwapEquipment 21 B")));
+        assert_eq!(
+            Err(MyError::create_parse_command_error(
+                "Trouble parsing SwapEquipment command, it needs index of inventory and index of \
+                 equipment slot. Got [\"SwapEquipment\"]"
+                    .to_string()
+            )),
+            Command::try_from(Into::<Box<str>>::into("SwapEquipment"))
+        );
+        assert_eq!(
+            Err(MyError::create_parse_command_error(
+                "The following parameter -1, got the following error while parsing: ParseIntError \
+                 { kind: InvalidDigit }"
+                    .to_string()
+            )),
+            Command::try_from(Into::<Box<str>>::into("SwapEquipment -1 22"))
+        );
+        assert_eq!(
+            Err(MyError::create_parse_command_error(
+                "The following parameter -1, got the following error while parsing: ParseIntError \
+                 { kind: InvalidDigit }"
+                    .to_string()
+            )),
+            Command::try_from(Into::<Box<str>>::into("SwapEquipment 21 -1"))
+        );
+        assert_eq!(
+            Err(MyError::create_parse_command_error(
+                "The following parameter B, got the following error while parsing: ParseIntError \
+                 { kind: InvalidDigit }"
+                    .to_string()
+            )),
+            Command::try_from(Into::<Box<str>>::into("SwapEquipment B 22"))
+        );
+        assert_eq!(
+            Err(MyError::create_parse_command_error(
+                "The following parameter B, got the following error while parsing: ParseIntError \
+                 { kind: InvalidDigit }"
+                    .to_string()
+            )),
+            Command::try_from(Into::<Box<str>>::into("SwapEquipment 21 B"))
+        );
 
         assert_eq!(
             Command::RerollModifier(
@@ -147,16 +281,89 @@ mod tests_int {
             ),
             Command::try_from(Into::<Box<str>>::into("RerollModifier 21 22 +1,-2,3")).unwrap()
         );
-        assert_eq!(Err(MyError::create_parse_command_error("Trouble parsing RerollModifier command, it needs index of inventory, index of modifier and a list comma seperated list of items to sacrifice. Got [\"RerollModifier\"]".to_string())), Command::try_from(Into::<Box<str>>::into("RerollModifier")));
-        assert_eq!(Err(MyError::create_parse_command_error("Trouble parsing RerollModifier command, it needs index of inventory, index of modifier and a list comma seperated list of items to sacrifice. Got [\"RerollModifier\", \"1\"]".to_string())), Command::try_from(Into::<Box<str>>::into("RerollModifier 1")));
-        assert_eq!(Err(MyError::create_parse_command_error("Trouble parsing RerollModifier command, it needs index of inventory, index of modifier and a list comma seperated list of items to sacrifice. Got [\"RerollModifier\", \"1\", \"1\"]".to_string())), Command::try_from(Into::<Box<str>>::into("RerollModifier 1 1")));
-        assert_eq!(Err(MyError::create_parse_command_error("The following parameter -1, got the following error while parsing: ParseIntError { kind: InvalidDigit }".to_string())), Command::try_from(Into::<Box<str>>::into("RerollModifier -1 22 1,2,3")));
-        assert_eq!(Err(MyError::create_parse_command_error("The following parameter -1, got the following error while parsing: ParseIntError { kind: InvalidDigit }".to_string())), Command::try_from(Into::<Box<str>>::into("RerollModifier 21 -1 1,2,3")));
-        assert_eq!(Err(MyError::create_parse_command_error("The following parameter B, got the following error while parsing: ParseIntError { kind: InvalidDigit }".to_string())), Command::try_from(Into::<Box<str>>::into("RerollModifier B 22 1,2,3")));
-        assert_eq!(Err(MyError::create_parse_command_error("The following parameter B, got the following error while parsing: ParseIntError { kind: InvalidDigit }".to_string())), Command::try_from(Into::<Box<str>>::into("RerollModifier 21 B 1,2,3")));
-        assert_eq!(Err(MyError::create_parse_command_error("The following parameter a, got the following error while parsing: ParseIntError { kind: InvalidDigit }".to_string())), Command::try_from(Into::<Box<str>>::into("RerollModifier 21 22 a")));
-        assert_eq!(Err(MyError::create_parse_command_error("The following parameter a, got the following error while parsing: ParseIntError { kind: InvalidDigit }".to_string())), Command::try_from(Into::<Box<str>>::into("RerollModifier 21 22 -a")));
-        assert_eq!(Err(MyError::create_parse_command_error("The following parameter a, got the following error while parsing: ParseIntError { kind: InvalidDigit }".to_string())), Command::try_from(Into::<Box<str>>::into("RerollModifier 21 22 +a")));
+        assert_eq!(
+            Err(MyError::create_parse_command_error(
+                "Trouble parsing RerollModifier command, it needs index of inventory, index of \
+                 modifier and a list comma seperated list of items to sacrifice. Got \
+                 [\"RerollModifier\"]"
+                    .to_string()
+            )),
+            Command::try_from(Into::<Box<str>>::into("RerollModifier"))
+        );
+        assert_eq!(
+            Err(MyError::create_parse_command_error(
+                "Trouble parsing RerollModifier command, it needs index of inventory, index of \
+                 modifier and a list comma seperated list of items to sacrifice. Got \
+                 [\"RerollModifier\", \"1\"]"
+                    .to_string()
+            )),
+            Command::try_from(Into::<Box<str>>::into("RerollModifier 1"))
+        );
+        assert_eq!(
+            Err(MyError::create_parse_command_error(
+                "Trouble parsing RerollModifier command, it needs index of inventory, index of \
+                 modifier and a list comma seperated list of items to sacrifice. Got \
+                 [\"RerollModifier\", \"1\", \"1\"]"
+                    .to_string()
+            )),
+            Command::try_from(Into::<Box<str>>::into("RerollModifier 1 1"))
+        );
+        assert_eq!(
+            Err(MyError::create_parse_command_error(
+                "The following parameter -1, got the following error while parsing: ParseIntError \
+                 { kind: InvalidDigit }"
+                    .to_string()
+            )),
+            Command::try_from(Into::<Box<str>>::into("RerollModifier -1 22 1,2,3"))
+        );
+        assert_eq!(
+            Err(MyError::create_parse_command_error(
+                "The following parameter -1, got the following error while parsing: ParseIntError \
+                 { kind: InvalidDigit }"
+                    .to_string()
+            )),
+            Command::try_from(Into::<Box<str>>::into("RerollModifier 21 -1 1,2,3"))
+        );
+        assert_eq!(
+            Err(MyError::create_parse_command_error(
+                "The following parameter B, got the following error while parsing: ParseIntError \
+                 { kind: InvalidDigit }"
+                    .to_string()
+            )),
+            Command::try_from(Into::<Box<str>>::into("RerollModifier B 22 1,2,3"))
+        );
+        assert_eq!(
+            Err(MyError::create_parse_command_error(
+                "The following parameter B, got the following error while parsing: ParseIntError \
+                 { kind: InvalidDigit }"
+                    .to_string()
+            )),
+            Command::try_from(Into::<Box<str>>::into("RerollModifier 21 B 1,2,3"))
+        );
+        assert_eq!(
+            Err(MyError::create_parse_command_error(
+                "The following parameter a, got the following error while parsing: ParseIntError \
+                 { kind: InvalidDigit }"
+                    .to_string()
+            )),
+            Command::try_from(Into::<Box<str>>::into("RerollModifier 21 22 a"))
+        );
+        assert_eq!(
+            Err(MyError::create_parse_command_error(
+                "The following parameter a, got the following error while parsing: ParseIntError \
+                 { kind: InvalidDigit }"
+                    .to_string()
+            )),
+            Command::try_from(Into::<Box<str>>::into("RerollModifier 21 22 -a"))
+        );
+        assert_eq!(
+            Err(MyError::create_parse_command_error(
+                "The following parameter a, got the following error while parsing: ParseIntError \
+                 { kind: InvalidDigit }"
+                    .to_string()
+            )),
+            Command::try_from(Into::<Box<str>>::into("RerollModifier 21 22 +a"))
+        );
         assert_eq!(
             Err(MyError::create_parse_command_error(
                 "21-23 created an underflow!".to_string()
@@ -172,7 +379,15 @@ mod tests_int {
             Command::SaveTheWorld("a".into(), None),
             Command::try_from(Into::<Box<str>>::into("SaveTheWorld a")).unwrap()
         );
-        assert_eq!(Err(MyError::create_parse_command_error("Trouble parsing SaveTheWorld command, it needs a save game name and optionally a path to the savegame (remember to end the path with /). Default location is ./save_games/. Got [\"SaveTheWorld\"]".to_string())), Command::try_from(Into::<Box<str>>::into("SaveTheWorld")));
+        assert_eq!(
+            Err(MyError::create_parse_command_error(
+                "Trouble parsing SaveTheWorld command, it needs a save game name and optionally a \
+                 path to the savegame (remember to end the path with /). Default location is \
+                 ./save_games/. Got [\"SaveTheWorld\"]"
+                    .to_string()
+            )),
+            Command::try_from(Into::<Box<str>>::into("SaveTheWorld"))
+        );
 
         assert_eq!(
             Command::LoadTheWorld("a".into(), Some("b".into())),
@@ -182,7 +397,15 @@ mod tests_int {
             Command::LoadTheWorld("a".into(), None),
             Command::try_from(Into::<Box<str>>::into("LoadTheWorld a")).unwrap()
         );
-        assert_eq!(Err(MyError::create_parse_command_error("Trouble parsing LoadTheWorld command, it needs a save game name and optionally a path to the savegame (remember to end the path with /). Default location is ./save_games/. Got [\"LoadTheWorld\"]".to_string())), Command::try_from(Into::<Box<str>>::into("LoadTheWorld")));
+        assert_eq!(
+            Err(MyError::create_parse_command_error(
+                "Trouble parsing LoadTheWorld command, it needs a save game name and optionally a \
+                 path to the savegame (remember to end the path with /). Default location is \
+                 ./save_games/. Got [\"LoadTheWorld\"]"
+                    .to_string()
+            )),
+            Command::try_from(Into::<Box<str>>::into("LoadTheWorld"))
+        );
 
         assert_eq!(
             Err(MyError::create_parse_command_error(

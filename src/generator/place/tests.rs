@@ -1,9 +1,12 @@
 #[cfg(test)]
 mod tests_int {
-    use crate::generator::game::{new as new_game, new_testing as new_game_testing};
-    use crate::generator::place::new as new_place;
-    use crate::the_world::attack_types::AttackType;
-    use crate::the_world::treasure_types::TreasureType;
+    use crate::{
+        generator::{
+            game::{new as new_game, new_testing as new_game_testing},
+            place::new as new_place,
+        },
+        the_world::{attack_types::AttackType, treasure_types::TreasureType},
+    };
 
     #[test]
     fn test_generate_place() {

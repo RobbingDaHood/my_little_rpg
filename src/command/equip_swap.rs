@@ -3,9 +3,7 @@ use std::mem;
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
 
-use crate::my_little_rpg_errors::MyError;
-use crate::the_world::item::Item;
-use crate::Game;
+use crate::{my_little_rpg_errors::MyError, the_world::item::Item, Game};
 
 mod tests;
 

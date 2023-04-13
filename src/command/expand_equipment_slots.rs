@@ -1,14 +1,16 @@
-use std::collections::HashMap;
-use std::mem;
+use std::{collections::HashMap, mem};
 
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
 
-use crate::my_little_rpg_errors::MyError;
-use crate::the_world::item::Item;
-use crate::the_world::treasure_types::TreasureType::Gold;
-use crate::the_world::treasure_types::{pay_crafting_cost, TreasureType};
-use crate::Game;
+use crate::{
+    my_little_rpg_errors::MyError,
+    the_world::{
+        item::Item,
+        treasure_types::{pay_crafting_cost, TreasureType, TreasureType::Gold},
+    },
+    Game,
+};
 
 mod tests;
 
@@ -61,7 +63,7 @@ pub fn execute(game: &mut Game) -> Result<ExecuteExpandEquipmentSlotsReport, MyE
 }
 
 pub fn execute_expand_equipment_slots_calculate_cost(
-    game: &mut Game,
+    game: &mut Game
 ) -> HashMap<TreasureType, u64> {
     HashMap::from([(Gold, (game.equipped_items.len() + 1).pow(5) as u64)])
 }

@@ -2,12 +2,14 @@
 mod tests_int {
     use std::collections::HashMap;
 
-    use crate::command::reduce_difficulty::execute;
-    use crate::generator::game::new_testing;
-    use crate::the_world::attack_types::AttackType;
-    use crate::the_world::difficulty::Difficulty;
-    use crate::the_world::treasure_types::TreasureType::Gold;
-    use crate::Game;
+    use crate::{
+        command::reduce_difficulty::execute,
+        generator::game::new_testing,
+        the_world::{
+            attack_types::AttackType, difficulty::Difficulty, treasure_types::TreasureType::Gold,
+        },
+        Game,
+    };
 
     #[test]
     fn test_execute_reduce_difficulty() {

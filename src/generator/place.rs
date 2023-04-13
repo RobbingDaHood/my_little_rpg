@@ -1,13 +1,14 @@
-use std::cmp::{max, min};
-use std::collections::{HashMap, HashSet};
+use std::{
+    cmp::{max, min},
+    collections::{HashMap, HashSet},
+};
 
-use rand::seq::SliceRandom;
-use rand::Rng;
+use rand::{seq::SliceRandom, Rng};
 
-use crate::the_world::attack_types::AttackType;
-use crate::the_world::place::Place;
-use crate::the_world::treasure_types::TreasureType;
-use crate::Game;
+use crate::{
+    the_world::{attack_types::AttackType, place::Place, treasure_types::TreasureType},
+    Game,
+};
 
 mod tests;
 

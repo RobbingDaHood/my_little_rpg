@@ -1,12 +1,14 @@
 pub use crate::command::commands::Command;
-use crate::command::commands::Command::{
-    AddModifier, Equip, ExpandElements, ExpandEquipmentSlots, ExpandMaxElement,
-    ExpandMaxSimultaneousElement, ExpandMinElement, ExpandMinSimultaneousElement, ExpandPlaces,
-    Help, LoadTheWorld, Move, ReduceDifficulty, ReorderInventory, RerollModifier, SaveTheWorld,
-    State, SwapEquipment,
+use crate::{
+    command::commands::Command::{
+        AddModifier, Equip, ExpandElements, ExpandEquipmentSlots, ExpandMaxElement,
+        ExpandMaxSimultaneousElement, ExpandMinElement, ExpandMinSimultaneousElement, ExpandPlaces,
+        Help, LoadTheWorld, Move, ReduceDifficulty, ReorderInventory, RerollModifier, SaveTheWorld,
+        State, SwapEquipment,
+    },
+    my_little_rpg_errors::MyError,
+    the_world::index_specifier::IndexSpecifier,
 };
-use crate::my_little_rpg_errors::MyError;
-use crate::the_world::index_specifier::IndexSpecifier;
 
 mod tests;
 
@@ -41,32 +43,42 @@ impl Command {
         command_parts
             .split(',')
             .into_iter()
-            .map(|s| match s.chars().next() {
-                Some('+') => Self::try_parse_usize(&s[1..s.len()])
-                    .map(|relative_index_diff| {
-                        match relative_too.checked_add(relative_index_diff) {
-                            Some(_) => Ok(IndexSpecifier::RelativePositive(relative_index_diff)),
-                            None => {
-                                let error_message =
-                                    format!("{}{} created an overflow!", relative_too, s);
-                                Err(MyError::create_parse_command_error(error_message))
-                            }
-                        }
-                    })
-                    .and_then(|i| i),
-                Some('-') => Self::try_parse_usize(&s[1..s.len()])
-                    .map(|relative_index_diff| {
-                        match relative_too.checked_sub(relative_index_diff) {
-                            Some(_) => Ok(IndexSpecifier::RelativeNegative(relative_index_diff)),
-                            None => {
-                                let error_message =
-                                    format!("{}{} created an underflow!", relative_too, s);
-                                Err(MyError::create_parse_command_error(error_message))
-                            }
-                        }
-                    })
-                    .and_then(|i| i),
-                _ => Self::try_parse_usize(s).map(IndexSpecifier::Absolute),
+            .map(|s| {
+                match s.chars().next() {
+                    Some('+') => {
+                        Self::try_parse_usize(&s[1..s.len()])
+                            .map(|relative_index_diff| {
+                                match relative_too.checked_add(relative_index_diff) {
+                                    Some(_) => {
+                                        Ok(IndexSpecifier::RelativePositive(relative_index_diff))
+                                    }
+                                    None => {
+                                        let error_message =
+                                            format!("{}{} created an overflow!", relative_too, s);
+                                        Err(MyError::create_parse_command_error(error_message))
+                                    }
+                                }
+                            })
+                            .and_then(|i| i)
+                    }
+                    Some('-') => {
+                        Self::try_parse_usize(&s[1..s.len()])
+                            .map(|relative_index_diff| {
+                                match relative_too.checked_sub(relative_index_diff) {
+                                    Some(_) => {
+                                        Ok(IndexSpecifier::RelativeNegative(relative_index_diff))
+                                    }
+                                    None => {
+                                        let error_message =
+                                            format!("{}{} created an underflow!", relative_too, s);
+                                        Err(MyError::create_parse_command_error(error_message))
+                                    }
+                                }
+                            })
+                            .and_then(|i| i)
+                    }
+                    _ => Self::try_parse_usize(s).map(IndexSpecifier::Absolute),
+                }
             })
             .collect()
     }
@@ -109,7 +121,11 @@ impl Command {
 
     fn try_parse_add_modifier(command_parts: &Vec<&str>) -> Result<Command, MyError> {
         if command_parts.len() < 2 {
-            let error_message = format!("Trouble parsing AddModifier command, it needs the index of the item and a list comma seperated list of items to sacrifice. Got {:?}", command_parts);
+            let error_message = format!(
+                "Trouble parsing AddModifier command, it needs the index of the item and a list \
+                 comma seperated list of items to sacrifice. Got {:?}",
+                command_parts
+            );
             Err(MyError::create_parse_command_error(error_message))
         } else {
             let inventory_position = Self::try_parse_usize(command_parts[1])?;
@@ -123,7 +139,11 @@ impl Command {
 
     fn try_parse_equip(command_parts: &Vec<&str>) -> Result<Command, MyError> {
         if command_parts.len() < 3 {
-            let error_message = format!("Trouble parsing Equip command, it needs index of inventory and index of equipment slot. Got {:?}", command_parts);
+            let error_message = format!(
+                "Trouble parsing Equip command, it needs index of inventory and index of \
+                 equipment slot. Got {:?}",
+                command_parts
+            );
             return Err(MyError::create_parse_command_error(error_message));
         }
 
@@ -134,7 +154,11 @@ impl Command {
 
     fn try_parse_swap_equipment(command_parts: &Vec<&str>) -> Result<Command, MyError> {
         if command_parts.len() < 3 {
-            let error_message = format!("Trouble parsing SwapEquipment command, it needs index of inventory and index of equipment slot. Got {:?}", command_parts);
+            let error_message = format!(
+                "Trouble parsing SwapEquipment command, it needs index of inventory and index of \
+                 equipment slot. Got {:?}",
+                command_parts
+            );
             return Err(MyError::create_parse_command_error(error_message));
         }
 
@@ -148,7 +172,11 @@ impl Command {
 
     fn try_parse_reroll_modifier(command_parts: &Vec<&str>) -> Result<Command, MyError> {
         if command_parts.len() < 4 {
-            let error_message = format!("Trouble parsing RerollModifier command, it needs index of inventory, index of modifier and a list comma seperated list of items to sacrifice. Got {:?}", command_parts);
+            let error_message = format!(
+                "Trouble parsing RerollModifier command, it needs index of inventory, index of \
+                 modifier and a list comma seperated list of items to sacrifice. Got {:?}",
+                command_parts
+            );
             return Err(MyError::create_parse_command_error(error_message));
         }
 
@@ -165,7 +193,12 @@ impl Command {
 
     fn try_parse_save_the_world(command_parts: &Vec<&str>) -> Result<Command, MyError> {
         if command_parts.len() < 2 {
-            let error_message = format!("Trouble parsing SaveTheWorld command, it needs a save game name and optionally a path to the savegame (remember to end the path with /). Default location is ./save_games/. Got {:?}", command_parts);
+            let error_message = format!(
+                "Trouble parsing SaveTheWorld command, it needs a save game name and optionally a \
+                 path to the savegame (remember to end the path with /). Default location is \
+                 ./save_games/. Got {:?}",
+                command_parts
+            );
             return Err(MyError::create_parse_command_error(error_message));
         }
 
@@ -180,7 +213,12 @@ impl Command {
 
     fn try_parse_load_the_world(command_parts: &Vec<&str>) -> Result<Command, MyError> {
         if command_parts.len() < 2 {
-            let error_message = format!("Trouble parsing LoadTheWorld command, it needs a save game name and optionally a path to the savegame (remember to end the path with /). Default location is ./save_games/. Got {:?}", command_parts);
+            let error_message = format!(
+                "Trouble parsing LoadTheWorld command, it needs a save game name and optionally a \
+                 path to the savegame (remember to end the path with /). Default location is \
+                 ./save_games/. Got {:?}",
+                command_parts
+            );
             return Err(MyError::create_parse_command_error(error_message));
         }
 

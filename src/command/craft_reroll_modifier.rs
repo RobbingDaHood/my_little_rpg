@@ -1,13 +1,15 @@
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
 
-use crate::command::roll_modifier::execute_craft;
-use crate::my_little_rpg_errors::MyError;
-use crate::the_world::index_specifier::{
-    calculate_absolute_item_indexes, ErrorConditions, IndexSpecifier,
+use crate::{
+    command::roll_modifier::execute_craft,
+    my_little_rpg_errors::MyError,
+    the_world::{
+        index_specifier::{calculate_absolute_item_indexes, ErrorConditions, IndexSpecifier},
+        item::Item,
+    },
+    Game,
 };
-use crate::the_world::item::Item;
-use crate::Game;
 
 mod tests;
 
@@ -125,7 +127,10 @@ fn get_index_specifier_error_conditions(modifier_index: usize) -> ErrorCondition
     }
 }
 
-pub fn execute_craft_reroll_modifier_calculate_cost(game: &Game, inventory_index: usize) -> u16 {
+pub fn execute_craft_reroll_modifier_calculate_cost(
+    game: &Game,
+    inventory_index: usize,
+) -> u16 {
     match &game.inventory[inventory_index] {
         Some(item) => u16::try_from(item.modifiers.len()).unwrap_or(u16::MAX),
         None => 0,

@@ -2,10 +2,14 @@
 mod tests_int {
     use std::fs;
 
-    use crate::command::expand_max_element::execute;
-    use crate::command::save_load::{execute_load_command, execute_save_command};
-    use crate::generator::game::new_testing;
-    use crate::the_world::treasure_types::TreasureType::Gold;
+    use crate::{
+        command::{
+            expand_max_element::execute,
+            save_load::{execute_load_command, execute_save_command},
+        },
+        generator::game::new_testing,
+        the_world::treasure_types::TreasureType::Gold,
+    };
 
     #[test]
     fn seeding_test() {
