@@ -16,8 +16,13 @@ mod tests_int {
 
         game.treasure.insert(Gold, 10);
         assert!(execute_expand_elements(&mut game).is_ok());
-        assert_eq!(Err(MyError::create_execute_command_error("Cant pay the crafting cost, the cost is {Gold: 10} and you only have {Gold: 0}".to_string())), execute_expand_max_simultaneous_element(&mut game));
-
+        assert_eq!(
+            Err(MyError::create_execute_command_error(
+                "Cant pay the crafting cost, the cost is {Gold: 10} and you only have {Gold: 0}"
+                    .to_string()
+            )),
+            execute_expand_max_simultaneous_element(&mut game)
+        );
 
         *game.treasure.get_mut(&Gold).unwrap() += 1000;
         assert!(game.treasure.get(&Gold).unwrap() > &0);

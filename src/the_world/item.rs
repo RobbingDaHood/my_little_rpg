@@ -17,9 +17,9 @@ pub struct CraftingInfo {
 
 #[cfg(test)]
 pub mod test_util {
-    use crate::Game;
     use crate::the_world::item::{CraftingInfo, Item};
     use crate::the_world::item_modifier::Modifier;
+    use crate::Game;
 
     //TODO consider replacing with a default method
     pub fn create_item(game: &Game) -> Item {

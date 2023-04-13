@@ -10,14 +10,15 @@ pub fn decode_hex(s: &str) -> Result<Vec<u8>, MyError> {
     if offending_chars.is_empty() {
         decode_hex_unsafe(&s)
     } else {
-        Err(MyError::create_parse_command_error(format!("{:?} is not hexdigit(s)!", offending_chars)))
+        Err(MyError::create_parse_command_error(format!(
+            "{:?} is not hexdigit(s)!",
+            offending_chars
+        )))
     }
 }
 
 fn list_non_ascii_hexdigit_chars(s: &str) -> Vec<char> {
-    s.chars()
-        .filter(|c| !char::is_ascii_hexdigit(c))
-        .collect()
+    s.chars().filter(|c| !char::is_ascii_hexdigit(c)).collect()
 }
 
 fn decode_hex_unsafe(s: &&str) -> Result<Vec<u8>, MyError> {

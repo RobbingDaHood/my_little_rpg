@@ -3,11 +3,11 @@ use std::collections::HashMap;
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
 
-use crate::Game;
 use crate::my_little_rpg_errors::MyError;
 use crate::the_world::attack_types::AttackType;
-use crate::the_world::treasure_types::{pay_crafting_cost, TreasureType};
 use crate::the_world::treasure_types::TreasureType::Gold;
+use crate::the_world::treasure_types::{pay_crafting_cost, TreasureType};
+use crate::Game;
 
 mod tests;
 
@@ -22,14 +22,16 @@ pub struct ExecuteExpandElementsReport {
 pub fn execute_json(game: &mut Game) -> Value {
     match execute(game) {
         Ok(result) => json!(result),
-        Err(result) => json!(result)
+        Err(result) => json!(result),
     }
 }
 
 pub fn execute(game: &mut Game) -> Result<ExecuteExpandElementsReport, MyError> {
     let difficulty_max_resistance_number = game.difficulty.max_resistance.len();
     if difficulty_max_resistance_number >= AttackType::get_all().len() {
-        return Err(MyError::create_execute_command_error("Already at maximum elements.".to_string()));
+        return Err(MyError::create_execute_command_error(
+            "Already at maximum elements.".to_string(),
+        ));
     }
 
     //Crafting cost
@@ -38,8 +40,12 @@ pub fn execute(game: &mut Game) -> Result<ExecuteExpandElementsReport, MyError> 
 
     //Add new element
     let new_element = &AttackType::get_all()[difficulty_max_resistance_number];
-    game.difficulty.max_resistance.insert(new_element.clone(), 2);
-    game.difficulty.min_resistance.insert(new_element.clone(), 1);
+    game.difficulty
+        .max_resistance
+        .insert(new_element.clone(), 2);
+    game.difficulty
+        .min_resistance
+        .insert(new_element.clone(), 1);
 
     Ok(ExecuteExpandElementsReport {
         new_element_type: new_element.clone(),

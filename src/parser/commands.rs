@@ -1,5 +1,10 @@
 pub use crate::command::commands::Command;
-use crate::command::commands::Command::{AddModifier, Equip, ExpandElements, ExpandEquipmentSlots, ExpandMaxElement, ExpandMaxSimultaneousElement, ExpandMinElement, ExpandMinSimultaneousElement, ExpandPlaces, Help, LoadTheWorld, Move, ReduceDifficulty, ReorderInventory, RerollModifier, SaveTheWorld, State, SwapEquipment};
+use crate::command::commands::Command::{
+    AddModifier, Equip, ExpandElements, ExpandEquipmentSlots, ExpandMaxElement,
+    ExpandMaxSimultaneousElement, ExpandMinElement, ExpandMinSimultaneousElement, ExpandPlaces,
+    Help, LoadTheWorld, Move, ReduceDifficulty, ReorderInventory, RerollModifier, SaveTheWorld,
+    State, SwapEquipment,
+};
 use crate::my_little_rpg_errors::MyError;
 use crate::the_world::index_specifier::IndexSpecifier;
 
@@ -29,64 +34,74 @@ impl Command {
         ]
     }
 
-    fn try_parse_possible_relative_indexes(command_parts: &str, relative_too: usize) -> Result<Vec<IndexSpecifier>, MyError> {
-        command_parts.split(',').into_iter()
-            .map(|s| {
-                match s.chars().next() {
-                    Some('+') => {
-                        Self::try_parse_usize(&s[1..s.len()])
-                            .map(|relative_index_diff| match relative_too.checked_add(relative_index_diff) {
-                                Some(_) => Ok(IndexSpecifier::RelativePositive(relative_index_diff)),
-                                None => {
-                                    let error_message = format!("{}{} created an overflow!", relative_too, s);
-                                    Err(MyError::create_parse_command_error(error_message))
-                                }
-                            })
-                            .and_then(|i| i)
-                    }
-                    Some('-') => {
-                        Self::try_parse_usize(&s[1..s.len()])
-                            .map(|relative_index_diff| match relative_too.checked_sub(relative_index_diff) {
-                                Some(_) => Ok(IndexSpecifier::RelativeNegative(relative_index_diff)),
-                                None => {
-                                    let error_message = format!("{}{} created an underflow!", relative_too, s);
-                                    Err(MyError::create_parse_command_error(error_message))
-                                }
-                            })
-                            .and_then(|i| i)
-                    }
-                    _ => {
-                        Self::try_parse_usize(s)
-                            .map(IndexSpecifier::Absolute)
-                    }
-                }
+    fn try_parse_possible_relative_indexes(
+        command_parts: &str,
+        relative_too: usize,
+    ) -> Result<Vec<IndexSpecifier>, MyError> {
+        command_parts
+            .split(',')
+            .into_iter()
+            .map(|s| match s.chars().next() {
+                Some('+') => Self::try_parse_usize(&s[1..s.len()])
+                    .map(|relative_index_diff| {
+                        match relative_too.checked_add(relative_index_diff) {
+                            Some(_) => Ok(IndexSpecifier::RelativePositive(relative_index_diff)),
+                            None => {
+                                let error_message =
+                                    format!("{}{} created an overflow!", relative_too, s);
+                                Err(MyError::create_parse_command_error(error_message))
+                            }
+                        }
+                    })
+                    .and_then(|i| i),
+                Some('-') => Self::try_parse_usize(&s[1..s.len()])
+                    .map(|relative_index_diff| {
+                        match relative_too.checked_sub(relative_index_diff) {
+                            Some(_) => Ok(IndexSpecifier::RelativeNegative(relative_index_diff)),
+                            None => {
+                                let error_message =
+                                    format!("{}{} created an underflow!", relative_too, s);
+                                Err(MyError::create_parse_command_error(error_message))
+                            }
+                        }
+                    })
+                    .and_then(|i| i),
+                _ => Self::try_parse_usize(s).map(IndexSpecifier::Absolute),
             })
             .collect()
     }
 
     fn try_parse_move(command_parts: &Vec<&str>) -> Result<Command, MyError> {
         if command_parts.len() < 2 {
-            let error_message = format!("Trouble parsing move command, it needs the index of the place. Got {:?}", command_parts);
+            let error_message = format!(
+                "Trouble parsing move command, it needs the index of the place. Got {:?}",
+                command_parts
+            );
             Err(MyError::create_parse_command_error(error_message))
         } else {
-            Self::try_parse_usize(command_parts[1])
-                .map(Move)
+            Self::try_parse_usize(command_parts[1]).map(Move)
         }
     }
 
     //TODO consider if multiple try_parse can be done in one method
     fn try_parse_usize(string_to_parse: &str) -> Result<usize, MyError> {
-        string_to_parse.parse::<usize>()
-            .map_err(|error| {
-                let error_message = format!("The following parameter {}, got the following error while parsing: {:?}", string_to_parse, error);
-                MyError::create_parse_command_error(error_message)
-            })
+        string_to_parse.parse::<usize>().map_err(|error| {
+            let error_message = format!(
+                "The following parameter {}, got the following error while parsing: {:?}",
+                string_to_parse, error
+            );
+            MyError::create_parse_command_error(error_message)
+        })
     }
 
     fn try_parse_string(string_to_parse: &str) -> Result<Box<str>, MyError> {
-        string_to_parse.parse::<String>()
+        string_to_parse
+            .parse::<String>()
             .map_err(|error| {
-                let error_message = format!("The following parameter {}, got the following error while parsing: {:?}", string_to_parse, error);
+                let error_message = format!(
+                    "The following parameter {}, got the following error while parsing: {:?}",
+                    string_to_parse, error
+                );
                 MyError::create_parse_command_error(error_message)
             })
             .map(String::into)
@@ -98,8 +113,11 @@ impl Command {
             Err(MyError::create_parse_command_error(error_message))
         } else {
             let inventory_position = Self::try_parse_usize(command_parts[1])?;
-            Self::try_parse_possible_relative_indexes(command_parts[2], inventory_position)
-                .map(|parsed_sacrifice_item_indexes| AddModifier(inventory_position, parsed_sacrifice_item_indexes))
+            Self::try_parse_possible_relative_indexes(command_parts[2], inventory_position).map(
+                |parsed_sacrifice_item_indexes| {
+                    AddModifier(inventory_position, parsed_sacrifice_item_indexes)
+                },
+            )
         }
     }
 
@@ -122,7 +140,10 @@ impl Command {
 
         let equipped_item_position_1 = Self::try_parse_usize(command_parts[1])?;
         let equipped_item_position_2 = Self::try_parse_usize(command_parts[2])?;
-        Ok(SwapEquipment(equipped_item_position_1, equipped_item_position_2))
+        Ok(SwapEquipment(
+            equipped_item_position_1,
+            equipped_item_position_2,
+        ))
     }
 
     fn try_parse_reroll_modifier(command_parts: &Vec<&str>) -> Result<Command, MyError> {
@@ -133,8 +154,13 @@ impl Command {
 
         let inventory_index = Self::try_parse_usize(command_parts[1])?;
         let modifier_index = Self::try_parse_usize(command_parts[2])?;
-        let parsed_sacrifice_item_indexes = Self::try_parse_possible_relative_indexes(command_parts[3], inventory_index)?;
-        Ok(RerollModifier(inventory_index, modifier_index, parsed_sacrifice_item_indexes))
+        let parsed_sacrifice_item_indexes =
+            Self::try_parse_possible_relative_indexes(command_parts[3], inventory_index)?;
+        Ok(RerollModifier(
+            inventory_index,
+            modifier_index,
+            parsed_sacrifice_item_indexes,
+        ))
     }
 
     fn try_parse_save_the_world(command_parts: &Vec<&str>) -> Result<Command, MyError> {
@@ -176,7 +202,8 @@ impl TryFrom<Box<str>> for Command {
         let command_parts = value.trim().split(' ').collect::<Vec<&str>>();
 
         if command_parts.is_empty() {
-            let error_message = "The given command String were empty. Try the help command for options.";
+            let error_message =
+                "The given command String were empty. Try the help command for options.";
             Err(MyError::create_parse_command_error(error_message.into()))
         } else {
             match *command_parts.first().unwrap() {
@@ -206,4 +233,3 @@ impl TryFrom<Box<str>> for Command {
         }
     }
 }
-

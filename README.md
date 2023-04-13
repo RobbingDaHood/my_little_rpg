@@ -52,3 +52,7 @@ Command line games give you a lot of freedom.
 Text based game wiki: https://en.wikipedia.org/wiki/Text-based_game 
 
 The main difference is that text based games locks you into text based UI; You cannot use any CLI tools (at least not directly) on top of it, like with a CLI game. 
+
+# Code format
+
+Code is formatted using: https://github.com/rust-lang/rustfmt

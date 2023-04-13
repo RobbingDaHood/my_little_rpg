@@ -4,7 +4,6 @@ use rand::RngCore;
 use rand::SeedableRng;
 use rand_pcg::{Lcg64Xsh32, Pcg32};
 
-use crate::Game;
 use crate::generator::place::new as new_place;
 use crate::parser::hex_encoder::encode_hex;
 use crate::the_world::attack_types::AttackType;
@@ -15,6 +14,7 @@ use crate::the_world::item_modifier::Modifier;
 use crate::the_world::item_resource::Type;
 use crate::the_world::modifier_cost::Cost;
 use crate::the_world::modifier_gain::Gain;
+use crate::Game;
 
 mod tests;
 
@@ -25,23 +25,24 @@ pub fn new(seed: Option<[u8; 16]>) -> Game {
     let mut max_resistance = HashMap::new();
     max_resistance.insert(AttackType::Physical, 2);
 
-    let difficulty = Difficulty { max_resistance, min_resistance, max_simultaneous_resistances: 1, min_simultaneous_resistances: 1 };
+    let difficulty = Difficulty {
+        max_resistance,
+        min_resistance,
+        max_simultaneous_resistances: 1,
+        min_simultaneous_resistances: 1,
+    };
 
     //Simple item
-    let equipped_items = vec![
-        Item {
-            modifiers: vec![
-                Modifier {
-                    costs: Vec::new(),
-                    gains: vec![Gain::FlatDamage(AttackType::Physical, 2)],
-                }
-            ],
-            crafting_info: CraftingInfo {
-                possible_rolls: difficulty.clone(),
-                places_count: 1,
-            },
-        }
-    ];
+    let equipped_items = vec![Item {
+        modifiers: vec![Modifier {
+            costs: Vec::new(),
+            gains: vec![Gain::FlatDamage(AttackType::Physical, 2)],
+        }],
+        crafting_info: CraftingInfo {
+            possible_rolls: difficulty.clone(),
+            places_count: 1,
+        },
+    }];
 
     let (seed, random_generator) = create_random_generator(seed);
 
@@ -53,7 +54,17 @@ pub fn new(seed: Option<[u8; 16]>) -> Game {
         loses_in_a_row: 0,
     };
 
-    let mut game = Game { places: Vec::new(), equipped_items, difficulty, treasure: HashMap::new(), item_resources: HashMap::new(), inventory: Vec::new(), seed, random_generator_state: random_generator, game_statistics };
+    let mut game = Game {
+        places: Vec::new(),
+        equipped_items,
+        difficulty,
+        treasure: HashMap::new(),
+        item_resources: HashMap::new(),
+        inventory: Vec::new(),
+        seed,
+        random_generator_state: random_generator,
+        game_statistics,
+    };
 
     let new_place = new_place(&mut game);
     game.places.push(new_place);
@@ -99,7 +110,12 @@ pub fn new_testing(seed: Option<[u8; 16]>) -> Game {
     max_resistance.insert(AttackType::Corruption, 80);
     max_resistance.insert(AttackType::Holy, 90);
 
-    let difficulty = Difficulty { max_resistance, min_resistance, max_simultaneous_resistances: 22, min_simultaneous_resistances: 23 };
+    let difficulty = Difficulty {
+        max_resistance,
+        min_resistance,
+        max_simultaneous_resistances: 22,
+        min_simultaneous_resistances: 23,
+    };
 
     let mut equipped_items = Vec::new();
 
@@ -141,12 +157,10 @@ pub fn new_testing(seed: Option<[u8; 16]>) -> Game {
     let mut inventory = Vec::new();
     for attack_type in AttackType::get_all() {
         inventory.push(Some(Item {
-            modifiers: vec![
-                Modifier {
-                    costs: Vec::new(),
-                    gains: vec![Gain::FlatDamage(attack_type, 1)],
-                }
-            ],
+            modifiers: vec![Modifier {
+                costs: Vec::new(),
+                gains: vec![Gain::FlatDamage(attack_type, 1)],
+            }],
             crafting_info: CraftingInfo {
                 possible_rolls: difficulty.clone(),
                 places_count: 10,
@@ -164,7 +178,17 @@ pub fn new_testing(seed: Option<[u8; 16]>) -> Game {
         loses_in_a_row: 0,
     };
 
-    let mut game = Game { places: Vec::new(), equipped_items, difficulty, treasure: HashMap::new(), item_resources: HashMap::new(), inventory, seed, random_generator_state: random_generator, game_statistics };
+    let mut game = Game {
+        places: Vec::new(),
+        equipped_items,
+        difficulty,
+        treasure: HashMap::new(),
+        item_resources: HashMap::new(),
+        inventory,
+        seed,
+        random_generator_state: random_generator,
+        game_statistics,
+    };
 
     for _i in 0..10 {
         let new_place = new_place(&mut game);

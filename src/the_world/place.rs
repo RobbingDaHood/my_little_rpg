@@ -15,17 +15,24 @@ pub struct Place {
 
 impl Place {
     //TODO consider moving function and tests
-    pub fn claim_rewards(&self, attacks: &HashMap<&attack_types::AttackType, u64>) -> Option<HashMap<TreasureType, u64>> {
-        let are_all_resistance_defeated = self.resistance.iter()
-            .all(|(resistance_type, resistance_value)|
-                match attacks.get(resistance_type) {
-                    None => false,
-                    Some(attack_value) => {
-                        attack_value >= resistance_value
-                    }
-                }
-            );
-        if are_all_resistance_defeated { Some(self.reward.clone()) } else { None }
+    pub fn claim_rewards(
+        &self,
+        attacks: &HashMap<&attack_types::AttackType, u64>,
+    ) -> Option<HashMap<TreasureType, u64>> {
+        let are_all_resistance_defeated =
+            self.resistance
+                .iter()
+                .all(
+                    |(resistance_type, resistance_value)| match attacks.get(resistance_type) {
+                        None => false,
+                        Some(attack_value) => attack_value >= resistance_value,
+                    },
+                );
+        if are_all_resistance_defeated {
+            Some(self.reward.clone())
+        } else {
+            None
+        }
     }
 }
 
@@ -45,7 +52,6 @@ mod tests_int {
             min_resistance: HashMap::new(),
             max_simultaneous_resistances: 0,
             min_simultaneous_resistances: 0,
-
         };
         let place = Place {
             resistance: HashMap::new(),
@@ -84,7 +90,8 @@ mod tests_int {
             item_reward_possible_rolls,
         };
 
-        let attacks: HashMap<&AttackType, u64> = resistance.iter()
+        let attacks: HashMap<&AttackType, u64> = resistance
+            .iter()
             .map(|(attack_stype, amount)| (attack_stype, *amount))
             .collect();
 
@@ -111,7 +118,6 @@ mod tests_int {
             min_resistance: HashMap::new(),
             max_simultaneous_resistances: 0,
             min_simultaneous_resistances: 0,
-
         };
 
         let place = Place {
@@ -122,7 +128,8 @@ mod tests_int {
 
         resistance.remove(&AttackType::Physical);
 
-        let attacks: HashMap<&AttackType, u64> = resistance.iter()
+        let attacks: HashMap<&AttackType, u64> = resistance
+            .iter()
             .map(|(attack_stype, amount)| (attack_stype, *amount))
             .collect();
 

@@ -27,22 +27,45 @@ impl From<MyError> for Box<str> {
 impl fmt::Display for MyErrorKind {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         match self {
-            MyErrorKind::Network { error_message } | MyErrorKind::ExecuteCommand { error_message } | MyErrorKind::SaveLoad { error_message } | MyErrorKind::ParseCommand { error_message } => write!(f, "Got the following error while trying to parse the given command: {}", error_message),
+            MyErrorKind::Network { error_message }
+            | MyErrorKind::ExecuteCommand { error_message }
+            | MyErrorKind::SaveLoad { error_message }
+            | MyErrorKind::ParseCommand { error_message } => write!(
+                f,
+                "Got the following error while trying to parse the given command: {}",
+                error_message
+            ),
         }
     }
 }
 
 impl MyError {
     pub fn create_parse_command_error(error_message: String) -> MyError {
-        MyError { kind: MyErrorKind::ParseCommand { error_message: error_message.into() } }
+        MyError {
+            kind: MyErrorKind::ParseCommand {
+                error_message: error_message.into(),
+            },
+        }
     }
     pub fn create_network_error(error_message: String) -> MyError {
-        MyError { kind: MyErrorKind::Network { error_message: error_message.into() } }
+        MyError {
+            kind: MyErrorKind::Network {
+                error_message: error_message.into(),
+            },
+        }
     }
     pub fn create_save_load_error(error_message: String) -> MyError {
-        MyError { kind: MyErrorKind::SaveLoad { error_message: error_message.into() } }
+        MyError {
+            kind: MyErrorKind::SaveLoad {
+                error_message: error_message.into(),
+            },
+        }
     }
     pub fn create_execute_command_error(error_message: String) -> MyError {
-        MyError { kind: MyErrorKind::ExecuteCommand { error_message: error_message.into() } }
+        MyError {
+            kind: MyErrorKind::ExecuteCommand {
+                error_message: error_message.into(),
+            },
+        }
     }
 }

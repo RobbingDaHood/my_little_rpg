@@ -30,7 +30,6 @@ mod tests_int {
         assert_eq!(Err(MyError::create_execute_command_error("There are no element minimum values that can be upgraded, consider expanding a max element value.".to_string())), execute_expand_min_element(&mut game));
     }
 
-
     #[test]
     fn test_that_all_elements_can_be_hit() {
         let mut game = new_testing(Some([1; 16]));
@@ -42,7 +41,9 @@ mod tests_int {
             assert!(execute_expand_min_element(&mut game).is_ok());
         }
 
-        let number_of_unchanged_elements = original_difficulty.min_resistance.iter()
+        let number_of_unchanged_elements = original_difficulty
+            .min_resistance
+            .iter()
             .filter(|(x, y)| game.difficulty.min_resistance.get(x).unwrap() == *y)
             .count();
         assert_eq!(0, number_of_unchanged_elements);

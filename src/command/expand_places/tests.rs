@@ -11,7 +11,13 @@ mod tests_int {
         let mut game = new_testing(Some([1; 16]));
         assert_eq!(10, game.places.len());
 
-        assert_eq!(Err(MyError::create_execute_command_error("Cant pay the crafting cost, the cost is {Gold: 100} and you only have {}".to_string())), execute(&mut game));
+        assert_eq!(
+            Err(MyError::create_execute_command_error(
+                "Cant pay the crafting cost, the cost is {Gold: 100} and you only have {}"
+                    .to_string()
+            )),
+            execute(&mut game)
+        );
 
         assert!(execute_move_command(&mut game, 0).is_err());
         assert!(execute_move_command(&mut game, 0).is_ok());

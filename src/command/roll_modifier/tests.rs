@@ -13,17 +13,26 @@ mod tests_int {
     #[test]
     fn basic_test() {
         let mut game = new_testing(Some([1; 16]));
-        execute_craft(&mut game.random_generator_state, &game.inventory[0].as_ref().unwrap().crafting_info);
+        execute_craft(
+            &mut game.random_generator_state,
+            &game.inventory[0].as_ref().unwrap().crafting_info,
+        );
     }
 
     #[test]
     fn seeding_test() {
         let mut game = new_testing(Some([1; 16]));
-        let original_game = execute_craft(&mut game.random_generator_state, &game.inventory[0].as_ref().unwrap().crafting_info);
+        let original_game = execute_craft(
+            &mut game.random_generator_state,
+            &game.inventory[0].as_ref().unwrap().crafting_info,
+        );
 
         for _i in 1..1000 {
             let mut game = new_testing(Some([1; 16]));
-            let result = execute_craft(&mut game.random_generator_state, &game.inventory[0].as_ref().unwrap().crafting_info);
+            let result = execute_craft(
+                &mut game.random_generator_state,
+                &game.inventory[0].as_ref().unwrap().crafting_info,
+            );
             assert_eq!(original_game, result);
         }
     }
@@ -35,89 +44,250 @@ mod tests_int {
         let mut gain_modifiers: HashMap<Gain, u32> = HashMap::new();
 
         for _i in 1..1000 {
-            let result = execute_craft(&mut game.random_generator_state, &game.inventory[0].as_ref().unwrap().crafting_info);
+            let result = execute_craft(
+                &mut game.random_generator_state,
+                &game.inventory[0].as_ref().unwrap().crafting_info,
+            );
 
             setup_costs(&mut cost_modifiers, &result);
 
             setup_gains(&mut gain_modifiers, result);
         }
 
-        assert_eq!(0, game.difficulty.min_resistance.keys()
-            .cloned()
-            .filter(|attack_type| cost_modifiers.get(&Cost::FlatMinAttackRequirement(attack_type.clone(), 0)).unwrap() == &0)
-            .count());
+        assert_eq!(
+            0,
+            game.difficulty
+                .min_resistance
+                .keys()
+                .cloned()
+                .filter(|attack_type| cost_modifiers
+                    .get(&Cost::FlatMinAttackRequirement(attack_type.clone(), 0))
+                    .unwrap()
+                    == &0)
+                .count()
+        );
 
-        assert_eq!(0, game.difficulty.min_resistance.keys()
-            .cloned()
-            .filter(|attack_type| cost_modifiers.get(&Cost::FlatMaxAttackRequirement(attack_type.clone(), 0)).unwrap() == &0)
-            .count());
+        assert_eq!(
+            0,
+            game.difficulty
+                .min_resistance
+                .keys()
+                .cloned()
+                .filter(|attack_type| cost_modifiers
+                    .get(&Cost::FlatMaxAttackRequirement(attack_type.clone(), 0))
+                    .unwrap()
+                    == &0)
+                .count()
+        );
 
-        assert_ne!(0, *cost_modifiers.get(&Cost::FlatSumMinAttackRequirement(0)).unwrap());
-        assert_ne!(0, *cost_modifiers.get(&Cost::FlatSumMaxAttackRequirement(0)).unwrap());
+        assert_ne!(
+            0,
+            *cost_modifiers
+                .get(&Cost::FlatSumMinAttackRequirement(0))
+                .unwrap()
+        );
+        assert_ne!(
+            0,
+            *cost_modifiers
+                .get(&Cost::FlatSumMaxAttackRequirement(0))
+                .unwrap()
+        );
 
-        assert_ne!(0, *cost_modifiers.get(&Cost::PlaceLimitedByIndexModulus(1, Vec::new())).unwrap());
+        assert_ne!(
+            0,
+            *cost_modifiers
+                .get(&Cost::PlaceLimitedByIndexModulus(1, Vec::new()))
+                .unwrap()
+        );
 
-        assert_eq!(0, Type::get_all().into_iter()
-            .filter(|item_resource| cost_modifiers.get(&Cost::FlatItemResource(item_resource.clone(), 0)).unwrap() == &0)
-            .count());
+        assert_eq!(
+            0,
+            Type::get_all()
+                .into_iter()
+                .filter(|item_resource| cost_modifiers
+                    .get(&Cost::FlatItemResource(item_resource.clone(), 0))
+                    .unwrap()
+                    == &0)
+                .count()
+        );
 
-        assert_eq!(0, Type::get_all().into_iter()
-            .filter(|item_resource| cost_modifiers.get(&Cost::FlatMinItemResourceRequirement(item_resource.clone(), 0)).unwrap() == &0)
-            .count());
+        assert_eq!(
+            0,
+            Type::get_all()
+                .into_iter()
+                .filter(|item_resource| cost_modifiers
+                    .get(&Cost::FlatMinItemResourceRequirement(
+                        item_resource.clone(),
+                        0
+                    ))
+                    .unwrap()
+                    == &0)
+                .count()
+        );
 
-        assert_eq!(0, Type::get_all().into_iter()
-            .filter(|item_resource| cost_modifiers.get(&Cost::FlatMaxItemResourceRequirement(item_resource.clone(), 0)).unwrap() == &0)
-            .count());
+        assert_eq!(
+            0,
+            Type::get_all()
+                .into_iter()
+                .filter(|item_resource| cost_modifiers
+                    .get(&Cost::FlatMaxItemResourceRequirement(
+                        item_resource.clone(),
+                        0
+                    ))
+                    .unwrap()
+                    == &0)
+                .count()
+        );
 
-        assert_eq!(0, game.difficulty.min_resistance.keys()
-            .cloned()
-            .filter(|attack_type| cost_modifiers.get(&Cost::FlatMinResistanceRequirement(attack_type.clone(), 0)).unwrap() == &0)
-            .count());
+        assert_eq!(
+            0,
+            game.difficulty
+                .min_resistance
+                .keys()
+                .cloned()
+                .filter(|attack_type| cost_modifiers
+                    .get(&Cost::FlatMinResistanceRequirement(attack_type.clone(), 0))
+                    .unwrap()
+                    == &0)
+                .count()
+        );
 
-        assert_eq!(0, game.difficulty.min_resistance.keys()
-            .cloned()
-            .filter(|attack_type| cost_modifiers.get(&Cost::FlatMaxResistanceRequirement(attack_type.clone(), 0)).unwrap() == &0)
-            .count());
+        assert_eq!(
+            0,
+            game.difficulty
+                .min_resistance
+                .keys()
+                .cloned()
+                .filter(|attack_type| cost_modifiers
+                    .get(&Cost::FlatMaxResistanceRequirement(attack_type.clone(), 0))
+                    .unwrap()
+                    == &0)
+                .count()
+        );
 
-        assert_ne!(0, *cost_modifiers.get(&Cost::FlatMinSumResistanceRequirement(0)).unwrap());
-        assert_ne!(0, *cost_modifiers.get(&Cost::FlatMaxSumResistanceRequirement(0)).unwrap());
+        assert_ne!(
+            0,
+            *cost_modifiers
+                .get(&Cost::FlatMinSumResistanceRequirement(0))
+                .unwrap()
+        );
+        assert_ne!(
+            0,
+            *cost_modifiers
+                .get(&Cost::FlatMaxSumResistanceRequirement(0))
+                .unwrap()
+        );
         assert_ne!(0, *cost_modifiers.get(&Cost::MinWinsInARow(0)).unwrap());
         assert_ne!(0, *cost_modifiers.get(&Cost::MaxWinsInARow(0)).unwrap());
 
-        assert_eq!(0, game.difficulty.min_resistance.keys()
-            .cloned()
-            .filter(|attack_type| gain_modifiers.get(&Gain::FlatDamage(attack_type.clone(), 0)).unwrap() == &0)
-            .count());
+        assert_eq!(
+            0,
+            game.difficulty
+                .min_resistance
+                .keys()
+                .cloned()
+                .filter(|attack_type| gain_modifiers
+                    .get(&Gain::FlatDamage(attack_type.clone(), 0))
+                    .unwrap()
+                    == &0)
+                .count()
+        );
 
-        assert_eq!(0, Type::get_all().into_iter()
-            .filter(|item_resource| gain_modifiers.get(&Gain::FlatItemResource(item_resource.clone(), 0)).unwrap() == &0)
-            .count());
+        assert_eq!(
+            0,
+            Type::get_all()
+                .into_iter()
+                .filter(|item_resource| gain_modifiers
+                    .get(&Gain::FlatItemResource(item_resource.clone(), 0))
+                    .unwrap()
+                    == &0)
+                .count()
+        );
 
-        assert_eq!(0, game.difficulty.min_resistance.keys()
-            .cloned()
-            .filter(|attack_type| gain_modifiers.get(&Gain::PercentageIncreaseDamage(attack_type.clone(), 0)).unwrap() == &0)
-            .count());
+        assert_eq!(
+            0,
+            game.difficulty
+                .min_resistance
+                .keys()
+                .cloned()
+                .filter(|attack_type| gain_modifiers
+                    .get(&Gain::PercentageIncreaseDamage(attack_type.clone(), 0))
+                    .unwrap()
+                    == &0)
+                .count()
+        );
 
-        assert_eq!(0, game.difficulty.min_resistance.keys()
-            .cloned()
-            .filter(|attack_type| gain_modifiers.get(&Gain::FlatResistanceReduction(attack_type.clone(), 0)).unwrap() == &0)
-            .count());
+        assert_eq!(
+            0,
+            game.difficulty
+                .min_resistance
+                .keys()
+                .cloned()
+                .filter(|attack_type| gain_modifiers
+                    .get(&Gain::FlatResistanceReduction(attack_type.clone(), 0))
+                    .unwrap()
+                    == &0)
+                .count()
+        );
 
-        assert_eq!(0, game.difficulty.min_resistance.keys()
-            .cloned()
-            .filter(|attack_type| gain_modifiers.get(&Gain::PercentageIncreaseResistanceReduction(attack_type.clone(), 0)).unwrap() == &0)
-            .count());
+        assert_eq!(
+            0,
+            game.difficulty
+                .min_resistance
+                .keys()
+                .cloned()
+                .filter(|attack_type| gain_modifiers
+                    .get(&Gain::PercentageIncreaseResistanceReduction(
+                        attack_type.clone(),
+                        0
+                    ))
+                    .unwrap()
+                    == &0)
+                .count()
+        );
 
-        assert_ne!(0, *gain_modifiers.get(&Gain::FlatDamageAgainstHighestResistance(0)).unwrap());
-        assert_ne!(0, *gain_modifiers.get(&Gain::PercentageIncreaseDamageAgainstHighestResistance(0)).unwrap());
-        assert_ne!(0, *gain_modifiers.get(&Gain::FlatDamageAgainstLowestResistance(0)).unwrap());
-        assert_ne!(0, *gain_modifiers.get(&Gain::PercentageIncreaseDamageAgainstLowestResistance(0)).unwrap());
+        assert_ne!(
+            0,
+            *gain_modifiers
+                .get(&Gain::FlatDamageAgainstHighestResistance(0))
+                .unwrap()
+        );
+        assert_ne!(
+            0,
+            *gain_modifiers
+                .get(&Gain::PercentageIncreaseDamageAgainstHighestResistance(0))
+                .unwrap()
+        );
+        assert_ne!(
+            0,
+            *gain_modifiers
+                .get(&Gain::FlatDamageAgainstLowestResistance(0))
+                .unwrap()
+        );
+        assert_ne!(
+            0,
+            *gain_modifiers
+                .get(&Gain::PercentageIncreaseDamageAgainstLowestResistance(0))
+                .unwrap()
+        );
 
-        assert_eq!(0, TreasureType::get_all().into_iter()
-            .filter(|treasure_type| gain_modifiers.get(&Gain::PercentageIncreaseTreasure(treasure_type.clone(), 0)).unwrap() == &0)
-            .count());
+        assert_eq!(
+            0,
+            TreasureType::get_all()
+                .into_iter()
+                .filter(|treasure_type| gain_modifiers
+                    .get(&Gain::PercentageIncreaseTreasure(treasure_type.clone(), 0))
+                    .unwrap()
+                    == &0)
+                .count()
+        );
 
-        assert_ne!(0, *gain_modifiers.get(&Gain::FlatIncreaseRewardedItems(0)).unwrap());
+        assert_ne!(
+            0,
+            *gain_modifiers
+                .get(&Gain::FlatIncreaseRewardedItems(0))
+                .unwrap()
+        );
     }
 
     fn setup_gains(gain_modifiers: &mut HashMap<Gain, u32>, result: Modifier) {

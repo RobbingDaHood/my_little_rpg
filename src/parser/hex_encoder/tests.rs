@@ -10,10 +10,7 @@ mod tests_int {
 
         let encoded = encode_hex(&data);
 
-        let decoded: [u8; 16] = decode_hex(&*encoded)
-            .unwrap()
-            .try_into()
-            .unwrap();
+        let decoded: [u8; 16] = decode_hex(&*encoded).unwrap().try_into().unwrap();
 
         assert_eq!(data, decoded);
     }

@@ -9,12 +9,10 @@ mod tests_int {
     fn test_execute_equip_item() {
         let mut game = new_testing(Some([1; 16]));
         let item = Some(Item {
-            modifiers: vec![
-                Modifier {
-                    costs: Vec::new(),
-                    gains: Vec::new(),
-                }
-            ],
+            modifiers: vec![Modifier {
+                costs: Vec::new(),
+                gains: Vec::new(),
+            }],
             crafting_info: CraftingInfo {
                 possible_rolls: game.difficulty.clone(),
                 places_count: game.places.len(),
@@ -23,7 +21,10 @@ mod tests_int {
 
         game.inventory = vec![item.clone(), None, item.clone(), None, None, item];
 
-        assert_eq!(Into::<Box<str>>::into("Inventory is reordered."), execute(&mut game));
+        assert_eq!(
+            Into::<Box<str>>::into("Inventory is reordered."),
+            execute(&mut game)
+        );
 
         assert_eq!(3, game.inventory.len());
         assert_eq!(0, game.inventory.iter().filter(|i| i.is_none()).count());

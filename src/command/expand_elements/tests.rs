@@ -12,7 +12,13 @@ mod tests_int {
         assert_eq!(1, game.difficulty.max_resistance.len());
         assert_eq!(1, game.difficulty.min_resistance.len());
 
-        assert_eq!(Err(MyError::create_execute_command_error("Cant pay the crafting cost, the cost is {Gold: 10} and you only have {}".to_string())), execute(&mut game));
+        assert_eq!(
+            Err(MyError::create_execute_command_error(
+                "Cant pay the crafting cost, the cost is {Gold: 10} and you only have {}"
+                    .to_string()
+            )),
+            execute(&mut game)
+        );
 
         for _i in 0..1000 {
             assert!(execute_move_command(&mut game, 0).is_ok());
@@ -29,7 +35,12 @@ mod tests_int {
             assert_eq!(i, game.difficulty.min_resistance.len());
         }
 
-        assert_eq!(Err(MyError::create_execute_command_error("Already at maximum elements.".to_string())), execute(&mut game));
+        assert_eq!(
+            Err(MyError::create_execute_command_error(
+                "Already at maximum elements.".to_string()
+            )),
+            execute(&mut game)
+        );
         assert_eq!(9, game.difficulty.max_resistance.len());
         assert_eq!(9, game.difficulty.min_resistance.len());
     }

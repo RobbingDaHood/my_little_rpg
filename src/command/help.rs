@@ -21,10 +21,7 @@ pub fn execute() -> ExecuteHelpReport {
         commands.push(execute_help_for_command(&command).into());
     }
 
-    ExecuteHelpReport {
-        tutorial,
-        commands,
-    }
+    ExecuteHelpReport { tutorial, commands }
 }
 
 fn execute_help_for_command(command: &Command) -> &'static str {

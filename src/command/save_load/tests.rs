@@ -16,8 +16,10 @@ mod tests_int {
         for _i in 1..1000 {
             let mut game = new_testing(Some([1; 16]));
             game.treasure.insert(Gold, 1000);
-            execute_save_command(&game, "save_load_seeding_test", Some("./testing/".into())).unwrap();
-            let mut parsed_game = execute_load_command("save_load_seeding_test", Some("./testing/".into())).unwrap();
+            execute_save_command(&game, "save_load_seeding_test", Some("./testing/".into()))
+                .unwrap();
+            let mut parsed_game =
+                execute_load_command("save_load_seeding_test", Some("./testing/".into())).unwrap();
 
             assert_eq!(game, parsed_game);
 

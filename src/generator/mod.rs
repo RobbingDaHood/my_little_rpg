@@ -1,2 +1,2 @@
-pub mod place;
 pub mod game;
+pub mod place;

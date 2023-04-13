@@ -13,7 +13,6 @@ use crate::command::expand_min_element::execute_expand_min_element_calculate_cos
 use crate::command::expand_min_simultanius_element::execute_expand_min_simultaneous_element_calculate_cost;
 use crate::command::expand_places::execute_expand_places_calculate_cost;
 use crate::command::reduce_difficulty::execute_execute_reduce_difficulty_cost;
-use crate::Game;
 use crate::parser::hex_encoder::encode_hex;
 use crate::the_world::difficulty::Difficulty;
 use crate::the_world::game_statistics::GameStatistics;
@@ -21,6 +20,7 @@ use crate::the_world::item::Item;
 use crate::the_world::item_resource::Type;
 use crate::the_world::place::Place;
 use crate::the_world::treasure_types::TreasureType;
+use crate::Game;
 
 #[derive(Clone, PartialEq, Eq, Debug, Serialize, Deserialize)]
 pub struct PresentationGameState {
@@ -72,15 +72,16 @@ pub fn execute_json(game: &mut Game) -> Value {
 }
 
 pub fn execute(game: &mut Game) -> PresentationGameState {
-    let places: Vec<PresentationPlace> = game.places.iter()
+    let places: Vec<PresentationPlace> = game
+        .places
+        .iter()
         .cloned()
         .enumerate()
-        .map(|(index, place)| PresentationPlace {
-            index,
-            place,
-        })
+        .map(|(index, place)| PresentationPlace { index, place })
         .collect();
-    let equipped_items: Vec<PresentationItem> = game.equipped_items.iter()
+    let equipped_items: Vec<PresentationItem> = game
+        .equipped_items
+        .iter()
         .cloned()
         .enumerate()
         .map(|(index, item)| PresentationItem {
@@ -89,7 +90,9 @@ pub fn execute(game: &mut Game) -> PresentationGameState {
             crafting_action_costs: Err("Equipped items cannot be crafted on.".into()), //TODD make this nicer; it is just an info and not an error.
         })
         .collect();
-    let inventory: Vec<PresentationItem> = game.inventory.iter()
+    let inventory: Vec<PresentationItem> = game
+        .inventory
+        .iter()
         .enumerate()
         .filter(|item| item.1.is_some())
         .map(|(index, item)| PresentationItem {
@@ -104,8 +107,12 @@ pub fn execute(game: &mut Game) -> PresentationGameState {
         expand_elements: execute_expand_elements_calculate_cost(game),
         expand_max_element: execute_expand_max_element_calculate_cost(game),
         expand_min_element: execute_expand_min_element_calculate_cost(game),
-        expand_max_simultaneous_element: execute_expand_max_simultaneous_element_calculate_cost(game),
-        expand_min_simultaneous_element: execute_expand_min_simultaneous_element_calculate_cost(game),
+        expand_max_simultaneous_element: execute_expand_max_simultaneous_element_calculate_cost(
+            game,
+        ),
+        expand_min_simultaneous_element: execute_expand_min_simultaneous_element_calculate_cost(
+            game,
+        ),
         expand_equipment_slots: execute_expand_equipment_slots_calculate_cost(game),
         execute_reduce_difficulty: execute_execute_reduce_difficulty_cost(),
     };
@@ -127,5 +134,8 @@ pub fn execute(game: &mut Game) -> PresentationGameState {
 fn calculate_item_cost(game: &Game, item_index: usize) -> ItemCosts {
     let add_modifier = execute_craft_expand_modifiers_calculate_cost(game, item_index);
     let reroll_modifier = execute_craft_reroll_modifier_calculate_cost(game, item_index);
-    ItemCosts { reroll_modifier, add_modifier }
+    ItemCosts {
+        reroll_modifier,
+        add_modifier,
+    }
 }
