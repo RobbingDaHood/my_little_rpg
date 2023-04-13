@@ -1,5 +1,3 @@
-mod tests;
-
 use std::collections::HashMap;
 
 use serde::{Deserialize, Serialize};
@@ -11,6 +9,8 @@ use crate::the_world::attack_types::get_random_attack_type_from_unlocked;
 use crate::the_world::difficulty::Difficulty;
 use crate::the_world::treasure_types::{pay_crafting_cost, TreasureType};
 use crate::the_world::treasure_types::TreasureType::Gold;
+
+mod tests;
 
 #[derive(Clone, PartialEq, Eq, Debug, Serialize, Deserialize)]
 pub struct ExecuteExpandMaxElementReport {

@@ -1,5 +1,3 @@
-mod tests;
-
 use std::cmp::{max, min};
 use std::collections::{HashMap, HashSet};
 
@@ -10,6 +8,8 @@ use crate::Game;
 use crate::the_world::attack_types::AttackType;
 use crate::the_world::place::Place;
 use crate::the_world::treasure_types::TreasureType;
+
+mod tests;
 
 pub fn new(game: &mut Game) -> Place {
     let mut resistance: HashMap<AttackType, u64> = HashMap::new();
@@ -25,7 +25,7 @@ pub fn new(game: &mut Game) -> Place {
     let maximum_elements = min(relevant_attack_types.len(), game.difficulty.max_simultaneous_resistances as usize);
     let resistance_numbers = game.random_generator_state.gen_range(minimum_elements..=maximum_elements);
 
-    let mut possible_attack_types : Vec<&AttackType> = game.difficulty.min_resistance.keys().collect();
+    let mut possible_attack_types: Vec<&AttackType> = game.difficulty.min_resistance.keys().collect();
     possible_attack_types.sort();
 
     let mut resistance_sum = 0;

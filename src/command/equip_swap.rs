@@ -1,5 +1,3 @@
-mod tests;
-
 use std::mem;
 
 use serde::{Deserialize, Serialize};
@@ -8,6 +6,8 @@ use serde_json::{json, Value};
 use crate::Game;
 use crate::my_little_rpg_errors::MyError;
 use crate::the_world::item::Item;
+
+mod tests;
 
 #[derive(Clone, PartialEq, Eq, Debug, Serialize, Deserialize)]
 pub struct ExecuteEquipOrSwapReport {

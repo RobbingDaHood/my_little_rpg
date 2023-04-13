@@ -1,8 +1,8 @@
-mod tests;
-
 use std::fmt::Write;
 
 use crate::my_little_rpg_errors::MyError;
+
+mod tests;
 
 pub fn decode_hex(s: &str) -> Result<Vec<u8>, MyError> {
     let offending_chars = list_non_ascii_hexdigit_chars(s);

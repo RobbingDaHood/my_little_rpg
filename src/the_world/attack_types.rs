@@ -1,8 +1,8 @@
 use std::collections::{HashMap, HashSet};
 use std::ops::Deref;
+
 use rand::prelude::SliceRandom;
 use rand_pcg::Lcg64Xsh32;
-
 use serde::{Deserialize, Serialize};
 
 use crate::the_world::attack_types::AttackType::{Corruption, Darkness, Fire, Frost, Holy, Light, Lightning, Nature, Physical};

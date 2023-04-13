@@ -1,5 +1,3 @@
-mod tests;
-
 use std::cmp::{max, min};
 use std::collections::HashSet;
 use std::ops::{Add, Div, Mul};
@@ -15,6 +13,8 @@ use crate::the_world::modifier_cost::Cost;
 use crate::the_world::modifier_gain::Gain::{FlatDamageAgainstHighestResistance, FlatDamageAgainstLowestResistance, FlatIncreaseRewardedItems, FlatItemResource, FlatResistanceReduction, PercentageIncreaseDamage, PercentageIncreaseDamageAgainstHighestResistance, PercentageIncreaseDamageAgainstLowestResistance, PercentageIncreaseResistanceReduction, PercentageIncreaseTreasure};
 use crate::the_world::modifier_gain::Gain;
 use crate::the_world::modifier_gain::Gain::FlatDamage;
+
+mod tests;
 
 pub fn execute_craft(random_generator_state: &mut Lcg64Xsh32, crafting_info: &CraftingInfo) -> Modifier {
     let minimum_elements = min(crafting_info.possible_rolls.min_resistance.len(), crafting_info.possible_rolls.min_simultaneous_resistances as usize);

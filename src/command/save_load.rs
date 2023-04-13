@@ -1,5 +1,3 @@
-mod tests;
-
 use std::fs;
 use std::fs::create_dir_all;
 
@@ -7,6 +5,8 @@ use serde_json::{json, Value};
 
 use crate::Game;
 use crate::my_little_rpg_errors::MyError;
+
+mod tests;
 
 pub fn execute_save_command_json(game: &Game, save_name: &str, save_path: Option<Box<str>>) -> Value {
     match execute_save_command(game, save_name, save_path) {

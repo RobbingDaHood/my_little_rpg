@@ -28,7 +28,8 @@ pub struct PresentationGameState {
     pub(crate) equipped_items: Vec<PresentationItem>,
     pub(crate) inventory: Vec<PresentationItem>,
     pub(crate) difficulty: Difficulty,
-    pub(crate) treasure: HashMap<TreasureType, u64>, //TODO use type alias or newtype; instead of u64 create a treasure(u64) type
+    pub(crate) treasure: HashMap<TreasureType, u64>,
+    //TODO use type alias or newtype; instead of u64 create a treasure(u64) type
     pub(crate) item_resources: HashMap<Type, u64>,
     pub(crate) crafting_action_costs: PlaceCosts,
     pub(crate) seed: Box<str>,
@@ -67,7 +68,7 @@ pub struct ItemCosts {
 }
 
 pub fn execute_json(game: &mut Game) -> Value {
-   json!(execute(game))
+    json!(execute(game))
 }
 
 pub fn execute(game: &mut Game) -> PresentationGameState {

@@ -1,9 +1,9 @@
-mod tests;
-
 pub use crate::command::commands::Command;
 use crate::command::commands::Command::{AddModifier, Equip, ExpandElements, ExpandEquipmentSlots, ExpandMaxElement, ExpandMaxSimultaneousElement, ExpandMinElement, ExpandMinSimultaneousElement, ExpandPlaces, Help, LoadTheWorld, Move, ReduceDifficulty, ReorderInventory, RerollModifier, SaveTheWorld, State, SwapEquipment};
 use crate::my_little_rpg_errors::MyError;
 use crate::the_world::index_specifier::IndexSpecifier;
+
+mod tests;
 
 impl Command {
     pub fn get_all() -> Vec<Command> {

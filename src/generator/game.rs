@@ -1,5 +1,3 @@
-mod tests;
-
 use std::collections::HashMap;
 
 use rand::RngCore;
@@ -7,8 +5,8 @@ use rand::SeedableRng;
 use rand_pcg::{Lcg64Xsh32, Pcg32};
 
 use crate::Game;
-use crate::parser::hex_encoder::encode_hex;
 use crate::generator::place::new as new_place;
+use crate::parser::hex_encoder::encode_hex;
 use crate::the_world::attack_types::AttackType;
 use crate::the_world::difficulty::Difficulty;
 use crate::the_world::game_statistics::GameStatistics;
@@ -17,6 +15,8 @@ use crate::the_world::item_modifier::Modifier;
 use crate::the_world::item_resource::Type;
 use crate::the_world::modifier_cost::Cost;
 use crate::the_world::modifier_gain::Gain;
+
+mod tests;
 
 pub fn new(seed: Option<[u8; 16]>) -> Game {
     let mut min_resistance = HashMap::new();
