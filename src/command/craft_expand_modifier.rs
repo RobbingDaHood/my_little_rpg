@@ -6,7 +6,7 @@ use serde_json::{json, Value};
 use crate::command::roll_modifier::execute_craft;
 use crate::Game;
 use crate::my_little_rpg_errors::MyError;
-use crate::the_world::index_specifier::{calculate_absolute_item_indexes, IndexSpecifier};
+use crate::the_world::index_specifier::{calculate_absolute_item_indexes, IndexSpecifier, ErrorConditions};
 use crate::the_world::item::Item;
 use crate::the_world::treasure_types::TreasureType;
 
@@ -41,7 +41,7 @@ pub fn execute_craft_expand_modifiers(game: &mut Game, inventory_index: usize, m
         );
     }
 
-    let cost = execute_craft_expand_modifiers_calculate_cost(game, inventory_index);
+    let cost = execute_craft_expand_modifiers_calculate_cost(&game, inventory_index);
     if sacrifice_item_indexes.len() < cost {
         return Err(MyError::create_execute_command_error(format!("craft_reroll_modifier needs {} items to be sacrificed but you only provided {}", cost, sacrifice_item_indexes.len())));
     }
@@ -49,14 +49,8 @@ pub fn execute_craft_expand_modifiers(game: &mut Game, inventory_index: usize, m
     //Only need to cost amount of items
     sacrifice_item_indexes.truncate(cost);
 
-    let calculated_sacrifice_item_indexes = calculate_absolute_item_indexes(game, inventory_index, &sacrifice_item_indexes)?;
-
-    for sacrifice_item_index in &calculated_sacrifice_item_indexes {
-        let sacrificed_item = game.inventory[*sacrifice_item_index].as_ref().unwrap();
-        if sacrificed_item.modifiers.len() < inventory_item.modifiers.len() {
-            return Err(MyError::create_execute_command_error(format!("sacrifice_item_index {} need to have at least {} modifiers but it only had {}", sacrifice_item_index, inventory_item.modifiers.len(), sacrificed_item.modifiers.len())));
-        }
-    }
+    let error_conditions = get_index_specifier_error_conditions(&inventory_item);
+    let calculated_sacrifice_item_indexes = calculate_absolute_item_indexes(&game, inventory_index, &sacrifice_item_indexes, &error_conditions)?;
 
     //Crafting cost
     for sacrifice_item_index in calculated_sacrifice_item_indexes {
@@ -74,6 +68,20 @@ pub fn execute_craft_expand_modifiers(game: &mut Game, inventory_index: usize, m
         new_cost: execute_craft_expand_modifiers_calculate_cost(game, inventory_index),
         leftover_spending_treasure: game.treasure.clone(),
     })
+}
+
+fn get_index_specifier_error_conditions(inventory_item: &Item) -> ErrorConditions {
+    let inventory_item_cloned = inventory_item.clone();
+    let enough_modifiers_condition = move |sacrifice_item_index: usize, sacrificed_item: &Item| {
+        let crafting_item_modifiers_count = inventory_item_cloned.modifiers.len();
+        let sacrificed_item_modifiers_count = sacrificed_item.modifiers.len();
+        if sacrificed_item_modifiers_count < crafting_item_modifiers_count {
+            Some(MyError::create_execute_command_error(format!("sacrifice_item_index {} need to have at least {} modifiers but it only had {}", sacrifice_item_index, crafting_item_modifiers_count, sacrificed_item_modifiers_count)))
+        } else {
+            None
+        }
+    };
+    ErrorConditions { error_conditions: vec![Box::new(enough_modifiers_condition)] }
 }
 
 pub fn execute_craft_expand_modifiers_calculate_cost(game: &Game, inventory_index: usize) -> usize {

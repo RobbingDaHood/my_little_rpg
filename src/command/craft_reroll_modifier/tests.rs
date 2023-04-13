@@ -40,7 +40,7 @@ mod tests_int {
         assert_eq!(Err(MyError::create_execute_command_error("index_specifier Absolute(99) is not within the range of the inventory 10".to_string())), execute(&mut game, 0, 0, vec![index_specifier::IndexSpecifier::Absolute(99), index_specifier::IndexSpecifier::Absolute(1)]));
         assert_eq!(Err(MyError::create_execute_command_error("inventory_index 1 is empty.".to_string())), execute(&mut game, 1, 0, vec![index_specifier::IndexSpecifier::Absolute(4), index_specifier::IndexSpecifier::Absolute(5)]));
         assert_eq!(Err(MyError::create_execute_command_error("index_specifier Absolute(1) is pointing at empty inventory slot.".to_string())), execute(&mut game, 0, 0, vec![index_specifier::IndexSpecifier::Absolute(1), index_specifier::IndexSpecifier::Absolute(2)]));
-        assert_eq!(Err(MyError::create_execute_command_error("index_specifier Absolute(8) is already present in calculated sacrifice indexes [8]".to_string())), execute(&mut game, 0, 0, vec![index_specifier::IndexSpecifier::Absolute(8), index_specifier::IndexSpecifier::Absolute(8)]));
+        assert_eq!(Err(MyError::create_execute_command_error("index_specifier Absolute(8) is already present in calculated sacrifice indexes {8}".to_string())), execute(&mut game, 0, 0, vec![index_specifier::IndexSpecifier::Absolute(8), index_specifier::IndexSpecifier::Absolute(8)]));
         assert_eq!(old_item, game.inventory[0]);
         assert_eq!(8, game.inventory.iter().filter(|i| i.is_some()).count());
     }
@@ -97,7 +97,7 @@ mod tests_int {
         assert!(result.is_ok());
         assert_eq!(2, game.inventory.iter().filter(|i| i.is_some()).count());
 
-        assert_eq!(Err(MyError::create_execute_command_error("index_specifier: RelativeNegative(1) did not find any items in inventory from relative point 10 until start of inventory.".to_string())), execute(&mut game, 9, 0, vec![index_specifier::IndexSpecifier::RelativeNegative(1), index_specifier::IndexSpecifier::RelativeNegative(1)]));
+        assert_eq!(Err(MyError::create_execute_command_error("index_specifier: RelativeNegative(1) did not find any items in inventory from relative point 8 until start of inventory.".to_string())), execute(&mut game, 9, 0, vec![index_specifier::IndexSpecifier::RelativeNegative(1), index_specifier::IndexSpecifier::RelativeNegative(1)]));
         assert_eq!(2, game.inventory.iter().filter(|i| i.is_some()).count());
     }
 
@@ -128,7 +128,7 @@ mod tests_int {
         assert_eq!(2, game.inventory.iter().filter(|i| i.is_some()).count());
 
         game.inventory[2] = None;
-        assert_eq!(Err(MyError::create_execute_command_error("index_specifier: RelativeNegative(1) did not find any items in inventory from relative point 6 until start of inventory.".to_string())), execute(&mut game, 5, 0, vec![index_specifier::IndexSpecifier::RelativeNegative(1), index_specifier::IndexSpecifier::RelativeNegative(1)]));
+        assert_eq!(Err(MyError::create_execute_command_error("index_specifier: RelativeNegative(1) did not find any items in inventory from relative point 4 until start of inventory.".to_string())), execute(&mut game, 5, 0, vec![index_specifier::IndexSpecifier::RelativeNegative(1), index_specifier::IndexSpecifier::RelativeNegative(1)]));
     }
 
     #[test]
