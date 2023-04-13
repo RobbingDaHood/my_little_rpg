@@ -39,7 +39,7 @@ pub struct Listener {
 impl Listener {
     pub fn new(port: u16) -> Self {
         Self {
-            tcp_listener: TcpListener::bind(format!("0.0.0.0:{}", port)).unwrap(),
+            tcp_listener: TcpListener::bind(format!("0.0.0.0:{port}")).unwrap(),
         }
     }
 
@@ -57,10 +57,7 @@ impl Listener {
             match stream {
                 Ok(mut stream) => Listener::handle_request(&mut stream, &mut game),
                 Err(e) => {
-                    println!(
-                        "Failed handling the request, got the following error: {}",
-                        e
-                    )
+                    println!("Failed handling the request, got the following error: {e}");
                 }
             }
         }
@@ -136,13 +133,10 @@ impl Listener {
 
         match stream.write(result_message.as_bytes()) {
             Ok(_) => {
-                print!("Responded to request.")
+                print!("Responded to request.");
             } //TODO give more details
-            Err(e) => {
-                panic!(
-                    "Got the following error when writing the response to the user: {}",
-                    e
-                )
+            Err(error) => {
+                panic!("Got the following error when writing the response to the user: {error}")
             }
         }
     }
@@ -170,10 +164,7 @@ impl Listener {
                 e
             ))
         })?;
-        println!(
-            "Received request with following command: {}",
-            command_as_string
-        );
+        println!("Received request with following command: {command_as_string}");
         Ok(command_as_string.into())
     }
 }

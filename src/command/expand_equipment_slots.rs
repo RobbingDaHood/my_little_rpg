@@ -1,4 +1,4 @@
-use std::{collections::HashMap, mem};
+use std::collections::HashMap;
 
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
@@ -36,14 +36,11 @@ pub fn execute(game: &mut Game) -> Result<ExecuteExpandEquipmentSlotsReport, MyE
         ));
     }
 
-    let first_item_index = match game.inventory.iter().position(Option::is_some) {
-        Some(index) => index,
-        None => {
+    let Some(first_item_index) = game.inventory.iter().position(Option::is_some) else {
             return Err(MyError::create_execute_command_error(
                 "No item in inventory to equip in new item slot. Whole inventory is empty."
                     .to_string(),
             ))
-        }
     };
 
     //Crafting cost
@@ -51,7 +48,7 @@ pub fn execute(game: &mut Game) -> Result<ExecuteExpandEquipmentSlotsReport, MyE
     pay_crafting_cost(game, &crafting_cost)?;
 
     //Pick first item in inventory or
-    let item = mem::replace(&mut game.inventory[first_item_index], None);
+    let item = game.inventory[first_item_index].take();
     game.equipped_items.push(item.unwrap());
 
     Ok(ExecuteExpandEquipmentSlotsReport {

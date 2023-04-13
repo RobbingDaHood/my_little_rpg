@@ -18,7 +18,7 @@ pub struct MyError {
 
 impl From<MyError> for Box<str> {
     fn from(error: MyError) -> Self {
-        format!("{:?}", error).into()
+        format!("{error:?}").into()
     }
 }
 
@@ -35,8 +35,7 @@ impl fmt::Display for MyErrorKind {
             | MyErrorKind::ParseCommand { error_message } => {
                 write!(
                     f,
-                    "Got the following error while trying to parse the given command: {}",
-                    error_message
+                    "Got the following error while trying to parse the given command: {error_message}"
                 )
             }
         }

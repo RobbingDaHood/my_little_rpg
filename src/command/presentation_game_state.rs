@@ -31,7 +31,7 @@ pub struct PresentationGameState {
     pub(crate) inventory: Vec<PresentationItem>,
     pub(crate) difficulty: Difficulty,
     pub(crate) treasure: HashMap<TreasureType, u64>,
-    //TODO use type alias or newtype; instead of u64 create a treasure(u64) type
+    //TODO use type alias or new type; instead of u64 create a treasure(u64) type
     pub(crate) item_resources: HashMap<Type, u64>,
     pub(crate) crafting_action_costs: PlaceCosts,
     pub(crate) seed: Box<str>,

@@ -53,8 +53,7 @@ pub fn execute(
     }
     if game.inventory[inventory_index].is_none() {
         return Err(MyError::create_execute_command_error(format!(
-            "inventory_index {} is empty.",
-            inventory_index
+            "inventory_index {inventory_index} is empty."
         )));
     }
     let inventory_item = game.inventory[inventory_index].as_ref().unwrap();
@@ -122,9 +121,7 @@ fn get_index_specifier_error_conditions(modifier_index: usize) -> ErrorCondition
             None
         }
     };
-    ErrorConditions {
-        error_conditions: vec![Box::new(enough_modifiers_condition)],
-    }
+    vec![Box::new(enough_modifiers_condition)]
 }
 
 pub fn execute_craft_reroll_modifier_calculate_cost(

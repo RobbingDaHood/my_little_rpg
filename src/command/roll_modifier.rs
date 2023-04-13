@@ -1,7 +1,7 @@
 use std::{
     cmp::{max, min},
     collections::HashSet,
-    ops::{Add, Div, Mul},
+    ops::{Add, Div},
 };
 
 use rand::Rng;
@@ -271,7 +271,6 @@ fn add_place_limited_by_index_modulus(
     let number_of_valid_values = random_generator_state.gen_range(1..modulus);
 
     let valid_numbers = (0..number_of_valid_values)
-        .into_iter()
         .map(|_| random_generator_state.gen_range(0..modulus))
         .collect::<HashSet<u8>>()
         .into_iter()
@@ -625,11 +624,10 @@ fn randomize_flat_damage(
         .max_resistance
         .get(attack_type)
         .unwrap_or(&1);
-    let damage = random_generator_state
+    random_generator_state
         .gen_range(min_damage..=max_damage)
         .div(2)
         .max(1)
         .checked_mul(cost_bonus * 2)
-        .unwrap_or(u64::MAX);
-    damage
+        .unwrap_or(u64::MAX)
 }

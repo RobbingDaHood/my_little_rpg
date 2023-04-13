@@ -11,8 +11,7 @@ pub fn decode_hex(s: &str) -> Result<Vec<u8>, MyError> {
         decode_hex_unsafe(&s)
     } else {
         Err(MyError::create_parse_command_error(format!(
-            "{:?} is not hexdigit(s)!",
-            offending_chars
+            "{offending_chars:?} is not hexdigit(s)!"
         )))
     }
 }
@@ -32,7 +31,7 @@ fn decode_hex_unsafe(s: &&str) -> Result<Vec<u8>, MyError> {
 pub fn encode_hex(bytes: &[u8]) -> Box<str> {
     let mut s = String::with_capacity(bytes.len() * 2);
     for &b in bytes {
-        write!(&mut s, "{:02x}", b).unwrap();
+        write!(&mut s, "{b:02x}").unwrap();
     }
     s.into()
 }

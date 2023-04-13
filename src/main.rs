@@ -31,7 +31,7 @@ fn parse_seed(src: &str) -> Result<[u8; 16], String> {
         return Err("32 Hexidecimals as a string requires 32 chars!".to_string());
     }
     match decode_hex(src) {
-        Err(e) => Err(format!("{:?}", e)),
+        Err(e) => Err(format!("{e:?}")),
         Ok(r) => Ok(r.try_into().expect("We know the size fits!")), //
     }
 }

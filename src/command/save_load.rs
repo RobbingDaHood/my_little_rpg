@@ -26,8 +26,7 @@ pub fn execute_save_command(
     return match fs::write(file_path, format!("{}", json!(game)).as_bytes()) {
         Err(error_message) => {
             Err(MyError::create_save_load_error(format!(
-                "Failed saving the world! Reason: {}",
-                error_message
+                "Failed saving the world! Reason: {error_message}"
             )))
         }
         Ok(_) => Ok("You saved the world!".into()),
@@ -80,10 +79,9 @@ fn get_file_path(
     match create_dir_all(save_path.as_ref()) {
         Err(error_message) => {
             Err(MyError::create_save_load_error(format!(
-                "Failed creating the folder for the save games, Reason: {}",
-                error_message
+                "Failed creating the folder for the save games, Reason: {error_message}"
             )))
         }
-        Ok(_) => Ok(format!("{}{}.json", save_path, save_name).into()),
+        Ok(_) => Ok(format!("{save_path}{save_name}.json").into()),
     }
 }

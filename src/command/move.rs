@@ -237,24 +237,24 @@ fn update_gain_effect(
         for gain in &modifier.gains {
             match gain {
                 Gain::FlatDamage(attack_type, amount) => {
-                    *current_damage.entry(attack_type.clone()).or_insert(0) += amount
+                    *current_damage.entry(attack_type.clone()).or_insert(0) += amount;
                 }
                 Gain::PercentageIncreaseDamage(attack_type, multiplier_as_percentage) => {
                     add_multiplier_to_attack_type_base(
                         current_damage,
                         attack_type,
                         *multiplier_as_percentage,
-                    )
+                    );
                 }
                 Gain::FlatItemResource(item_resource_type, amount) => {
                     *current_item_resources
                         .entry(item_resource_type.clone())
-                        .or_insert(0) += amount
+                        .or_insert(0) += amount;
                 }
                 Gain::FlatResistanceReduction(attack_type, amount) => {
                     *current_resistance_reduction
                         .entry(attack_type.clone())
-                        .or_insert(0) += amount
+                        .or_insert(0) += amount;
                 }
                 Gain::PercentageIncreaseResistanceReduction(
                     attack_type,
@@ -264,7 +264,7 @@ fn update_gain_effect(
                         current_resistance_reduction,
                         attack_type,
                         *multiplier_as_percentage,
-                    )
+                    );
                 }
                 Gain::FlatDamageAgainstHighestResistance(amount) => {
                     let attack_type_with_max_resistance = get_attack_type_with_max_amount(place);
@@ -278,7 +278,7 @@ fn update_gain_effect(
                     let attack_type_with_max_resistance = get_attack_type_with_max_amount(place);
                     add_multiplier_to_attack_type_base(
                         current_damage,
-                        &attack_type_with_max_resistance,
+                        attack_type_with_max_resistance,
                         *multiplier_as_percentage,
                     );
                 }
@@ -292,15 +292,15 @@ fn update_gain_effect(
                     let attack_type_with_min_resistance = get_attack_type_with_min_amount(place);
                     add_multiplier_to_attack_type_base(
                         current_damage,
-                        &attack_type_with_min_resistance,
+                        attack_type_with_min_resistance,
                         *multiplier_as_percentage,
                     );
                 }
                 Gain::PercentageIncreaseTreasure(treasure_type, amount) => {
-                    *treasure_bonus.entry(treasure_type.clone()).or_insert(0) += amount
+                    *treasure_bonus.entry(treasure_type.clone()).or_insert(0) += amount;
                 }
                 Gain::FlatIncreaseRewardedItems(amount) => {
-                    *item_gain = item_gain.checked_add(*amount).unwrap_or(u16::MAX)
+                    *item_gain = item_gain.checked_add(*amount).unwrap_or(u16::MAX);
                 }
             }
         }
@@ -333,7 +333,7 @@ fn add_multiplier_to_attack_type_base(
     attack_type_base
         .entry(attack_type.clone())
         .and_modify(|attack_value| {
-            *attack_value = add_multiplier_to_base(multiplier_as_percentage, *attack_value)
+            *attack_value = add_multiplier_to_base(multiplier_as_percentage, *attack_value);
         });
 }
 
@@ -390,15 +390,14 @@ fn evaluate_item_costs(
                 Cost::FlatItemResource(item_resource_type, amount) => {
                     *item_resource_cost
                         .entry(item_resource_type.clone())
-                        .or_insert(0) += amount
+                        .or_insert(0) += amount;
                 }
                 Cost::FlatMinItemResourceRequirement(item_resource_type, amount) => {
                     let resource_amount = game.item_resources.get(item_resource_type).unwrap_or(&0);
                     if resource_amount < amount {
                         return Err(MyError::create_execute_command_error(format!(
-                            "Did not fulfill the FlatMinItemResourceRequirement of {} {:?}, only \
-                             had {}.",
-                            amount, item_resource_type, resource_amount
+                            "Did not fulfill the FlatMinItemResourceRequirement of {amount} \
+                             {item_resource_type:?}, only had {resource_amount}."
                         )));
                     }
                 }
@@ -406,45 +405,40 @@ fn evaluate_item_costs(
                     let resource_amount = game.item_resources.get(item_resource_type).unwrap_or(&0);
                     if resource_amount > amount {
                         return Err(MyError::create_execute_command_error(format!(
-                            "Did not fulfill the FlatMaxItemResourceRequirement of {} {:?}, had \
-                             {:?} and that is too much.",
-                            amount, item_resource_type, resource_amount
+                            "Did not fulfill the FlatMaxItemResourceRequirement of {amount} {item_resource_type:?}, had \
+                             {resource_amount:?} and that is too much."
                         )));
                     }
                 }
                 Cost::FlatMinAttackRequirement(attack_type, amount) => {
                     if current_damage.get(attack_type).unwrap_or(&0) < amount {
                         return Err(MyError::create_execute_command_error(format!(
-                            "Did not fulfill the FlatMinAttackRequirement of {} {:?} damage, only \
-                             did {:?} damage.",
-                            amount, attack_type, current_damage
+                            "Did not fulfill the FlatMinAttackRequirement of {amount} {attack_type:?} damage, only \
+                             did {current_damage:?} damage."
                         )));
                     }
                 }
                 Cost::FlatMaxAttackRequirement(attack_type, amount) => {
                     if current_damage.get(attack_type).unwrap_or(&0) > amount {
                         return Err(MyError::create_execute_command_error(format!(
-                            "Did not fulfill the FlatMaxAttackRequirement of {} {:?} damage, did \
-                             {:?} damage and that is too much.",
-                            amount, attack_type, current_damage
+                            "Did not fulfill the FlatMaxAttackRequirement of {amount} {attack_type:?} damage, did \
+                             {current_damage:?} damage and that is too much."
                         )));
                     }
                 }
                 Cost::FlatSumMinAttackRequirement(amount) => {
                     if current_damage.values().sum::<u64>() < *amount {
                         return Err(MyError::create_execute_command_error(format!(
-                            "Did not fulfill the FlatSumMinAttackRequirement of {} damage, only \
-                             did {:?} damage.",
-                            amount, current_damage
+                            "Did not fulfill the FlatSumMinAttackRequirement of {amount} damage, only \
+                             did {current_damage:?} damage."
                         )));
                     }
                 }
                 Cost::FlatSumMaxAttackRequirement(amount) => {
                     if current_damage.values().sum::<u64>() > *amount {
                         return Err(MyError::create_execute_command_error(format!(
-                            "Did not fulfill the FlatSumMaxAttackRequirement of {} damage, did \
-                             {:?} damage damage and that is too much.",
-                            amount, current_damage
+                            "Did not fulfill the FlatSumMaxAttackRequirement of {amount} damage, did \
+                             {current_damage:?} damage damage and that is too much."
                         )));
                     }
                 }
@@ -452,9 +446,8 @@ fn evaluate_item_costs(
                     let modulus_value = index.rem_euclid(usize::from(*modulus));
                     if !valid_values.contains(&u8::try_from(modulus_value).unwrap()) {
                         return Err(MyError::create_execute_command_error(format!(
-                            "Did not fulfill the PlaceLimitedByIndexModulus: {} % {} = {} and \
-                             that is not contained in {:?}.",
-                            index, modulus, modulus_value, valid_values
+                            "Did not fulfill the PlaceLimitedByIndexModulus: {index} % {modulus} = {modulus_value} and \
+                             that is not contained in {valid_values:?}."
                         )));
                     }
                 }
@@ -463,9 +456,8 @@ fn evaluate_item_costs(
                         game.places[index].resistance.get(attack_type).unwrap_or(&0);
                     if resistance_amount_place < amount {
                         return Err(MyError::create_execute_command_error(format!(
-                            "Did not fulfill the FlatMinResistanceRequirement of {} {:?} damage, \
-                             place only has {:?} damage.",
-                            amount, attack_type, resistance_amount_place
+                            "Did not fulfill the FlatMinResistanceRequirement of {amount} {attack_type:?} damage, \
+                             place only has {resistance_amount_place:?} damage."
                         )));
                     }
                 }
@@ -474,9 +466,8 @@ fn evaluate_item_costs(
                         game.places[index].resistance.get(attack_type).unwrap_or(&0);
                     if resistance_amount_place > amount {
                         return Err(MyError::create_execute_command_error(format!(
-                            "Did not fulfill the FlatMaxResistanceRequirement of {} {:?} damage, \
-                             place has {:?} damage and that is too much.",
-                            amount, attack_type, resistance_amount_place
+                            "Did not fulfill the FlatMaxResistanceRequirement of {amount} {attack_type:?} damage, \
+                             place has {resistance_amount_place:?} damage and that is too much."
                         )));
                     }
                 }
@@ -484,9 +475,8 @@ fn evaluate_item_costs(
                     let damage_sum = game.places[index].resistance.values().sum::<u64>();
                     if damage_sum < *amount {
                         return Err(MyError::create_execute_command_error(format!(
-                            "Did not fulfill the FlatMinSumResistanceRequirement of {} damage, \
-                             place only has {:?} damage.",
-                            amount, damage_sum
+                            "Did not fulfill the FlatMinSumResistanceRequirement of {amount} damage, \
+                             place only has {damage_sum:?} damage."
                         )));
                     }
                 }
@@ -494,9 +484,8 @@ fn evaluate_item_costs(
                     let damage_sum = game.places[index].resistance.values().sum::<u64>();
                     if damage_sum > *amount {
                         return Err(MyError::create_execute_command_error(format!(
-                            "Did not fulfill the FlatMaxSumResistanceRequirement of {} damage, \
-                             place has {:?} damage and that is too much.",
-                            amount, damage_sum
+                            "Did not fulfill the FlatMaxSumResistanceRequirement of {amount} damage, \
+                             place has {damage_sum:?} damage and that is too much."
                         )));
                     }
                 }

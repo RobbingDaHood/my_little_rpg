@@ -72,7 +72,7 @@ pub fn execute_craft_expand_modifiers(
         )));
     }
 
-    let cost = execute_craft_expand_modifiers_calculate_cost(&game, inventory_index);
+    let cost = execute_craft_expand_modifiers_calculate_cost(game, inventory_index);
     if sacrifice_item_indexes.len() < cost {
         return Err(MyError::create_execute_command_error(format!(
             "craft_reroll_modifier needs {} items to be sacrificed but you only provided {}",
@@ -84,9 +84,9 @@ pub fn execute_craft_expand_modifiers(
     //Only need to cost amount of items
     sacrifice_item_indexes.truncate(cost);
 
-    let error_conditions = get_index_specifier_error_conditions(&inventory_item);
+    let error_conditions = get_index_specifier_error_conditions(inventory_item);
     let calculated_sacrifice_item_indexes = calculate_absolute_item_indexes(
-        &game,
+        game,
         inventory_index,
         &sacrifice_item_indexes,
         &error_conditions,
@@ -136,9 +136,7 @@ fn get_index_specifier_error_conditions(inventory_item: &Item) -> ErrorCondition
             None
         }
     };
-    ErrorConditions {
-        error_conditions: vec![Box::new(enough_modifiers_condition)],
-    }
+    vec![Box::new(enough_modifiers_condition)]
 }
 
 pub fn execute_craft_expand_modifiers_calculate_cost(

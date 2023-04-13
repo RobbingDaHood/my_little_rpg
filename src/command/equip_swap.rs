@@ -44,8 +44,7 @@ pub fn execute_equip_item(
     }
     if game.inventory[inventory_position].is_none() {
         return Err(MyError::create_execute_command_error(format!(
-            "inventory_position {} is empty.",
-            inventory_position
+            "inventory_position {inventory_position} is empty."
         )));
     }
 
@@ -92,8 +91,8 @@ pub fn execute_swap_equipped_item(
     }
     if equipped_item_position_1 == equipped_item_position_2 {
         return Err(MyError::create_execute_command_error(format!(
-            "equipped_item_position_1 {} cannot be the same as equipped_item_position_2 {}",
-            equipped_item_position_1, equipped_item_position_2
+            "equipped_item_position_1 {equipped_item_position_1} cannot be the same as \
+             equipped_item_position_2 {equipped_item_position_2}"
         )));
     }
 

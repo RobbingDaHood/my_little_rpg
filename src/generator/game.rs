@@ -75,15 +75,12 @@ pub fn new(seed: Option<[u8; 16]>) -> Game {
     game
 }
 
-fn create_random_generator(seed: Option<[u8; 16]>) -> ([u8; 16], Lcg64Xsh32) {
-    let seed = match seed {
-        Some(seed) => seed,
-        None => {
-            let mut new_seed: [u8; 16] = [1; 16];
-            Pcg32::from_entropy().fill_bytes(&mut new_seed);
-            new_seed
-        }
-    };
+fn create_random_generator(seed_optional: Option<[u8; 16]>) -> ([u8; 16], Lcg64Xsh32) {
+    let seed = seed_optional.unwrap_or({
+        let mut new_seed: [u8; 16] = [1; 16];
+        Pcg32::from_entropy().fill_bytes(&mut new_seed);
+        new_seed
+    });
 
     println!("Using seed: {}", encode_hex(&seed));
 
