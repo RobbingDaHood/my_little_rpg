@@ -14,7 +14,7 @@ mod tests_int {
     #[test]
     fn basic_test() {
         let mut game = new_testing(Some([1; 16]));
-        execute_craft(
+        let _ = execute_craft(
             &mut game.random_generator_state,
             &game.inventory[0].as_ref().unwrap().crafting_info,
         );
@@ -48,7 +48,7 @@ mod tests_int {
             let result = execute_craft(
                 &mut game.random_generator_state,
                 &game.inventory[0].as_ref().unwrap().crafting_info,
-            );
+            ).expect("Should not Err! ");
 
             setup_costs(&mut cost_modifiers, &result);
 

@@ -7,20 +7,23 @@ use std::{
 use rand::Rng;
 use rand_pcg::Lcg64Xsh32;
 
-use crate::the_world::{
-    attack_types::{get_random_attack_type_from_unlocked, DamageType},
-    item::CraftingInfo,
-    item_modifier::Modifier,
-    item_resource::Type,
-    modifier_cost::Cost,
-    modifier_gain::{
-        Gain,
-        Gain::{
-            FlatDamage, FlatDamageAgainstHighestResistance, FlatDamageAgainstLowestResistance,
-            FlatIncreaseRewardedItems, FlatItemResource, FlatResistanceReduction,
-            PercentageIncreaseDamage, PercentageIncreaseDamageAgainstHighestResistance,
-            PercentageIncreaseDamageAgainstLowestResistance, PercentageIncreaseResistanceReduction,
-            PercentageIncreaseTreasure,
+use crate::{
+    my_little_rpg_errors::MyError,
+    the_world::{
+        attack_types::{get_random_attack_type_from_unlocked_new, DamageType},
+        item::CraftingInfo,
+        item_modifier::Modifier,
+        item_resource::Type,
+        modifier_cost::Cost,
+        modifier_gain::{
+            Gain,
+            Gain::{
+                FlatDamage, FlatDamageAgainstHighestResistance, FlatDamageAgainstLowestResistance,
+                FlatIncreaseRewardedItems, FlatItemResource, FlatResistanceReduction,
+                PercentageIncreaseDamage, PercentageIncreaseDamageAgainstHighestResistance,
+                PercentageIncreaseDamageAgainstLowestResistance,
+                PercentageIncreaseResistanceReduction, PercentageIncreaseTreasure,
+            },
         },
     },
 };
@@ -30,7 +33,7 @@ mod tests;
 pub fn execute_craft(
     random_generator_state: &mut Lcg64Xsh32,
     crafting_info: &CraftingInfo,
-) -> Modifier {
+) -> Result<Modifier, MyError> {
     let minimum_elements = min(
         crafting_info.possible_rolls.min_resistance.len(),
         crafting_info.possible_rolls.min_simultaneous_resistances as usize,
@@ -41,7 +44,7 @@ pub fn execute_craft(
     );
 
     let (modifier_costs, cost) =
-        execute_craft_roll_modifier_costs(random_generator_state, crafting_info);
+        execute_craft_roll_modifier_costs(random_generator_state, crafting_info)?;
 
     let modifier_gain = execute_craft_roll_modifier_benefits(
         random_generator_state,
@@ -51,16 +54,16 @@ pub fn execute_craft(
         maximum_elements,
     );
 
-    Modifier {
+    Ok(Modifier {
         costs: modifier_costs,
         gains: modifier_gain,
-    }
+    })
 }
 
 fn execute_craft_roll_modifier_costs(
     random_generator_state: &mut Lcg64Xsh32,
     crafting_info: &CraftingInfo,
-) -> (Vec<Cost>, u64) {
+) -> Result<(Vec<Cost>, u64), MyError> {
     let mut modifier_costs = Vec::new();
     let mut accumulated_cost = 0;
     let max_cost = crafting_info
@@ -89,7 +92,7 @@ fn execute_craft_roll_modifier_costs(
                         &mut modifier_costs,
                         accumulated_cost,
                         max_cost,
-                    )
+                    )?
                 }
                 1 => {
                     add_flat_max_attack(
@@ -98,7 +101,7 @@ fn execute_craft_roll_modifier_costs(
                         &mut modifier_costs,
                         accumulated_cost,
                         max_cost,
-                    )
+                    )?
                 }
                 2 => {
                     add_place_limited_by_index_modulus(
@@ -148,7 +151,7 @@ fn execute_craft_roll_modifier_costs(
                         &mut modifier_costs,
                         accumulated_cost,
                         max_cost,
-                    )
+                    )?
                 }
                 8 => {
                     add_flat_max_resistance(
@@ -157,7 +160,7 @@ fn execute_craft_roll_modifier_costs(
                         &mut modifier_costs,
                         accumulated_cost,
                         max_cost,
-                    )
+                    )?
                 }
                 9 => {
                     add_flat_min_sum_resistance(
@@ -195,7 +198,7 @@ fn execute_craft_roll_modifier_costs(
         }
     }
 
-    (modifier_costs, accumulated_cost)
+    Ok((modifier_costs, accumulated_cost))
 }
 
 fn add_flat_min_attack(
@@ -204,17 +207,14 @@ fn add_flat_min_attack(
     modifier_costs: &mut Vec<Cost>,
     accumulated_cost: u64,
     max_cost: u64,
-) -> u64 {
-    let attack_type = get_random_attack_type_from_unlocked(
+) -> Result<u64, MyError> {
+    let random_min_resistance = get_random_attack_type_from_unlocked_new(
         random_generator_state,
         &crafting_info.possible_rolls.min_resistance,
-    );
+    )?;
 
-    let minimum_value = *crafting_info
-        .possible_rolls
-        .min_resistance
-        .get(&attack_type)
-        .unwrap();
+    let minimum_value = random_min_resistance.1;
+    let attack_type = random_min_resistance.0;
     let maximum_value = *crafting_info
         .possible_rolls
         .max_resistance
@@ -226,7 +226,7 @@ fn add_flat_min_attack(
     );
 
     modifier_costs.push(Cost::FlatMinAttackRequirement(attack_type, value));
-    value
+    Ok(value)
 }
 
 fn add_flat_max_attack(
@@ -235,17 +235,14 @@ fn add_flat_max_attack(
     modifier_costs: &mut Vec<Cost>,
     accumulated_cost: u64,
     max_cost: u64,
-) -> u64 {
-    let attack_type = get_random_attack_type_from_unlocked(
+) -> Result<u64, MyError> {
+    let random_min_resistance = get_random_attack_type_from_unlocked_new(
         random_generator_state,
         &crafting_info.possible_rolls.min_resistance,
-    );
+    )?;
 
-    let minimum_value = *crafting_info
-        .possible_rolls
-        .min_resistance
-        .get(&attack_type)
-        .unwrap();
+    let minimum_value = random_min_resistance.1;
+    let attack_type = random_min_resistance.0;
     let maximum_value = *crafting_info
         .possible_rolls
         .max_resistance
@@ -257,7 +254,7 @@ fn add_flat_max_attack(
     );
 
     modifier_costs.push(Cost::FlatMaxAttackRequirement(attack_type, value));
-    maximum_value - value
+    Ok(maximum_value.checked_sub(value).unwrap_or(u64::MAX))
 }
 
 fn add_place_limited_by_index_modulus(
@@ -361,17 +358,14 @@ fn add_min_resistance(
     modifier_costs: &mut Vec<Cost>,
     accumulated_cost: u64,
     max_cost: u64,
-) -> u64 {
-    let attack_type = get_random_attack_type_from_unlocked(
+) -> Result<u64, MyError> {
+    let random_min_resistance = get_random_attack_type_from_unlocked_new(
         random_generator_state,
         &crafting_info.possible_rolls.min_resistance,
-    );
+    )?;
 
-    let minimum_value = *crafting_info
-        .possible_rolls
-        .min_resistance
-        .get(&attack_type)
-        .unwrap();
+    let minimum_value = random_min_resistance.1;
+    let attack_type = random_min_resistance.0;
     let maximum_value = *crafting_info
         .possible_rolls
         .max_resistance
@@ -383,7 +377,7 @@ fn add_min_resistance(
     );
 
     modifier_costs.push(Cost::FlatMinResistanceRequirement(attack_type, value));
-    value
+    Ok(value)
 }
 
 fn add_flat_max_resistance(
@@ -392,17 +386,14 @@ fn add_flat_max_resistance(
     modifier_costs: &mut Vec<Cost>,
     accumulated_cost: u64,
     max_cost: u64,
-) -> u64 {
-    let attack_type = get_random_attack_type_from_unlocked(
+) -> Result<u64, MyError> {
+    let random_min_resistance = get_random_attack_type_from_unlocked_new(
         random_generator_state,
         &crafting_info.possible_rolls.min_resistance,
-    );
+    )?;
 
-    let minimum_value = *crafting_info
-        .possible_rolls
-        .min_resistance
-        .get(&attack_type)
-        .unwrap();
+    let minimum_value = random_min_resistance.1;
+    let attack_type = random_min_resistance.0;
     let maximum_value = *crafting_info
         .possible_rolls
         .max_resistance
@@ -414,7 +405,7 @@ fn add_flat_max_resistance(
     );
 
     modifier_costs.push(Cost::FlatMaxResistanceRequirement(attack_type, value));
-    maximum_value - value
+    Ok(maximum_value.checked_sub(value).unwrap_or(u64::MAX))
 }
 
 fn add_flat_min_sum_resistance(

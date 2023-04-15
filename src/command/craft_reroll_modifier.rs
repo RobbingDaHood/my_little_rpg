@@ -95,7 +95,7 @@ pub fn execute(
     let new_item_modifier = execute_craft(
         &mut game.random_generator_state,
         &inventory_item.crafting_info,
-    );
+    )?;
 
     //Crafting cost
     for sacrifice_item_index in &calculated_sacrifice_item_indexes {

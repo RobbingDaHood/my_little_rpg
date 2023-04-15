@@ -22,7 +22,7 @@ mod tests_int {
             max_simultaneous_resistances: 7,
         };
 
-        execute(&mut game);
+        let _ = execute(&mut game);
 
         assert_eq!(15, game.difficulty.min_simultaneous_resistances);
         assert_eq!(7, game.difficulty.max_simultaneous_resistances);
@@ -63,7 +63,7 @@ mod tests_int {
 
         assert_eq!(1, count_places_possible_rolls_equal_difficulty(&game));
 
-        execute(&mut game);
+        let _ = execute(&mut game);
 
         assert_eq!(15, game.difficulty.min_simultaneous_resistances);
         assert_eq!(7, game.difficulty.max_simultaneous_resistances);
@@ -104,7 +104,7 @@ mod tests_int {
 
         assert_eq!(1, count_places_possible_rolls_equal_difficulty(&game));
 
-        execute(&mut game);
+        let _ = execute(&mut game);
 
         assert_eq!(1, game.difficulty.min_simultaneous_resistances);
         assert_eq!(1, game.difficulty.max_simultaneous_resistances);
@@ -137,7 +137,7 @@ mod tests_int {
 
         assert_eq!(1, count_places_possible_rolls_equal_difficulty(&game));
 
-        execute(&mut game);
+        let _ = execute(&mut game);
 
         assert_eq!(1, game.difficulty.min_simultaneous_resistances);
         assert_eq!(1, game.difficulty.max_simultaneous_resistances);
@@ -170,7 +170,7 @@ mod tests_int {
 
         assert_eq!(1, count_places_possible_rolls_equal_difficulty(&game));
 
-        execute(&mut game);
+        let _ = execute(&mut game);
 
         assert_eq!(1, game.difficulty.min_simultaneous_resistances);
         assert_eq!(1, game.difficulty.max_simultaneous_resistances);

@@ -1,11 +1,21 @@
-use std::{collections::HashMap, ops::Deref};
+use std::{
+    collections::{
+        hash_map::{Entry, OccupiedEntry},
+        BTreeMap, HashMap,
+    },
+    hash::Hash,
+    ops::Deref,
+};
 
-use rand::prelude::SliceRandom;
+use rand::prelude::{IteratorRandom, SliceRandom};
 use rand_pcg::Lcg64Xsh32;
 use serde::{Deserialize, Serialize};
 
-use crate::the_world::attack_types::DamageType::{
-    Corruption, Darkness, Fire, Frost, Holy, Light, Lightning, Nature, Physical,
+use crate::{
+    my_little_rpg_errors::MyError,
+    the_world::attack_types::DamageType::{
+        Corruption, Darkness, Fire, Frost, Holy, Light, Lightning, Nature, Physical,
+    },
 };
 
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize, Eq, Hash, PartialOrd, Ord)]
@@ -32,15 +42,40 @@ impl DamageType {
     }
 }
 
-pub fn get_random_attack_type_from_unlocked(
+pub fn get_random_attack_type_from_unlocked_new(
     random_generator_state: &mut Lcg64Xsh32,
     unlocks: &HashMap<DamageType, u64>,
-) -> DamageType {
+) -> Result<(DamageType, u64), MyError> {
+    let picked_type = get_random_attack_type(random_generator_state, unlocks)?;
+    let picked_value_amount = unlocks
+        .get(&picked_type)
+        .expect("Just fetched this key from the map, so it should be Occupied");
+    Ok((picked_type, *picked_value_amount))
+}
+
+fn get_random_attack_type(
+    random_generator_state: &mut Lcg64Xsh32,
+    unlocks: &HashMap<DamageType, u64>,
+) -> Result<DamageType, MyError> {
     let mut attack_values: Vec<&DamageType> = unlocks.keys().collect();
     attack_values.sort();
-    attack_values
+    let picked_type = attack_values
         .choose(random_generator_state)
-        .unwrap()
+        .ok_or(MyError::create_execute_command_error(
+            "The given Hashmap is empty!".to_string(),
+        ))?
         .deref()
-        .clone()
+        .clone();
+    Ok(picked_type)
+}
+
+pub fn get_mut_random_attack_type<'a>(
+    random_generator_state: &mut Lcg64Xsh32,
+    unlocks: &'a mut HashMap<DamageType, u64>,
+) -> Result<OccupiedEntry<'a, DamageType, u64>, MyError> {
+    let picked_type = get_random_attack_type(random_generator_state, unlocks)?;
+    match unlocks.entry(picked_type) {
+        Entry::Occupied(entry) => Ok(entry),
+        Entry::Vacant(_) => panic!("Just fetched this key from the map, so it should be Occupied"),
+    }
 }
