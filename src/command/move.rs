@@ -7,7 +7,7 @@ use crate::{
     generator::place::new,
     my_little_rpg_errors::MyError,
     the_world::{
-        attack_types::DamageType,
+        damage_types::DamageType,
         item::{CraftingInfo, Item},
         item_modifier::Modifier,
         item_resource::Type,

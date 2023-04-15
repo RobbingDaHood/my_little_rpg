@@ -2,11 +2,11 @@ use std::collections::HashMap;
 
 use serde::{Deserialize, Serialize};
 
-use crate::the_world::{attack_types, difficulty::Difficulty, treasure_types::TreasureType};
+use crate::the_world::{damage_types, difficulty::Difficulty, treasure_types::TreasureType};
 
 #[derive(Clone, PartialEq, Eq, Debug, Serialize, Deserialize)]
 pub struct Place {
-    pub(crate) resistance: HashMap<attack_types::DamageType, u64>,
+    pub(crate) resistance: HashMap<damage_types::DamageType, u64>,
     pub(crate) reward: HashMap<TreasureType, u64>,
     pub(crate) item_reward_possible_rolls: Difficulty,
 }
@@ -15,7 +15,7 @@ impl Place {
     //TODO consider moving function and tests
     pub fn claim_rewards(
         &self,
-        attacks: &HashMap<&attack_types::DamageType, u64>,
+        attacks: &HashMap<&damage_types::DamageType, u64>,
     ) -> Option<HashMap<TreasureType, u64>> {
         let are_all_resistance_defeated =
             self.resistance
@@ -38,7 +38,7 @@ impl Place {
 mod tests_int {
     use std::collections::HashMap;
 
-    use crate::the_world::{attack_types::DamageType, difficulty::Difficulty, place::Place};
+    use crate::the_world::{damage_types::DamageType, difficulty::Difficulty, place::Place};
 
     #[test]
     fn claim_rewards_no_resistance() {

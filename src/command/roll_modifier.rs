@@ -10,7 +10,7 @@ use rand_pcg::Lcg64Xsh32;
 use crate::{
     my_little_rpg_errors::MyError,
     the_world::{
-        attack_types::{get_random_attack_type_from_unlocked_new, DamageType},
+        damage_types::{get_random_attack_type_from_unlocked_new, DamageType},
         item::CraftingInfo,
         item_modifier::Modifier,
         item_resource::Type,

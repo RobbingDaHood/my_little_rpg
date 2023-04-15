@@ -4,7 +4,7 @@ mod tests_int {
         command::r#move::execute,
         generator::game::new_testing,
         the_world::{
-            attack_types::DamageType,
+            damage_types::DamageType,
             item::{CraftingInfo, Item},
             item_modifier::Modifier,
             item_resource::Type,

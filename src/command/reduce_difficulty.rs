@@ -12,7 +12,7 @@ use crate::{
     generator::place::new,
     my_little_rpg_errors::MyError,
     the_world::{
-        attack_types::{get_mut_random_attack_type},
+        damage_types::{get_mut_random_attack_type},
         difficulty::Difficulty,
         treasure_types::{TreasureType, TreasureType::Gold},
     },

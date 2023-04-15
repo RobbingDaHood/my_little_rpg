@@ -6,7 +6,7 @@ mod tests_int {
         command::reduce_difficulty::execute,
         generator::game::new_testing,
         the_world::{
-            attack_types::DamageType, difficulty::Difficulty, treasure_types::TreasureType::Gold,
+            damage_types::DamageType, difficulty::Difficulty, treasure_types::TreasureType::Gold,
         },
         Game,
     };

@@ -1,4 +1,4 @@
-pub(crate) mod attack_types;
+pub(crate) mod damage_types;
 pub(crate) mod difficulty;
 pub mod game;
 pub(crate) mod game_statistics;

@@ -13,7 +13,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::{
     my_little_rpg_errors::MyError,
-    the_world::attack_types::DamageType::{
+    the_world::damage_types::DamageType::{
         Corruption, Darkness, Fire, Frost, Holy, Light, Lightning, Nature, Physical,
     },
 };

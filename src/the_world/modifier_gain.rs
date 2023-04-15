@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 
 use crate::the_world::{
-    attack_types::DamageType,
+    damage_types::DamageType,
     item_resource::Type,
     modifier_gain::Gain::{
         FlatDamage, FlatDamageAgainstHighestResistance, FlatDamageAgainstLowestResistance,

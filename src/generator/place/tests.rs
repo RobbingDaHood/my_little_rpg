@@ -5,7 +5,7 @@ mod tests_int {
             game::{new as new_game, new_testing as new_game_testing},
             place::new as new_place,
         },
-        the_world::{attack_types::DamageType, treasure_types::TreasureType},
+        the_world::{damage_types::DamageType, treasure_types::TreasureType},
     };
 
     #[test]

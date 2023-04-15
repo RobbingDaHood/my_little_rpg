@@ -7,7 +7,7 @@ use crate::{
     generator::place::new as new_place,
     parser::hex_encoder::encode_hex,
     the_world::{
-        attack_types::DamageType,
+        damage_types::DamageType,
         difficulty::Difficulty,
         game_statistics::GameStatistics,
         item::{CraftingInfo, Item},

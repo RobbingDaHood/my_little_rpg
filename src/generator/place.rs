@@ -6,7 +6,7 @@ use std::{
 use rand::{seq::SliceRandom, Rng};
 
 use crate::{
-    the_world::{attack_types::DamageType, place::Place, treasure_types::TreasureType},
+    the_world::{damage_types::DamageType, place::Place, treasure_types::TreasureType},
     Game,
 };
 

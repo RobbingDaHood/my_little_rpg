@@ -6,7 +6,7 @@ use serde_json::{json, Value};
 use crate::{
     my_little_rpg_errors::MyError,
     the_world::{
-        attack_types::{get_mut_random_attack_type},
+        damage_types::{get_mut_random_attack_type},
         difficulty::Difficulty,
         treasure_types::{pay_crafting_cost, TreasureType, TreasureType::Gold},
     },

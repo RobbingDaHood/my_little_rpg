@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use crate::the_world::{attack_types::DamageType, item_resource::Type};
+use crate::the_world::{damage_types::DamageType, item_resource::Type};
 
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize, Eq, Hash)]
 pub enum Cost {
