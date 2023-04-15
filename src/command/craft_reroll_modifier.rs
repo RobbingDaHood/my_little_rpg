@@ -56,7 +56,12 @@ pub fn execute(
             "inventory_index {inventory_index} is empty."
         )));
     }
-    let inventory_item = game.inventory[inventory_index].as_ref().unwrap();
+    let inventory_item = game.inventory[inventory_index].as_ref().ok_or_else(|| {
+        MyError::create_execute_command_error(format!(
+            "inventory_index {} is empty.",
+            inventory_index
+        ))
+    })?;
     if inventory_item.modifiers.len() <= modifier_index {
         return Err(MyError::create_execute_command_error(format!(
             "modifier_index {} is not within the range of the item modifiers {}",
@@ -86,23 +91,28 @@ pub fn execute(
         &error_conditions,
     )?;
 
+    //Create item
+    let new_item_modifier = execute_craft(
+        &mut game.random_generator_state,
+        &inventory_item.crafting_info,
+    );
+
     //Crafting cost
     for sacrifice_item_index in &calculated_sacrifice_item_indexes {
         game.inventory[*sacrifice_item_index] = None;
     }
 
-    //Create item
-    let new_item_modifier = execute_craft(
-        &mut game.random_generator_state,
-        &game.inventory[inventory_index]
-            .as_ref()
-            .unwrap()
-            .crafting_info,
+    let mut inventory_item = game.inventory[inventory_index].as_mut().expect(
+        format!(
+            "Item at index {} did exist earlier but does not anymore.",
+            inventory_index
+        )
+        .as_str(),
     );
-    game.inventory[inventory_index].as_mut().unwrap().modifiers[modifier_index] = new_item_modifier;
+    inventory_item.modifiers[modifier_index] = new_item_modifier;
 
     Ok(ExecuteCraftRerollModifierReport {
-        new_item: game.inventory[inventory_index].as_ref().unwrap().clone(),
+        new_item: inventory_item.clone(),
         new_cost: execute_craft_reroll_modifier_calculate_cost(game, inventory_index),
         paid_cost: cost,
     })

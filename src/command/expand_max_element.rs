@@ -38,14 +38,14 @@ pub fn execute(game: &mut Game) -> Result<ExecuteExpandMaxElementReport, MyError
     //Increase max of existing element
     let picked_element = get_random_attack_type_from_unlocked(
         &mut game.random_generator_state,
-        &game.difficulty.min_resistance,
+        &game.difficulty.max_resistance,
     );
 
     *game
         .difficulty
         .max_resistance
         .get_mut(&picked_element)
-        .unwrap() += crafting_cost.get(&Gold).unwrap();
+        .unwrap_or(&mut 1) += crafting_cost.get(&Gold).unwrap();
 
     Ok(ExecuteExpandMaxElementReport {
         new_difficulty: game.difficulty.clone(),

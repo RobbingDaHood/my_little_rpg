@@ -30,12 +30,6 @@ pub fn execute_json(game: &mut Game) -> Value {
 }
 
 pub fn execute(game: &mut Game) -> Result<ExecuteExpandEquipmentSlotsReport, MyError> {
-    if game.inventory.is_empty() {
-        return Err(MyError::create_execute_command_error(
-            "No item in inventory to equip in new item slot.".to_string(),
-        ));
-    }
-
     let Some(first_item_index) = game.inventory.iter().position(Option::is_some) else {
             return Err(MyError::create_execute_command_error(
                 "No item in inventory to equip in new item slot. Whole inventory is empty."
@@ -47,9 +41,11 @@ pub fn execute(game: &mut Game) -> Result<ExecuteExpandEquipmentSlotsReport, MyE
     let crafting_cost = execute_expand_equipment_slots_calculate_cost(game);
     pay_crafting_cost(game, &crafting_cost)?;
 
-    //Pick first item in inventory or
-    let item = game.inventory[first_item_index].take();
-    game.equipped_items.push(item.unwrap());
+    let item = game.inventory[first_item_index].take().expect(
+        format!("Item at index {first_item_index} did exist earlier but does not anymore.")
+            .as_str(),
+    );
+    game.equipped_items.push(item);
 
     Ok(ExecuteExpandEquipmentSlotsReport {
         new_equipped_items: game.equipped_items.clone(),
@@ -59,8 +55,6 @@ pub fn execute(game: &mut Game) -> Result<ExecuteExpandEquipmentSlotsReport, MyE
     })
 }
 
-pub fn execute_expand_equipment_slots_calculate_cost(
-    game: &mut Game
-) -> HashMap<TreasureType, u64> {
+pub fn execute_expand_equipment_slots_calculate_cost(game: &Game) -> HashMap<TreasureType, u64> {
     HashMap::from([(Gold, (game.equipped_items.len() + 1).pow(5) as u64)])
 }

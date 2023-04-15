@@ -14,7 +14,7 @@ mod tests_int {
 
         assert_eq!(
             Err(MyError::create_execute_command_error(
-                "No item in inventory to equip in new item slot.".to_string()
+                "No item in inventory to equip in new item slot. Whole inventory is empty.".to_string()
             )),
             execute(&mut game)
         );

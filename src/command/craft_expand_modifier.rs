@@ -84,7 +84,7 @@ pub fn execute_craft_expand_modifiers(
     //Only need to cost amount of items
     sacrifice_item_indexes.truncate(cost);
 
-    let error_conditions = get_index_specifier_error_conditions(inventory_item);
+    let error_conditions = get_index_specifier_error_conditions(&inventory_item);
     let calculated_sacrifice_item_indexes = calculate_absolute_item_indexes(
         game,
         inventory_index,
@@ -92,28 +92,30 @@ pub fn execute_craft_expand_modifiers(
         &error_conditions,
     )?;
 
+    //Create item
+    let new_item_modifier = execute_craft(
+        &mut game.random_generator_state,
+        &inventory_item.crafting_info,
+    );
+
     //Crafting cost
     for sacrifice_item_index in calculated_sacrifice_item_indexes {
         game.inventory[sacrifice_item_index] = None;
     }
 
-    //Create item
-    let new_item_modifier = execute_craft(
-        &mut game.random_generator_state,
-        &game.inventory[inventory_index]
-            .as_ref()
-            .unwrap()
-            .crafting_info,
+    let mut inventory_item = game.inventory[inventory_index].as_mut().expect(
+        format!(
+            "Item at index {} did exist earlier but does not anymore.",
+            inventory_index
+        )
+        .as_str(),
     );
-    game.inventory[inventory_index]
-        .as_mut()
-        .unwrap()
-        .modifiers
-        .push(new_item_modifier);
+
+    inventory_item.modifiers.push(new_item_modifier);
 
     Ok(ExecuteExpandModifiersReport {
         //TODO replace all unwrap and expect with better error handling
-        new_item: game.inventory[inventory_index].clone().unwrap(),
+        new_item: inventory_item.clone(),
         paid_cost: cost,
         new_cost: execute_craft_expand_modifiers_calculate_cost(game, inventory_index),
         leftover_spending_treasure: game.treasure.clone(),
