@@ -36,16 +36,17 @@ pub fn execute(game: &mut Game) -> Result<ExecuteExpandMaxElementReport, MyError
     pay_crafting_cost(game, &crafting_cost)?;
 
     //Increase max of existing element
-    let picked_element = get_random_attack_type_from_unlocked(
-        &mut game.random_generator_state,
-        &game.difficulty.max_resistance,
-    );
+    let mut max_resistance = &mut game.difficulty.max_resistance;
+    let picked_element =
+        get_random_attack_type_from_unlocked(&mut game.random_generator_state, &max_resistance);
 
-    *game
-        .difficulty
-        .max_resistance
-        .get_mut(&picked_element)
-        .unwrap_or(&mut 1) += crafting_cost.get(&Gold).unwrap();
+    *max_resistance.get_mut(&picked_element).expect(
+        format!(
+            "Expected {picked_element:?} to exist in max_resistance, because it were picked at \
+             random from them."
+        )
+        .as_str(),
+    ) += crafting_cost.get(&Gold).unwrap();
 
     Ok(ExecuteExpandMaxElementReport {
         new_difficulty: game.difficulty.clone(),
