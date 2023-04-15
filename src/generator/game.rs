@@ -7,7 +7,7 @@ use crate::{
     generator::place::new as new_place,
     parser::hex_encoder::encode_hex,
     the_world::{
-        attack_types::AttackType,
+        attack_types::DamageType,
         difficulty::Difficulty,
         game_statistics::GameStatistics,
         item::{CraftingInfo, Item},
@@ -23,10 +23,10 @@ mod tests;
 
 pub fn new(seed: Option<[u8; 16]>) -> Game {
     let mut min_resistance = HashMap::new();
-    min_resistance.insert(AttackType::Physical, 1);
+    min_resistance.insert(DamageType::Physical, 1);
 
     let mut max_resistance = HashMap::new();
-    max_resistance.insert(AttackType::Physical, 2);
+    max_resistance.insert(DamageType::Physical, 2);
 
     let difficulty = Difficulty {
         max_resistance,
@@ -39,7 +39,7 @@ pub fn new(seed: Option<[u8; 16]>) -> Game {
     let equipped_items = vec![Item {
         modifiers: vec![Modifier {
             costs: Vec::new(),
-            gains: vec![Gain::FlatDamage(AttackType::Physical, 2)],
+            gains: vec![Gain::FlatDamage(DamageType::Physical, 2)],
         }],
         crafting_info: CraftingInfo {
             possible_rolls: difficulty.clone(),
@@ -91,24 +91,24 @@ fn create_random_generator(seed_optional: Option<[u8; 16]>) -> ([u8; 16], Lcg64X
 #[allow(dead_code)]
 pub fn new_testing(seed: Option<[u8; 16]>) -> Game {
     let mut min_resistance = HashMap::new();
-    min_resistance.insert(AttackType::Fire, 2);
-    min_resistance.insert(AttackType::Frost, 3);
-    min_resistance.insert(AttackType::Lightning, 4);
-    min_resistance.insert(AttackType::Light, 5);
-    min_resistance.insert(AttackType::Darkness, 6);
-    min_resistance.insert(AttackType::Nature, 7);
-    min_resistance.insert(AttackType::Corruption, 8);
-    min_resistance.insert(AttackType::Holy, 9);
+    min_resistance.insert(DamageType::Fire, 2);
+    min_resistance.insert(DamageType::Frost, 3);
+    min_resistance.insert(DamageType::Lightning, 4);
+    min_resistance.insert(DamageType::Light, 5);
+    min_resistance.insert(DamageType::Darkness, 6);
+    min_resistance.insert(DamageType::Nature, 7);
+    min_resistance.insert(DamageType::Corruption, 8);
+    min_resistance.insert(DamageType::Holy, 9);
 
     let mut max_resistance = HashMap::new();
-    max_resistance.insert(AttackType::Fire, 20);
-    max_resistance.insert(AttackType::Frost, 30);
-    max_resistance.insert(AttackType::Lightning, 40);
-    max_resistance.insert(AttackType::Light, 50);
-    max_resistance.insert(AttackType::Darkness, 60);
-    max_resistance.insert(AttackType::Nature, 70);
-    max_resistance.insert(AttackType::Corruption, 80);
-    max_resistance.insert(AttackType::Holy, 90);
+    max_resistance.insert(DamageType::Fire, 20);
+    max_resistance.insert(DamageType::Frost, 30);
+    max_resistance.insert(DamageType::Lightning, 40);
+    max_resistance.insert(DamageType::Light, 50);
+    max_resistance.insert(DamageType::Darkness, 60);
+    max_resistance.insert(DamageType::Nature, 70);
+    max_resistance.insert(DamageType::Corruption, 80);
+    max_resistance.insert(DamageType::Holy, 90);
 
     let difficulty = Difficulty {
         max_resistance,
@@ -137,7 +137,7 @@ pub fn new_testing(seed: Option<[u8; 16]>) -> Game {
 
     //Powerful item
     let mut modifiers = Vec::new();
-    for attack_type in AttackType::get_all() {
+    for attack_type in DamageType::get_all() {
         let modifier = Modifier {
             costs: vec![Cost::FlatItemResource(Type::Mana, 1)],
             gains: vec![Gain::FlatDamage(attack_type, 100)],
@@ -155,7 +155,7 @@ pub fn new_testing(seed: Option<[u8; 16]>) -> Game {
 
     //fill inventory with basic items
     let mut inventory = Vec::new();
-    for attack_type in AttackType::get_all() {
+    for attack_type in DamageType::get_all() {
         inventory.push(Some(Item {
             modifiers: vec![Modifier {
                 costs: Vec::new(),

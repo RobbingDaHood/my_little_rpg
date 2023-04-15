@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 
 use crate::the_world::{
-    attack_types::AttackType,
+    attack_types::DamageType,
     item_resource::Type,
     modifier_gain::Gain::{
         FlatDamage, FlatDamageAgainstHighestResistance, FlatDamageAgainstLowestResistance,
@@ -15,11 +15,11 @@ use crate::the_world::{
 
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize, Eq, Hash)]
 pub enum Gain {
-    FlatDamage(AttackType, u64),
-    PercentageIncreaseDamage(AttackType, u16),
+    FlatDamage(DamageType, u64),
+    PercentageIncreaseDamage(DamageType, u16),
     FlatItemResource(Type, u64),
-    FlatResistanceReduction(AttackType, u64),
-    PercentageIncreaseResistanceReduction(AttackType, u16),
+    FlatResistanceReduction(DamageType, u64),
+    PercentageIncreaseResistanceReduction(DamageType, u16),
     FlatDamageAgainstHighestResistance(u64),
     PercentageIncreaseDamageAgainstHighestResistance(u16),
     FlatDamageAgainstLowestResistance(u64),
@@ -30,7 +30,7 @@ pub enum Gain {
 
 impl Gain {
     //TODO Consider if the code could be simplified with default implementation
-    pub fn get_all_given_attack_types(attack_types: Vec<AttackType>) -> Vec<Gain> {
+    pub fn get_all_given_attack_types(attack_types: Vec<DamageType>) -> Vec<Gain> {
         let mut result = Vec::new();
 
         for attack_type in attack_types.clone() {

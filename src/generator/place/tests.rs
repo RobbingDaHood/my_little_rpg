@@ -5,7 +5,7 @@ mod tests_int {
             game::{new as new_game, new_testing as new_game_testing},
             place::new as new_place,
         },
-        the_world::{attack_types::AttackType, treasure_types::TreasureType},
+        the_world::{attack_types::DamageType, treasure_types::TreasureType},
     };
 
     #[test]
@@ -24,7 +24,7 @@ mod tests_int {
 
         let place = new_place(&mut game);
 
-        assert_eq!(&1, place.resistance.get(&AttackType::Physical).unwrap());
+        assert_eq!(&1, place.resistance.get(&DamageType::Physical).unwrap());
         assert_eq!(&3, place.reward.get(&TreasureType::Gold).unwrap());
         assert_eq!(place.resistance.len(), 1);
         assert_eq!(game.difficulty, place.item_reward_possible_rolls);

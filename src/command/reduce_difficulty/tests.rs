@@ -6,7 +6,7 @@ mod tests_int {
         command::reduce_difficulty::execute,
         generator::game::new_testing,
         the_world::{
-            attack_types::AttackType, difficulty::Difficulty, treasure_types::TreasureType::Gold,
+            attack_types::DamageType, difficulty::Difficulty, treasure_types::TreasureType::Gold,
         },
         Game,
     };
@@ -16,8 +16,8 @@ mod tests_int {
         let mut game = new_testing(Some([1; 16]));
 
         game.difficulty = Difficulty {
-            min_resistance: HashMap::from([(AttackType::Physical, 10), (AttackType::Fire, 10)]),
-            max_resistance: HashMap::from([(AttackType::Physical, 11), (AttackType::Fire, 11)]),
+            min_resistance: HashMap::from([(DamageType::Physical, 10), (DamageType::Fire, 10)]),
+            max_resistance: HashMap::from([(DamageType::Physical, 11), (DamageType::Fire, 11)]),
             min_simultaneous_resistances: 15,
             max_simultaneous_resistances: 7,
         };
@@ -32,7 +32,7 @@ mod tests_int {
             *game
                 .difficulty
                 .min_resistance
-                .get(&AttackType::Physical)
+                .get(&DamageType::Physical)
                 .unwrap()
         );
         assert_eq!(
@@ -40,7 +40,7 @@ mod tests_int {
             *game
                 .difficulty
                 .min_resistance
-                .get(&AttackType::Fire)
+                .get(&DamageType::Fire)
                 .unwrap()
         );
 
@@ -49,7 +49,7 @@ mod tests_int {
             *game
                 .difficulty
                 .max_resistance
-                .get(&AttackType::Physical)
+                .get(&DamageType::Physical)
                 .unwrap()
         );
         assert_eq!(
@@ -57,7 +57,7 @@ mod tests_int {
             *game
                 .difficulty
                 .max_resistance
-                .get(&AttackType::Fire)
+                .get(&DamageType::Fire)
                 .unwrap()
         );
 
@@ -73,7 +73,7 @@ mod tests_int {
             *game
                 .difficulty
                 .min_resistance
-                .get(&AttackType::Physical)
+                .get(&DamageType::Physical)
                 .unwrap()
         );
         assert_eq!(
@@ -81,7 +81,7 @@ mod tests_int {
             *game
                 .difficulty
                 .min_resistance
-                .get(&AttackType::Fire)
+                .get(&DamageType::Fire)
                 .unwrap()
         );
 
@@ -90,7 +90,7 @@ mod tests_int {
             *game
                 .difficulty
                 .max_resistance
-                .get(&AttackType::Physical)
+                .get(&DamageType::Physical)
                 .unwrap()
         );
         assert_eq!(
@@ -98,7 +98,7 @@ mod tests_int {
             *game
                 .difficulty
                 .max_resistance
-                .get(&AttackType::Fire)
+                .get(&DamageType::Fire)
                 .unwrap()
         );
 
@@ -111,27 +111,27 @@ mod tests_int {
 
         assert_eq!(
             None,
-            game.difficulty.min_resistance.get(&AttackType::Physical)
+            game.difficulty.min_resistance.get(&DamageType::Physical)
         );
         assert_eq!(
             2,
             *game
                 .difficulty
                 .min_resistance
-                .get(&AttackType::Fire)
+                .get(&DamageType::Fire)
                 .unwrap()
         );
 
         assert_eq!(
             None,
-            game.difficulty.max_resistance.get(&AttackType::Physical)
+            game.difficulty.max_resistance.get(&DamageType::Physical)
         );
         assert_eq!(
             5,
             *game
                 .difficulty
                 .max_resistance
-                .get(&AttackType::Fire)
+                .get(&DamageType::Fire)
                 .unwrap()
         );
 
@@ -144,27 +144,27 @@ mod tests_int {
 
         assert_eq!(
             None,
-            game.difficulty.min_resistance.get(&AttackType::Physical)
+            game.difficulty.min_resistance.get(&DamageType::Physical)
         );
         assert_eq!(
             1,
             *game
                 .difficulty
                 .min_resistance
-                .get(&AttackType::Fire)
+                .get(&DamageType::Fire)
                 .unwrap()
         );
 
         assert_eq!(
             None,
-            game.difficulty.max_resistance.get(&AttackType::Physical)
+            game.difficulty.max_resistance.get(&DamageType::Physical)
         );
         assert_eq!(
             2,
             *game
                 .difficulty
                 .max_resistance
-                .get(&AttackType::Fire)
+                .get(&DamageType::Fire)
                 .unwrap()
         );
 
@@ -177,27 +177,27 @@ mod tests_int {
 
         assert_eq!(
             None,
-            game.difficulty.min_resistance.get(&AttackType::Physical)
+            game.difficulty.min_resistance.get(&DamageType::Physical)
         );
         assert_eq!(
             1,
             *game
                 .difficulty
                 .min_resistance
-                .get(&AttackType::Fire)
+                .get(&DamageType::Fire)
                 .unwrap()
         );
 
         assert_eq!(
             None,
-            game.difficulty.max_resistance.get(&AttackType::Physical)
+            game.difficulty.max_resistance.get(&DamageType::Physical)
         );
         assert_eq!(
             2,
             *game
                 .difficulty
                 .max_resistance
-                .get(&AttackType::Fire)
+                .get(&DamageType::Fire)
                 .unwrap()
         );
 

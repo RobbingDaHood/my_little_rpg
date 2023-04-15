@@ -4,12 +4,12 @@ use rand::prelude::SliceRandom;
 use rand_pcg::Lcg64Xsh32;
 use serde::{Deserialize, Serialize};
 
-use crate::the_world::attack_types::AttackType::{
+use crate::the_world::attack_types::DamageType::{
     Corruption, Darkness, Fire, Frost, Holy, Light, Lightning, Nature, Physical,
 };
 
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize, Eq, Hash, PartialOrd, Ord)]
-pub enum AttackType {
+pub enum DamageType {
     Physical,
     Fire,
     Frost,
@@ -23,9 +23,9 @@ pub enum AttackType {
 
 //TODO: Could also create a resource if more than half damage goes through; Then that resource could be used in crafting and modifiers.
 
-impl AttackType {
+impl DamageType {
     //TODO replace all get_all with static fields; or at least them return that.
-    pub fn get_all() -> Vec<AttackType> {
+    pub fn get_all() -> Vec<DamageType> {
         vec![
             Physical, Fire, Frost, Lightning, Light, Darkness, Nature, Corruption, Holy,
         ]
@@ -34,9 +34,9 @@ impl AttackType {
 
 pub fn get_random_attack_type_from_unlocked(
     random_generator_state: &mut Lcg64Xsh32,
-    unlocks: &HashMap<AttackType, u64>,
-) -> AttackType {
-    let mut attack_values: Vec<&AttackType> = unlocks.keys().collect();
+    unlocks: &HashMap<DamageType, u64>,
+) -> DamageType {
+    let mut attack_values: Vec<&DamageType> = unlocks.keys().collect();
     attack_values.sort();
     attack_values
         .choose(random_generator_state)

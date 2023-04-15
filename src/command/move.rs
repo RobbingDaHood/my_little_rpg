@@ -7,7 +7,7 @@ use crate::{
     generator::place::new,
     my_little_rpg_errors::MyError,
     the_world::{
-        attack_types::AttackType,
+        attack_types::DamageType,
         item::{CraftingInfo, Item},
         item_modifier::Modifier,
         item_resource::Type,
@@ -26,8 +26,8 @@ mod tests;
 #[derive(Clone, PartialEq, Eq, Debug, Serialize, Deserialize)]
 pub struct ItemReport {
     item: Item,
-    current_damage: HashMap<AttackType, u64>,
-    current_resistance_reduction: HashMap<AttackType, u64>,
+    current_damage: HashMap<DamageType, u64>,
+    current_resistance_reduction: HashMap<DamageType, u64>,
     treasure_bonus: HashMap<TreasureType, u16>,
     item_gain: u16,
     effect_description: Box<str>,
@@ -225,8 +225,8 @@ fn update_claim_place_effect(
 }
 
 fn update_gain_effect(
-    current_damage: &mut HashMap<AttackType, u64>,
-    current_resistance_reduction: &mut HashMap<AttackType, u64>,
+    current_damage: &mut HashMap<DamageType, u64>,
+    current_resistance_reduction: &mut HashMap<DamageType, u64>,
     treasure_bonus: &mut HashMap<TreasureType, u16>,
     item_gain: &mut u16,
     current_item_resources: &mut HashMap<Type, u64>,
@@ -307,7 +307,7 @@ fn update_gain_effect(
     }
 }
 
-fn get_attack_type_with_min_amount(place: &Place) -> &AttackType {
+fn get_attack_type_with_min_amount(place: &Place) -> &DamageType {
     place
         .resistance
         .iter()
@@ -316,7 +316,7 @@ fn get_attack_type_with_min_amount(place: &Place) -> &AttackType {
         .unwrap()
 }
 
-fn get_attack_type_with_max_amount(place: &Place) -> &AttackType {
+fn get_attack_type_with_max_amount(place: &Place) -> &DamageType {
     place
         .resistance
         .iter()
@@ -326,8 +326,8 @@ fn get_attack_type_with_max_amount(place: &Place) -> &AttackType {
 }
 
 fn add_multiplier_to_attack_type_base(
-    attack_type_base: &mut HashMap<AttackType, u64>,
-    attack_type: &AttackType,
+    attack_type_base: &mut HashMap<DamageType, u64>,
+    attack_type: &DamageType,
     multiplier_as_percentage: u16,
 ) {
     attack_type_base
@@ -379,7 +379,7 @@ fn calculate_are_all_costs_payable(
 
 fn evaluate_item_costs(
     item: &Item,
-    current_damage: &HashMap<AttackType, u64>,
+    current_damage: &HashMap<DamageType, u64>,
     game: &Game,
     index: usize,
 ) -> Result<HashMap<Type, u64>, MyError> {

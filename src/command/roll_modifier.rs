@@ -8,7 +8,7 @@ use rand::Rng;
 use rand_pcg::Lcg64Xsh32;
 
 use crate::the_world::{
-    attack_types::{get_random_attack_type_from_unlocked, AttackType},
+    attack_types::{get_random_attack_type_from_unlocked, DamageType},
     item::CraftingInfo,
     item_modifier::Modifier,
     item_resource::Type,
@@ -514,7 +514,7 @@ fn execute_craft_roll_modifier_benefits(
     minimum_elements: usize,
     maximum_elements: usize,
 ) -> Vec<Gain> {
-    let attack_types = AttackType::get_all()
+    let attack_types = DamageType::get_all()
         .into_iter()
         .filter(|attack_type| {
             crafting_info
@@ -612,7 +612,7 @@ fn randomize_flat_damage(
     random_generator_state: &mut Lcg64Xsh32,
     crafting_info: &CraftingInfo,
     cost_bonus: u64,
-    attack_type: &AttackType,
+    attack_type: &DamageType,
 ) -> u64 {
     let min_damage = *crafting_info
         .possible_rolls

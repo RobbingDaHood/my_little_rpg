@@ -6,7 +6,7 @@ use crate::the_world::{attack_types, difficulty::Difficulty, treasure_types::Tre
 
 #[derive(Clone, PartialEq, Eq, Debug, Serialize, Deserialize)]
 pub struct Place {
-    pub(crate) resistance: HashMap<attack_types::AttackType, u64>,
+    pub(crate) resistance: HashMap<attack_types::DamageType, u64>,
     pub(crate) reward: HashMap<TreasureType, u64>,
     pub(crate) item_reward_possible_rolls: Difficulty,
 }
@@ -15,7 +15,7 @@ impl Place {
     //TODO consider moving function and tests
     pub fn claim_rewards(
         &self,
-        attacks: &HashMap<&attack_types::AttackType, u64>,
+        attacks: &HashMap<&attack_types::DamageType, u64>,
     ) -> Option<HashMap<TreasureType, u64>> {
         let are_all_resistance_defeated =
             self.resistance
@@ -38,7 +38,7 @@ impl Place {
 mod tests_int {
     use std::collections::HashMap;
 
-    use crate::the_world::{attack_types::AttackType, difficulty::Difficulty, place::Place};
+    use crate::the_world::{attack_types::DamageType, difficulty::Difficulty, place::Place};
 
     #[test]
     fn claim_rewards_no_resistance() {
@@ -63,15 +63,15 @@ mod tests_int {
         let reward = HashMap::new();
         let mut resistance = HashMap::new();
 
-        resistance.insert(AttackType::Physical, 1);
-        resistance.insert(AttackType::Fire, 2);
-        resistance.insert(AttackType::Frost, 3);
-        resistance.insert(AttackType::Lightning, 4);
-        resistance.insert(AttackType::Light, 5);
-        resistance.insert(AttackType::Darkness, 6);
-        resistance.insert(AttackType::Nature, 7);
-        resistance.insert(AttackType::Corruption, 8);
-        resistance.insert(AttackType::Holy, 9);
+        resistance.insert(DamageType::Physical, 1);
+        resistance.insert(DamageType::Fire, 2);
+        resistance.insert(DamageType::Frost, 3);
+        resistance.insert(DamageType::Lightning, 4);
+        resistance.insert(DamageType::Light, 5);
+        resistance.insert(DamageType::Darkness, 6);
+        resistance.insert(DamageType::Nature, 7);
+        resistance.insert(DamageType::Corruption, 8);
+        resistance.insert(DamageType::Holy, 9);
 
         let item_reward_possible_rolls = Difficulty {
             max_resistance: HashMap::new(),
@@ -86,7 +86,7 @@ mod tests_int {
             item_reward_possible_rolls,
         };
 
-        let attacks: HashMap<&AttackType, u64> = resistance
+        let attacks: HashMap<&DamageType, u64> = resistance
             .iter()
             .map(|(attack_stype, amount)| (attack_stype, *amount))
             .collect();
@@ -99,15 +99,15 @@ mod tests_int {
         let reward = HashMap::new();
         let mut resistance = HashMap::new();
 
-        resistance.insert(AttackType::Physical, 1);
-        resistance.insert(AttackType::Fire, 2);
-        resistance.insert(AttackType::Frost, 3);
-        resistance.insert(AttackType::Lightning, 4);
-        resistance.insert(AttackType::Light, 5);
-        resistance.insert(AttackType::Darkness, 6);
-        resistance.insert(AttackType::Nature, 7);
-        resistance.insert(AttackType::Corruption, 8);
-        resistance.insert(AttackType::Holy, 9);
+        resistance.insert(DamageType::Physical, 1);
+        resistance.insert(DamageType::Fire, 2);
+        resistance.insert(DamageType::Frost, 3);
+        resistance.insert(DamageType::Lightning, 4);
+        resistance.insert(DamageType::Light, 5);
+        resistance.insert(DamageType::Darkness, 6);
+        resistance.insert(DamageType::Nature, 7);
+        resistance.insert(DamageType::Corruption, 8);
+        resistance.insert(DamageType::Holy, 9);
 
         let item_reward_possible_rolls = Difficulty {
             max_resistance: HashMap::new(),
@@ -122,9 +122,9 @@ mod tests_int {
             item_reward_possible_rolls,
         };
 
-        resistance.remove(&AttackType::Physical);
+        resistance.remove(&DamageType::Physical);
 
-        let attacks: HashMap<&AttackType, u64> = resistance
+        let attacks: HashMap<&DamageType, u64> = resistance
             .iter()
             .map(|(attack_stype, amount)| (attack_stype, *amount))
             .collect();

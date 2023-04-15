@@ -7,7 +7,7 @@ use serde_json::{json, Value};
 use crate::{
     my_little_rpg_errors::MyError,
     the_world::{
-        attack_types::AttackType,
+        attack_types::DamageType,
         difficulty::Difficulty,
         treasure_types::{pay_crafting_cost, TreasureType, TreasureType::Gold},
     },
@@ -36,7 +36,7 @@ pub fn execute(game: &mut Game) -> Result<ExecuteExpandMinElementReport, MyError
     let crafting_cost = execute_expand_min_element_calculate_cost(game);
     let crafting_gold_cost = crafting_cost.get(&Gold).unwrap();
 
-    let max_possible_elements: Vec<&AttackType> = game
+    let max_possible_elements: Vec<&DamageType> = game
         .difficulty
         .min_resistance
         .iter()

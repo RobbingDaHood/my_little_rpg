@@ -6,14 +6,14 @@ use std::{
 use rand::{seq::SliceRandom, Rng};
 
 use crate::{
-    the_world::{attack_types::AttackType, place::Place, treasure_types::TreasureType},
+    the_world::{attack_types::DamageType, place::Place, treasure_types::TreasureType},
     Game,
 };
 
 mod tests;
 
 pub fn new(game: &mut Game) -> Place {
-    let mut resistance: HashMap<AttackType, u64> = HashMap::new();
+    let mut resistance: HashMap<DamageType, u64> = HashMap::new();
     let mut reward = HashMap::new();
 
     let mut relevant_attack_types = HashSet::new();
@@ -23,7 +23,7 @@ pub fn new(game: &mut Game) -> Place {
         .max_resistance
         .keys()
         .chain(game.difficulty.min_resistance.keys())
-        .collect::<Vec<&AttackType>>()
+        .collect::<Vec<&DamageType>>()
     {
         relevant_attack_types.insert(attack_type);
     }
@@ -40,7 +40,7 @@ pub fn new(game: &mut Game) -> Place {
         .random_generator_state
         .gen_range(minimum_elements..=maximum_elements);
 
-    let mut possible_attack_types: Vec<&AttackType> =
+    let mut possible_attack_types: Vec<&DamageType> =
         game.difficulty.min_resistance.keys().collect();
     possible_attack_types.sort();
 
@@ -64,7 +64,7 @@ pub fn new(game: &mut Game) -> Place {
     }
 
     let reward_from_resistance =
-        (resistance_sum / AttackType::get_all().len() as u64) * count_elements as u64;
+        (resistance_sum / DamageType::get_all().len() as u64) * count_elements as u64;
 
     let possible_resistance_values_sum = game
         .difficulty

@@ -4,7 +4,7 @@ mod tests_int {
         command::r#move::execute,
         generator::game::new_testing,
         the_world::{
-            attack_types::AttackType,
+            attack_types::DamageType,
             item::{CraftingInfo, Item},
             item_modifier::Modifier,
             item_resource::Type,
@@ -124,7 +124,7 @@ mod tests_int {
         let power_item = Item {
             modifiers: vec![Modifier {
                 costs: Vec::new(),
-                gains: AttackType::get_all()
+                gains: DamageType::get_all()
                     .iter()
                     .map(|attack_type| Gain::FlatDamage(attack_type.clone(), 100))
                     .collect(),
@@ -177,7 +177,7 @@ mod tests_int {
 
         let first_item_cannot_pay = Item {
             modifiers: vec![Modifier {
-                costs: vec![Cost::FlatMinAttackRequirement(AttackType::Physical, 20)],
+                costs: vec![Cost::FlatMinAttackRequirement(DamageType::Physical, 20)],
                 gains: Vec::new(),
             }],
             crafting_info: CraftingInfo {
@@ -189,7 +189,7 @@ mod tests_int {
         let second_item_generates_needed_resource = Item {
             modifiers: vec![Modifier {
                 costs: Vec::new(),
-                gains: vec![Gain::FlatDamage(AttackType::Physical, 20)],
+                gains: vec![Gain::FlatDamage(DamageType::Physical, 20)],
             }],
             crafting_info: CraftingInfo {
                 possible_rolls: game.difficulty.clone(),
@@ -237,7 +237,7 @@ mod tests_int {
 
         let first_item_cannot_pay = Item {
             modifiers: vec![Modifier {
-                costs: vec![Cost::FlatMaxAttackRequirement(AttackType::Physical, 1)],
+                costs: vec![Cost::FlatMaxAttackRequirement(DamageType::Physical, 1)],
                 gains: Vec::new(),
             }],
             crafting_info: CraftingInfo {
@@ -249,7 +249,7 @@ mod tests_int {
         let second_item_generates_needed_resource = Item {
             modifiers: vec![Modifier {
                 costs: Vec::new(),
-                gains: vec![Gain::FlatDamage(AttackType::Physical, 3)],
+                gains: vec![Gain::FlatDamage(DamageType::Physical, 3)],
             }],
             crafting_info: CraftingInfo {
                 possible_rolls: game.difficulty.clone(),
@@ -453,7 +453,7 @@ mod tests_int {
         let second_item_generates_needed_resource = Item {
             modifiers: vec![Modifier {
                 costs: Vec::new(),
-                gains: vec![Gain::FlatDamage(AttackType::Physical, 10)],
+                gains: vec![Gain::FlatDamage(DamageType::Physical, 10)],
             }],
             crafting_info: CraftingInfo {
                 possible_rolls: game.difficulty.clone(),
@@ -527,7 +527,7 @@ mod tests_int {
         let second_item_generates_needed_resource = Item {
             modifiers: vec![Modifier {
                 costs: Vec::new(),
-                gains: vec![Gain::FlatDamage(AttackType::Physical, 11)],
+                gains: vec![Gain::FlatDamage(DamageType::Physical, 11)],
             }],
             crafting_info: CraftingInfo {
                 possible_rolls: game.difficulty.clone(),
@@ -702,7 +702,7 @@ mod tests_int {
 
         let first_item_cannot_pay = Item {
             modifiers: vec![Modifier {
-                costs: vec![Cost::FlatMinResistanceRequirement(AttackType::Fire, 18)],
+                costs: vec![Cost::FlatMinResistanceRequirement(DamageType::Fire, 18)],
                 gains: Vec::new(),
             }],
             crafting_info: CraftingInfo {
@@ -756,7 +756,7 @@ mod tests_int {
 
         let first_item_cannot_pay = Item {
             modifiers: vec![Modifier {
-                costs: vec![Cost::FlatMaxResistanceRequirement(AttackType::Fire, 17)],
+                costs: vec![Cost::FlatMaxResistanceRequirement(DamageType::Fire, 17)],
                 gains: Vec::new(),
             }],
             crafting_info: CraftingInfo {
@@ -1083,8 +1083,8 @@ mod tests_int {
             modifiers: vec![Modifier {
                 costs: Vec::new(),
                 gains: vec![
-                    Gain::FlatDamage(AttackType::Physical, 200),
-                    Gain::PercentageIncreaseDamage(AttackType::Physical, 200),
+                    Gain::FlatDamage(DamageType::Physical, 200),
+                    Gain::PercentageIncreaseDamage(DamageType::Physical, 200),
                 ],
             }],
             crafting_info: CraftingInfo {
@@ -1114,7 +1114,7 @@ mod tests_int {
             600,
             *result.item_report[0]
                 .current_damage
-                .get(&AttackType::Physical)
+                .get(&DamageType::Physical)
                 .unwrap()
         );
     }
@@ -1127,7 +1127,7 @@ mod tests_int {
         let item = Item {
             modifiers: vec![Modifier {
                 costs: Vec::new(),
-                gains: vec![Gain::FlatResistanceReduction(AttackType::Physical, 200)],
+                gains: vec![Gain::FlatResistanceReduction(DamageType::Physical, 200)],
             }],
             crafting_info: CraftingInfo {
                 possible_rolls: game.difficulty.clone(),
@@ -1156,7 +1156,7 @@ mod tests_int {
             200,
             *result.item_report[0]
                 .current_resistance_reduction
-                .get(&AttackType::Physical)
+                .get(&DamageType::Physical)
                 .unwrap()
         );
     }
@@ -1170,8 +1170,8 @@ mod tests_int {
             modifiers: vec![Modifier {
                 costs: Vec::new(),
                 gains: vec![
-                    Gain::FlatResistanceReduction(AttackType::Physical, 200),
-                    Gain::PercentageIncreaseResistanceReduction(AttackType::Physical, 200),
+                    Gain::FlatResistanceReduction(DamageType::Physical, 200),
+                    Gain::PercentageIncreaseResistanceReduction(DamageType::Physical, 200),
                 ],
             }],
             crafting_info: CraftingInfo {
@@ -1201,7 +1201,7 @@ mod tests_int {
             600,
             *result.item_report[0]
                 .current_resistance_reduction
-                .get(&AttackType::Physical)
+                .get(&DamageType::Physical)
                 .unwrap()
         );
     }
@@ -1243,7 +1243,7 @@ mod tests_int {
             200,
             *result.item_report[0]
                 .current_damage
-                .get(&AttackType::Holy)
+                .get(&DamageType::Holy)
                 .unwrap()
         );
     }
@@ -1288,7 +1288,7 @@ mod tests_int {
             600,
             *result.item_report[0]
                 .current_damage
-                .get(&AttackType::Holy)
+                .get(&DamageType::Holy)
                 .unwrap()
         );
     }
@@ -1330,7 +1330,7 @@ mod tests_int {
             200,
             *result.item_report[0]
                 .current_damage
-                .get(&AttackType::Darkness)
+                .get(&DamageType::Darkness)
                 .unwrap()
         );
     }
@@ -1375,7 +1375,7 @@ mod tests_int {
             400,
             *result.item_report[0]
                 .current_damage
-                .get(&AttackType::Darkness)
+                .get(&DamageType::Darkness)
                 .unwrap()
         );
     }
@@ -1420,7 +1420,7 @@ mod tests_int {
             600,
             *result.item_report[0]
                 .current_damage
-                .get(&AttackType::Darkness)
+                .get(&DamageType::Darkness)
                 .unwrap()
         );
     }
