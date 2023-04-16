@@ -18,8 +18,7 @@ mod tests_int {
 
         assert_eq!(
             Err(MyError::create_execute_command_error(
-                "There are no element minimum values that can be upgraded, consider expanding a \
-                 max element value."
+                "Cant pay the crafting cost, the cost is {Gold: 1} and you only have {}"
                     .to_string()
             )),
             execute_expand_min_element(&mut game)

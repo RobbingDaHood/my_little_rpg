@@ -42,12 +42,6 @@ pub struct ExecuteMoveCommandReport {
     new_place: Place,
 }
 
-#[derive(Clone, PartialEq, Eq, Debug, Serialize, Deserialize)]
-pub struct ExecuteMoveCommandErrorReport {
-    item_report: Vec<ItemReport>,
-    result: Box<str>,
-}
-
 pub fn execute_json(
     game: &mut Game,
     index: usize,
@@ -61,7 +55,7 @@ pub fn execute_json(
 pub fn execute(
     game: &mut Game,
     index: usize,
-) -> Result<ExecuteMoveCommandReport, ExecuteMoveCommandErrorReport> {
+) -> Result<ExecuteMoveCommandReport, MyError> {
     if game.places.len() <= index {
         return report_place_does_not_exist(game, index);
     }
@@ -182,10 +176,10 @@ pub fn execute(
     game.game_statistics.loses_in_a_row += 1;
     game.game_statistics.wins_in_a_row = 0;
 
-    Err(ExecuteMoveCommandErrorReport {
-        item_report,
-        result: "You did not deal enough damage to overcome the challenges in this place.".into(),
-    })
+    Err(MyError::create_move_command_error(
+        "You did not deal enough damage to overcome the challenges in this place.".to_string(),
+        json!(item_report).to_string(),
+    ))
 }
 
 //TODO Save stack of events, expose events and load events (Last part likely requires to be able to load files)
@@ -193,16 +187,15 @@ pub fn execute(
 fn report_place_does_not_exist(
     game: &mut Game,
     index: usize,
-) -> Result<ExecuteMoveCommandReport, ExecuteMoveCommandErrorReport> {
-    Err(ExecuteMoveCommandErrorReport {
-        item_report: Vec::new(),
-        result: format!(
+) -> Result<ExecuteMoveCommandReport, MyError> {
+    Err(MyError::create_move_command_error(
+        format!(
             "Error: execute_move_command: Index {} is out of range of places, places is {} long.",
             index,
             game.places.len()
-        )
-        .into(),
-    })
+        ),
+        "[]".to_string(),
+    ))
 }
 
 fn update_claim_place_effect(
@@ -405,40 +398,41 @@ fn evaluate_item_costs(
                     let resource_amount = game.item_resources.get(item_resource_type).unwrap_or(&0);
                     if resource_amount > amount {
                         return Err(MyError::create_execute_command_error(format!(
-                            "Did not fulfill the FlatMaxItemResourceRequirement of {amount} {item_resource_type:?}, had \
-                             {resource_amount:?} and that is too much."
+                            "Did not fulfill the FlatMaxItemResourceRequirement of {amount} \
+                             {item_resource_type:?}, had {resource_amount:?} and that is too much."
                         )));
                     }
                 }
                 Cost::FlatMinAttackRequirement(attack_type, amount) => {
                     if current_damage.get(attack_type).unwrap_or(&0) < amount {
                         return Err(MyError::create_execute_command_error(format!(
-                            "Did not fulfill the FlatMinAttackRequirement of {amount} {attack_type:?} damage, only \
-                             did {current_damage:?} damage."
+                            "Did not fulfill the FlatMinAttackRequirement of {amount} \
+                             {attack_type:?} damage, only did {current_damage:?} damage."
                         )));
                     }
                 }
                 Cost::FlatMaxAttackRequirement(attack_type, amount) => {
                     if current_damage.get(attack_type).unwrap_or(&0) > amount {
                         return Err(MyError::create_execute_command_error(format!(
-                            "Did not fulfill the FlatMaxAttackRequirement of {amount} {attack_type:?} damage, did \
-                             {current_damage:?} damage and that is too much."
+                            "Did not fulfill the FlatMaxAttackRequirement of {amount} \
+                             {attack_type:?} damage, did {current_damage:?} damage and that is \
+                             too much."
                         )));
                     }
                 }
                 Cost::FlatSumMinAttackRequirement(amount) => {
                     if current_damage.values().sum::<u64>() < *amount {
                         return Err(MyError::create_execute_command_error(format!(
-                            "Did not fulfill the FlatSumMinAttackRequirement of {amount} damage, only \
-                             did {current_damage:?} damage."
+                            "Did not fulfill the FlatSumMinAttackRequirement of {amount} damage, \
+                             only did {current_damage:?} damage."
                         )));
                     }
                 }
                 Cost::FlatSumMaxAttackRequirement(amount) => {
                     if current_damage.values().sum::<u64>() > *amount {
                         return Err(MyError::create_execute_command_error(format!(
-                            "Did not fulfill the FlatSumMaxAttackRequirement of {amount} damage, did \
-                             {current_damage:?} damage damage and that is too much."
+                            "Did not fulfill the FlatSumMaxAttackRequirement of {amount} damage, \
+                             did {current_damage:?} damage damage and that is too much."
                         )));
                     }
                 }
@@ -446,8 +440,8 @@ fn evaluate_item_costs(
                     let modulus_value = index.rem_euclid(usize::from(*modulus));
                     if !valid_values.contains(&u8::try_from(modulus_value).unwrap()) {
                         return Err(MyError::create_execute_command_error(format!(
-                            "Did not fulfill the PlaceLimitedByIndexModulus: {index} % {modulus} = {modulus_value} and \
-                             that is not contained in {valid_values:?}."
+                            "Did not fulfill the PlaceLimitedByIndexModulus: {index} % {modulus} \
+                             = {modulus_value} and that is not contained in {valid_values:?}."
                         )));
                     }
                 }
@@ -456,8 +450,9 @@ fn evaluate_item_costs(
                         game.places[index].resistance.get(attack_type).unwrap_or(&0);
                     if resistance_amount_place < amount {
                         return Err(MyError::create_execute_command_error(format!(
-                            "Did not fulfill the FlatMinResistanceRequirement of {amount} {attack_type:?} damage, \
-                             place only has {resistance_amount_place:?} damage."
+                            "Did not fulfill the FlatMinResistanceRequirement of {amount} \
+                             {attack_type:?} damage, place only has {resistance_amount_place:?} \
+                             damage."
                         )));
                     }
                 }
@@ -466,8 +461,9 @@ fn evaluate_item_costs(
                         game.places[index].resistance.get(attack_type).unwrap_or(&0);
                     if resistance_amount_place > amount {
                         return Err(MyError::create_execute_command_error(format!(
-                            "Did not fulfill the FlatMaxResistanceRequirement of {amount} {attack_type:?} damage, \
-                             place has {resistance_amount_place:?} damage and that is too much."
+                            "Did not fulfill the FlatMaxResistanceRequirement of {amount} \
+                             {attack_type:?} damage, place has {resistance_amount_place:?} damage \
+                             and that is too much."
                         )));
                     }
                 }
@@ -475,8 +471,8 @@ fn evaluate_item_costs(
                     let damage_sum = game.places[index].resistance.values().sum::<u64>();
                     if damage_sum < *amount {
                         return Err(MyError::create_execute_command_error(format!(
-                            "Did not fulfill the FlatMinSumResistanceRequirement of {amount} damage, \
-                             place only has {damage_sum:?} damage."
+                            "Did not fulfill the FlatMinSumResistanceRequirement of {amount} \
+                             damage, place only has {damage_sum:?} damage."
                         )));
                     }
                 }
@@ -484,8 +480,8 @@ fn evaluate_item_costs(
                     let damage_sum = game.places[index].resistance.values().sum::<u64>();
                     if damage_sum > *amount {
                         return Err(MyError::create_execute_command_error(format!(
-                            "Did not fulfill the FlatMaxSumResistanceRequirement of {amount} damage, \
-                             place has {damage_sum:?} damage and that is too much."
+                            "Did not fulfill the FlatMaxSumResistanceRequirement of {amount} \
+                             damage, place has {damage_sum:?} damage and that is too much."
                         )));
                     }
                 }

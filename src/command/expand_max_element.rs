@@ -6,7 +6,7 @@ use serde_json::{json, Value};
 use crate::{
     my_little_rpg_errors::MyError,
     the_world::{
-        damage_types::{get_mut_random_attack_type},
+        damage_types::get_mut_random_attack_type,
         difficulty::Difficulty,
         treasure_types::{pay_crafting_cost, TreasureType, TreasureType::Gold},
     },
@@ -35,12 +35,17 @@ pub fn execute(game: &mut Game) -> Result<ExecuteExpandMaxElementReport, MyError
     let crafting_cost = execute_expand_max_element_calculate_cost(game);
     pay_crafting_cost(game, &crafting_cost)?;
 
+    let max_resistance_diff: u64 = crafting_cost
+        .values()
+        .fold(0u64, |r, s| r.checked_add(*s).unwrap_or(u64::MAX));
+
     //Increase max of existing element
     *get_mut_random_attack_type(
         &mut game.random_generator_state,
         &mut game.difficulty.max_resistance,
+        &|_,_| true
     )?
-    .get_mut() += crafting_cost.get(&Gold).unwrap();
+    .get_mut() += max_resistance_diff;
 
     Ok(ExecuteExpandMaxElementReport {
         new_difficulty: game.difficulty.clone(),

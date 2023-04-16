@@ -12,7 +12,7 @@ use crate::{
     generator::place::new,
     my_little_rpg_errors::MyError,
     the_world::{
-        damage_types::{get_mut_random_attack_type},
+        damage_types::get_mut_random_attack_type,
         difficulty::Difficulty,
         treasure_types::{TreasureType, TreasureType::Gold},
     },
@@ -41,6 +41,7 @@ pub fn execute(game: &mut Game) -> Result<Report, MyError> {
     let mut random_min_entry = get_mut_random_attack_type(
         &mut game.random_generator_state,
         &mut game.difficulty.min_resistance,
+        &|_, _| true,
     )?;
     let attack_type = random_min_entry.key();
     let new_max_value = random_min_entry.get().div(2);

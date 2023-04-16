@@ -46,7 +46,7 @@ pub fn get_random_attack_type_from_unlocked_new(
     random_generator_state: &mut Lcg64Xsh32,
     unlocks: &HashMap<DamageType, u64>,
 ) -> Result<(DamageType, u64), MyError> {
-    let picked_type = get_random_attack_type(random_generator_state, unlocks)?;
+    let picked_type = get_random_attack_type(random_generator_state, unlocks, &|_, _| true)?;
     let picked_value_amount = unlocks
         .get(&picked_type)
         .expect("Just fetched this key from the map, so it should be Occupied");
@@ -56,8 +56,14 @@ pub fn get_random_attack_type_from_unlocked_new(
 fn get_random_attack_type(
     random_generator_state: &mut Lcg64Xsh32,
     unlocks: &HashMap<DamageType, u64>,
+    condition: &dyn Fn(&DamageType, &u64) -> bool,
 ) -> Result<DamageType, MyError> {
-    let mut attack_values: Vec<&DamageType> = unlocks.keys().collect();
+    let mut attack_values: Vec<&DamageType> = unlocks
+        .iter()
+        .filter(|(damage_kind, damage_amount)| condition(damage_kind, damage_amount))
+        .map(|(damage_kind, damage_amount)| damage_kind)
+        .collect();
+
     attack_values.sort();
     let picked_type = attack_values
         .choose(random_generator_state)
@@ -72,8 +78,9 @@ fn get_random_attack_type(
 pub fn get_mut_random_attack_type<'a>(
     random_generator_state: &mut Lcg64Xsh32,
     unlocks: &'a mut HashMap<DamageType, u64>,
+    condition: &dyn Fn(&DamageType, &u64) -> bool,
 ) -> Result<OccupiedEntry<'a, DamageType, u64>, MyError> {
-    let picked_type = get_random_attack_type(random_generator_state, unlocks)?;
+    let picked_type = get_random_attack_type(random_generator_state, unlocks, condition)?;
     match unlocks.entry(picked_type) {
         Entry::Occupied(entry) => Ok(entry),
         Entry::Vacant(_) => panic!("Just fetched this key from the map, so it should be Occupied"),

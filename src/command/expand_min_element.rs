@@ -7,7 +7,7 @@ use serde_json::{json, Value};
 use crate::{
     my_little_rpg_errors::MyError,
     the_world::{
-        damage_types::DamageType,
+        damage_types::{get_mut_random_attack_type, DamageType},
         difficulty::Difficulty,
         treasure_types::{pay_crafting_cost, TreasureType, TreasureType::Gold},
     },
@@ -34,40 +34,33 @@ pub fn execute_json(game: &mut Game) -> Value {
 pub fn execute(game: &mut Game) -> Result<ExecuteExpandMinElementReport, MyError> {
     //Crafting cost
     let crafting_cost = execute_expand_min_element_calculate_cost(game);
-    let crafting_gold_cost = crafting_cost.get(&Gold).unwrap();
+    pay_crafting_cost(game, &crafting_cost)?;
 
-    let max_possible_elements: Vec<&DamageType> = game
-        .difficulty
-        .min_resistance
-        .iter()
-        .filter(|(attack_type, amount)| {
-            game.difficulty.max_resistance.get(attack_type).unwrap()
-                > &(*amount + crafting_gold_cost)
-        })
-        .map(|(attack_type, _)| attack_type)
-        .collect();
+    let min_resistance_diff: u64 = crafting_cost
+        .values()
+        .fold(0u64, |r, s| r.checked_add(*s).unwrap_or(u64::MAX));
 
-    if max_possible_elements.is_empty() {
-        return Err(MyError::create_execute_command_error(
+    //Increase max of existing element
+    *get_mut_random_attack_type(
+        &mut game.random_generator_state,
+        &mut game.difficulty.min_resistance,
+        &|attack_type, amount| {
+            let max_resistance_amount =
+                game.difficulty.max_resistance.get(&attack_type).expect(
+                    "We expect Max resistance to have the same elements as Min resistance.",
+                );
+            let possible_new_min_resistance_amount = *amount + min_resistance_diff;
+            *max_resistance_amount > possible_new_min_resistance_amount
+        },
+    )
+    .map_err(|e| {
+        MyError::create_execute_command_error(
             "There are no element minimum values that can be upgraded, consider expanding a max \
              element value."
                 .to_string(),
-        ));
-    }
-
-    //Increase min of existing element
-    let picked_element = game
-        .random_generator_state
-        .gen_range(0..max_possible_elements.len());
-    let picked_element = max_possible_elements[picked_element].clone();
-
-    pay_crafting_cost(game, &crafting_cost)?;
-
-    *game
-        .difficulty
-        .min_resistance
-        .get_mut(&picked_element)
-        .unwrap() += crafting_gold_cost;
+        )
+    })?
+    .get_mut() += min_resistance_diff;
 
     Ok(ExecuteExpandMinElementReport {
         new_difficulty: game.difficulty.clone(),
