@@ -12,7 +12,7 @@ pub struct Place {
 }
 
 impl Place {
-    //TODO consider moving function and tests
+    //TODO consider moving function and tests: Because should the place know about attacks etc.
     pub fn claim_rewards(
         &self,
         attacks: &HashMap<&damage_types::DamageType, u64>,

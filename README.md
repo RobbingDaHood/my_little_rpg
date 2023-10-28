@@ -11,9 +11,9 @@ So it is a Command line interface based Turn based role playing game: CLIT RPG :
 
 ## Method one: Use our executable
 1. Download the executable: TBD 
-1. Startup the server: TBD
-1. Have some method of sending TCP packages from the command line. A popular choice is ncat/netcat.
-1. It is also recommended to have some method of parsing JSON. A popular choice is JQ: https://stedolan.github.io/jq/ 
+2. Startup the server: TBD
+3. Have some method of sending TCP packages from the command line. A popular choice is ncat/netcat.
+4. It is also recommended to have some method of parsing JSON. A popular choice is JQ: https://stedolan.github.io/jq/ 
 
 ## Method Two: Build executable yourself
 

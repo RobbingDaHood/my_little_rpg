@@ -1,4 +1,3 @@
-pub use crate::command::commands::Command;
 use crate::{
     command::commands::Command::{
         AddModifier, Equip, ExpandElements, ExpandEquipmentSlots, ExpandMaxElement,
@@ -9,6 +8,8 @@ use crate::{
     my_little_rpg_errors::MyError,
     the_world::index_specifier::IndexSpecifier,
 };
+pub use crate::command::commands::Command;
+use crate::parser::basetype_parser::try_parse_usize;
 
 mod tests;
 
@@ -45,7 +46,7 @@ impl Command {
             .map(|s| {
                 match s.chars().next() {
                     Some('+') => {
-                        Self::try_parse_usize(&s[1..s.len()])
+                        try_parse_usize(&s[1..s.len()])
                             .map(|relative_index_diff| {
                                 if relative_too.checked_add(relative_index_diff).is_some() {
                                     Ok(IndexSpecifier::RelativePositive(relative_index_diff))
@@ -58,7 +59,7 @@ impl Command {
                             .and_then(|i| i)
                     }
                     Some('-') => {
-                        Self::try_parse_usize(&s[1..s.len()])
+                        try_parse_usize(&s[1..s.len()])
                             .map(|relative_index_diff| {
                                 if relative_too.checked_sub(relative_index_diff).is_some() {
                                     Ok(IndexSpecifier::RelativeNegative(relative_index_diff))
@@ -70,7 +71,7 @@ impl Command {
                             })
                             .and_then(|i| i)
                     }
-                    _ => Self::try_parse_usize(s).map(IndexSpecifier::Absolute),
+                    _ => try_parse_usize(s).map(IndexSpecifier::Absolute),
                 }
             })
             .collect()
@@ -84,32 +85,8 @@ impl Command {
             );
             Err(MyError::create_parse_command_error(error_message))
         } else {
-            Self::try_parse_usize(command_parts[1]).map(Move)
+            try_parse_usize(command_parts[1]).map(Move)
         }
-    }
-
-    //TODO consider if multiple try_parse can be done in one method
-    fn try_parse_usize(string_to_parse: &str) -> Result<usize, MyError> {
-        string_to_parse.parse::<usize>().map_err(|error| {
-            let error_message = format!(
-                "The following parameter {}, got the following error while parsing: {:?}",
-                string_to_parse, error
-            );
-            MyError::create_parse_command_error(error_message)
-        })
-    }
-
-    fn try_parse_string(string_to_parse: &str) -> Result<Box<str>, MyError> {
-        string_to_parse
-            .parse::<String>()
-            .map_err(|error| {
-                let error_message = format!(
-                    "The following parameter {}, got the following error while parsing: {:?}",
-                    string_to_parse, error
-                );
-                MyError::create_parse_command_error(error_message)
-            })
-            .map(String::into)
     }
 
     fn try_parse_add_modifier(command_parts: &Vec<&str>) -> Result<Command, MyError> {
@@ -120,7 +97,7 @@ impl Command {
             );
             Err(MyError::create_parse_command_error(error_message))
         } else {
-            let inventory_position = Self::try_parse_usize(command_parts[1])?;
+            let inventory_position = try_parse_usize(command_parts[1])?;
             Self::try_parse_possible_relative_indexes(command_parts[2], inventory_position).map(
                 |parsed_sacrifice_item_indexes| {
                     AddModifier(inventory_position, parsed_sacrifice_item_indexes)
@@ -138,8 +115,8 @@ impl Command {
             return Err(MyError::create_parse_command_error(error_message));
         }
 
-        let inventory_position = Self::try_parse_usize(command_parts[1])?;
-        let equipped_item_position = Self::try_parse_usize(command_parts[2])?;
+        let inventory_position = try_parse_usize(command_parts[1])?;
+        let equipped_item_position = try_parse_usize(command_parts[2])?;
         Ok(Equip(inventory_position, equipped_item_position))
     }
 
@@ -152,8 +129,8 @@ impl Command {
             return Err(MyError::create_parse_command_error(error_message));
         }
 
-        let equipped_item_position_1 = Self::try_parse_usize(command_parts[1])?;
-        let equipped_item_position_2 = Self::try_parse_usize(command_parts[2])?;
+        let equipped_item_position_1 = try_parse_usize(command_parts[1])?;
+        let equipped_item_position_2 = try_parse_usize(command_parts[2])?;
         Ok(SwapEquipment(
             equipped_item_position_1,
             equipped_item_position_2,
@@ -169,8 +146,8 @@ impl Command {
             return Err(MyError::create_parse_command_error(error_message));
         }
 
-        let inventory_index = Self::try_parse_usize(command_parts[1])?;
-        let modifier_index = Self::try_parse_usize(command_parts[2])?;
+        let inventory_index = try_parse_usize(command_parts[1])?;
+        let modifier_index = try_parse_usize(command_parts[2])?;
         let parsed_sacrifice_item_indexes =
             Self::try_parse_possible_relative_indexes(command_parts[3], inventory_index)?;
         Ok(RerollModifier(
@@ -190,11 +167,11 @@ impl Command {
             return Err(MyError::create_parse_command_error(error_message));
         }
 
-        let save_game_name = Self::try_parse_string(command_parts[1])?;
+        let save_game_name = Box::from(command_parts[1]);
         let save_game_path = if command_parts.len() < 3 {
             None
         } else {
-            Some(Self::try_parse_string(command_parts[2])?)
+            Some(Box::from(command_parts[2]))
         };
         Ok(SaveTheWorld(save_game_name, save_game_path))
     }
@@ -209,11 +186,11 @@ impl Command {
             return Err(MyError::create_parse_command_error(error_message));
         }
 
-        let save_game_name = Self::try_parse_string(command_parts[1])?;
+        let save_game_name = Box::from(command_parts[1]);
         let save_game_path = if command_parts.len() < 3 {
             None
         } else {
-            Some(Self::try_parse_string(command_parts[2])?)
+            Some(Box::from(command_parts[2]))
         };
         Ok(LoadTheWorld(save_game_name, save_game_path))
     }
