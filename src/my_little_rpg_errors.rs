@@ -7,6 +7,10 @@ pub enum MyError {
     Network { error_message: Box<str> },
     SaveLoad { error_message: Box<str> },
     ExecuteCommand { error_message: Box<str> },
+    MoveCommand {
+        error_message: Box<str>,
+        item_report: Box<str>,
+    },
 }
 
 impl From<MyError> for Box<str> {
@@ -38,11 +42,9 @@ impl MyError {
         error_message: String,
         item_report: String,
     ) -> MyError {
-        MyError {
-            kind: MyErrorKind::MoveCommand {
-                error_message: error_message.into(),
-                item_report: item_report.into(),
-            },
+        MyError::MoveCommand {
+            error_message: error_message.into(),
+            item_report: item_report.into(),
         }
     }
 
