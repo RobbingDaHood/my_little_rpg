@@ -42,7 +42,7 @@ pub struct ExecuteMoveCommandReport {
     new_place: Place,
 }
 
-pub fn execute_json(
+pub fn execute_move_command_json(
     game: &mut Game,
     index: usize,
 ) -> Value {

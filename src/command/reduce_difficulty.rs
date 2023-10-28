@@ -29,7 +29,7 @@ pub struct Report {
     leftover_spending_treasure: HashMap<TreasureType, u64>,
 }
 
-pub fn execute_json(game: &mut Game) -> Value {
+pub fn execute_reduce_difficulty_json(game: &mut Game) -> Value {
     match execute(game) {
         Ok(result) => json!(result),
         Err(result) => json!(result),

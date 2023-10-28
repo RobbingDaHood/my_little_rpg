@@ -4,7 +4,7 @@ use crate::Game;
 
 mod tests;
 
-pub fn execute_json(game: &mut Game) -> Value {
+pub fn execute_reorder_inventory_json(game: &mut Game) -> Value {
     json!(execute(game))
 }
 

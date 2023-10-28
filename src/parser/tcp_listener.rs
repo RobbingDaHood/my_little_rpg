@@ -6,30 +6,29 @@ use std::{
 
 use serde_json::json;
 
-//TODO align all the execute method names
 use crate::{
     command::{
         craft_expand_modifier::execute_craft_expand_modifiers_json,
-        craft_reroll_modifier::execute_json as execute_craft_reroll_modifier,
+        craft_reroll_modifier::execute_craft_reroll_modifier_json,
         equip_swap::{execute_equip_item_json, execute_swap_equipped_item_json},
-        expand_elements::execute_json as execute_expand_elements,
-        expand_equipment_slots::execute_json as execute_expand_equipment_slots,
-        expand_max_element::execute_json as execute_expand_max_element,
-        expand_max_simultaneous_element::execute_json as execute_expand_max_simultaneous_element,
-        expand_min_element::execute_json as execute_expand_min_element,
+        expand_elements::execute_expand_elements_json,
+        expand_equipment_slots::execute_expand_equipment_slots_json,
+        expand_max_element::execute_expand_max_element_json,
+        expand_max_simultaneous_element::execute_expand_max_simultaneous_element_json,
+        expand_min_element::execute_expand_min_element_json,
         expand_min_simultanius_element::execute_expand_min_simultaneous_element_json,
-        expand_places::execute_json as execute_expand_places,
-        help::execute_json as execute_help,
-        presentation_game_state::execute_json as execute_presentation_game_state,
-        r#move::execute_json as execute_move_command,
-        reduce_difficulty::execute_json as execute_reduce_difficulty,
-        reorder_inventory::execute_json as execute_reorder_inventory,
+        expand_places::execute_expand_places_json,
+        help::execute_help_json,
+        presentation_game_state::execute_presentation_game_state_json,
+        r#move::execute_move_command_json,
+        reduce_difficulty::execute_reduce_difficulty_json,
+        reorder_inventory::execute_reorder_inventory_json,
         save_load::{execute_load_command_json, execute_save_command_json},
     },
+    Game,
     generator::game::new,
     my_little_rpg_errors::MyError,
     parser::commands::Command,
-    Game,
 };
 
 pub struct Listener {
@@ -67,64 +66,61 @@ impl Listener {
         stream: &mut TcpStream,
         game: &mut Game,
     ) {
-        let result = Self::read_command(stream)
-            .map(Command::try_from)
-            .and_then(|r| r)
-            .map(|command| {
-                match command {
-                    Command::State => execute_presentation_game_state(game),
-                    Command::ReduceDifficulty => execute_reduce_difficulty(game),
-                    Command::Move(place_index) => execute_move_command(game, place_index),
-                    Command::Equip(inventory_position, equipped_item_position) => {
-                        execute_equip_item_json(game, inventory_position, equipped_item_position)
-                    }
-                    Command::SwapEquipment(equipped_item_position_1, equipped_item_position_2) => {
-                        execute_swap_equipped_item_json(
-                            game,
-                            equipped_item_position_1,
-                            equipped_item_position_2,
-                        )
-                    }
-                    Command::RerollModifier(
+        let result = Self::read_command(stream).map(Command::try_from).and_then(|r| r).map(|command| {
+            match command {
+                Command::State => execute_presentation_game_state_json(game),
+                Command::ReduceDifficulty => execute_reduce_difficulty_json(game),
+                Command::Move(place_index) => execute_move_command_json(game, place_index),
+                Command::Equip(inventory_position, equipped_item_position) => {
+                    execute_equip_item_json(game, inventory_position, equipped_item_position)
+                }
+                Command::SwapEquipment(equipped_item_position_1, equipped_item_position_2) => {
+                    execute_swap_equipped_item_json(
+                        game,
+                        equipped_item_position_1,
+                        equipped_item_position_2,
+                    )
+                }
+                Command::RerollModifier(
+                    inventory_index,
+                    modifier_index,
+                    sacrifice_item_indexes,
+                ) => {
+                    execute_craft_reroll_modifier_json(
+                        game,
                         inventory_index,
                         modifier_index,
                         sacrifice_item_indexes,
-                    ) => {
-                        execute_craft_reroll_modifier(
-                            game,
-                            inventory_index,
-                            modifier_index,
-                            sacrifice_item_indexes,
-                        )
-                    }
-                    Command::ExpandPlaces => execute_expand_places(game),
-                    Command::ExpandElements => execute_expand_elements(game),
-                    Command::ExpandMaxElement => execute_expand_max_element(game),
-                    Command::ExpandMinElement => execute_expand_min_element(game),
-                    Command::ExpandMaxSimultaneousElement => {
-                        execute_expand_max_simultaneous_element(game)
-                    }
-                    Command::ExpandMinSimultaneousElement => {
-                        execute_expand_min_simultaneous_element_json(game)
-                    }
-                    Command::ExpandEquipmentSlots => execute_expand_equipment_slots(game),
-                    Command::AddModifier(place_index, sacrifice_item_indexes) => {
-                        execute_craft_expand_modifiers_json(
-                            game,
-                            place_index,
-                            sacrifice_item_indexes,
-                        )
-                    }
-                    Command::Help => execute_help(),
-                    Command::ReorderInventory => execute_reorder_inventory(game),
-                    Command::SaveTheWorld(save_game_name, save_game_path) => {
-                        execute_save_command_json(game, &save_game_name, save_game_path)
-                    }
-                    Command::LoadTheWorld(save_game_name, save_game_path) => {
-                        execute_load_command_json(game, &save_game_name, save_game_path)
-                    }
+                    )
                 }
-            });
+                Command::ExpandPlaces => execute_expand_places_json(game),
+                Command::ExpandElements => execute_expand_elements_json(game),
+                Command::ExpandMaxElement => execute_expand_max_element_json(game),
+                Command::ExpandMinElement => execute_expand_min_element_json(game),
+                Command::ExpandMaxSimultaneousElement => {
+                    execute_expand_max_simultaneous_element_json(game)
+                }
+                Command::ExpandMinSimultaneousElement => {
+                    execute_expand_min_simultaneous_element_json(game)
+                }
+                Command::ExpandEquipmentSlots => execute_expand_equipment_slots_json(game),
+                Command::AddModifier(place_index, sacrifice_item_indexes) => {
+                    execute_craft_expand_modifiers_json(
+                        game,
+                        place_index,
+                        sacrifice_item_indexes,
+                    )
+                }
+                Command::Help => execute_help_json(),
+                Command::ReorderInventory => execute_reorder_inventory_json(game),
+                Command::SaveTheWorld(save_game_name, save_game_path) => {
+                    execute_save_command_json(game, &save_game_name, save_game_path)
+                }
+                Command::LoadTheWorld(save_game_name, save_game_path) => {
+                    execute_load_command_json(game, &save_game_name, save_game_path)
+                }
+            }
+        });
 
         let result_message = match result {
             Ok(result) => format!("{} \n", json!(result)),
@@ -134,7 +130,7 @@ impl Listener {
         match stream.write(result_message.as_bytes()) {
             Ok(_) => {
                 println!("Responded to request.");
-            } //TODO give more details
+            }
             Err(error) => {
                 panic!("Got the following error when writing the response to the user: {error}")
             }
@@ -143,14 +139,12 @@ impl Listener {
 
     fn read_command(stream: &mut TcpStream) -> Result<Box<str>, MyError> {
         let mut buffer = [0; 1024];
-        stream
-            .set_read_timeout(Some(Duration::from_secs(1)))
-            .map_err(|e| {
-                MyError::create_network_error(format!(
-                    "Got error from setting timeout on reading tcp input, aborting: {}",
-                    e
-                ))
-            })?;
+        stream.set_read_timeout(Some(Duration::from_secs(1))).map_err(|e| {
+            MyError::create_network_error(format!(
+                "Got error from setting timeout on reading tcp input, aborting: {}",
+                e
+            ))
+        })?;
         let buffer_size = stream.read(&mut buffer).map_err(|e| {
             MyError::create_network_error(format!(
                 "Got error from reading command, aborting: {}",

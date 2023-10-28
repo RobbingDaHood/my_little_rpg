@@ -23,7 +23,7 @@ pub struct ExecuteExpandPlacesReport {
     leftover_spending_treasure: HashMap<TreasureType, u64>,
 }
 
-pub fn execute_json(game: &mut Game) -> Value {
+pub fn execute_expand_places_json(game: &mut Game) -> Value {
     match execute(game) {
         Ok(result) => json!(result),
         Err(result) => json!(result),

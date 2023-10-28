@@ -69,7 +69,7 @@ pub struct ItemCosts {
     add_modifier: usize,
 }
 
-pub fn execute_json(game: &mut Game) -> Value {
+pub fn execute_presentation_game_state_json(game: &mut Game) -> Value {
     json!(execute(game))
 }
 

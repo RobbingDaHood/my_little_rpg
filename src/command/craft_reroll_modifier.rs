@@ -20,7 +20,7 @@ pub struct ExecuteCraftRerollModifierReport {
     new_cost: u16,
 }
 
-pub fn execute_json(
+pub fn execute_craft_reroll_modifier_json(
     game: &mut Game,
     inventory_index: usize,
     modifier_index: usize,

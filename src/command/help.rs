@@ -9,7 +9,7 @@ pub struct ExecuteHelpReport {
     commands: Vec<Box<str>>,
 }
 
-pub fn execute_json() -> Value {
+pub fn execute_help_json() -> Value {
     json!(execute())
 }
 
