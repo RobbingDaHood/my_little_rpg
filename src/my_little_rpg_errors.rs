@@ -3,9 +3,8 @@ use std::{fmt, fmt::Formatter};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 
-//TODO consider if we need the struct wrapper
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize, Eq, Hash)]
-pub enum MyErrorKind {
+pub enum MyError {
     ParseCommand {
         error_message: Box<str>,
     },
@@ -24,11 +23,6 @@ pub enum MyErrorKind {
     },
 }
 
-#[derive(Clone, PartialEq, Debug, Serialize, Deserialize, Eq, Hash)]
-pub struct MyError {
-    pub kind: MyErrorKind,
-}
-
 impl From<MyError> for Box<str> {
     fn from(error: MyError) -> Self {
         format!("{error:?}").into()
@@ -36,16 +30,14 @@ impl From<MyError> for Box<str> {
 }
 
 //TODO Add general help message to all errors
-impl fmt::Display for MyErrorKind {
+
+impl fmt::Display for MyError {
     fn fmt(
         &self,
         f: &mut Formatter<'_>,
     ) -> fmt::Result {
         match self {
-            MyErrorKind::Network { error_message }
-            | MyErrorKind::ExecuteCommand { error_message }
-            | MyErrorKind::SaveLoad { error_message }
-            | MyErrorKind::ParseCommand { error_message } => {
+            MyError::Network { error_message } | MyError::ExecuteCommand { error_message } | MyError::SaveLoad { error_message } | MyError::ParseCommand { error_message } => {
                 write!(
                     f,
                     "Got the following error while trying to parse the given command: \
@@ -61,26 +53,20 @@ impl fmt::Display for MyErrorKind {
 
 impl MyError {
     pub fn create_parse_command_error(error_message: String) -> MyError {
-        MyError {
-            kind: MyErrorKind::ParseCommand {
-                error_message: error_message.into(),
-            },
+        MyError::ParseCommand {
+            error_message: error_message.into(),
         }
     }
 
     pub fn create_network_error(error_message: String) -> MyError {
-        MyError {
-            kind: MyErrorKind::Network {
-                error_message: error_message.into(),
-            },
+        MyError::Network {
+            error_message: error_message.into(),
         }
     }
 
     pub fn create_save_load_error(error_message: String) -> MyError {
-        MyError {
-            kind: MyErrorKind::SaveLoad {
-                error_message: error_message.into(),
-            },
+        MyError::SaveLoad {
+            error_message: error_message.into(),
         }
     }
 
@@ -97,10 +83,8 @@ impl MyError {
     }
 
     pub fn create_execute_command_error(error_message: String) -> MyError {
-        MyError {
-            kind: MyErrorKind::ExecuteCommand {
-                error_message: error_message.into(),
-            },
+        MyError::ExecuteCommand {
+            error_message: error_message.into(),
         }
     }
 }

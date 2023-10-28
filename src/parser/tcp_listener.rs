@@ -133,7 +133,7 @@ impl Listener {
 
         match stream.write(result_message.as_bytes()) {
             Ok(_) => {
-                print!("Responded to request.");
+                println!("Responded to request.");
             } //TODO give more details
             Err(error) => {
                 panic!("Got the following error when writing the response to the user: {error}")
