@@ -4,6 +4,8 @@ mod tests_int {
         my_little_rpg_errors::{MyError, MyErrorKind},
         parser::basetype_parser::try_parse_usize,
     };
+    use crate::parser::basetype_parser::try_parse_possible_relative_indexes;
+    use crate::the_world::index_specifier::IndexSpecifier;
 
     #[test]
     fn test_try_parse_usize() {
@@ -37,5 +39,16 @@ mod tests_int {
             },
             try_parse_usize("abd").unwrap_err()
         );
+    }
+
+    #[test]
+    fn test_try_parse_possible_relative_indexes() {
+        assert_eq!(
+            vec![
+                IndexSpecifier::Absolute(100),
+                IndexSpecifier::RelativePositive(1),
+                IndexSpecifier::RelativeNegative(1)
+            ] ,
+            try_parse_possible_relative_indexes("100,+1,-1", 2).unwrap());
     }
 }

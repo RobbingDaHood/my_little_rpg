@@ -6,10 +6,9 @@ use crate::{
         State, SwapEquipment,
     },
     my_little_rpg_errors::MyError,
-    the_world::index_specifier::IndexSpecifier,
 };
 pub use crate::command::commands::Command;
-use crate::parser::basetype_parser::try_parse_usize;
+use crate::parser::basetype_parser::{try_parse_possible_relative_indexes, try_parse_usize};
 
 mod tests;
 
@@ -37,46 +36,6 @@ impl Command {
         ]
     }
 
-    fn try_parse_possible_relative_indexes(
-        command_parts: &str,
-        relative_too: usize,
-    ) -> Result<Vec<IndexSpecifier>, MyError> {
-        command_parts
-            .split(',')
-            .map(|s| {
-                match s.chars().next() {
-                    Some('+') => {
-                        try_parse_usize(&s[1..s.len()])
-                            .map(|relative_index_diff| {
-                                if relative_too.checked_add(relative_index_diff).is_some() {
-                                    Ok(IndexSpecifier::RelativePositive(relative_index_diff))
-                                } else {
-                                    let error_message =
-                                        format!("{}{} created an overflow!", relative_too, s);
-                                    Err(MyError::create_parse_command_error(error_message))
-                                }
-                            })
-                            .and_then(|i| i)
-                    }
-                    Some('-') => {
-                        try_parse_usize(&s[1..s.len()])
-                            .map(|relative_index_diff| {
-                                if relative_too.checked_sub(relative_index_diff).is_some() {
-                                    Ok(IndexSpecifier::RelativeNegative(relative_index_diff))
-                                } else {
-                                    let error_message =
-                                        format!("{}{} created an underflow!", relative_too, s);
-                                    Err(MyError::create_parse_command_error(error_message))
-                                }
-                            })
-                            .and_then(|i| i)
-                    }
-                    _ => try_parse_usize(s).map(IndexSpecifier::Absolute),
-                }
-            })
-            .collect()
-    }
-
     fn try_parse_move(command_parts: &Vec<&str>) -> Result<Command, MyError> {
         if command_parts.len() < 2 {
             let error_message = format!(
@@ -98,7 +57,7 @@ impl Command {
             Err(MyError::create_parse_command_error(error_message))
         } else {
             let inventory_position = try_parse_usize(command_parts[1])?;
-            Self::try_parse_possible_relative_indexes(command_parts[2], inventory_position).map(
+            try_parse_possible_relative_indexes(command_parts[2], inventory_position).map(
                 |parsed_sacrifice_item_indexes| {
                     AddModifier(inventory_position, parsed_sacrifice_item_indexes)
                 },
@@ -148,8 +107,7 @@ impl Command {
 
         let inventory_index = try_parse_usize(command_parts[1])?;
         let modifier_index = try_parse_usize(command_parts[2])?;
-        let parsed_sacrifice_item_indexes =
-            Self::try_parse_possible_relative_indexes(command_parts[3], inventory_index)?;
+        let parsed_sacrifice_item_indexes = try_parse_possible_relative_indexes(command_parts[3], inventory_index)?;
         Ok(RerollModifier(
             inventory_index,
             modifier_index,
@@ -196,7 +154,6 @@ impl Command {
     }
 }
 
-//TODO Could be interesting to move parsing of individual commands out of this file
 impl TryFrom<Box<str>> for Command {
     type Error = MyError;
 
@@ -204,8 +161,7 @@ impl TryFrom<Box<str>> for Command {
         let command_parts = value.trim().split(' ').collect::<Vec<&str>>();
 
         if command_parts.is_empty() {
-            let error_message =
-                "The given command String were empty. Try the help command for options.";
+            let error_message = "The given command String were empty. Try the help command for options.";
             Err(MyError::create_parse_command_error(error_message.into()))
         } else {
             match *command_parts.first().unwrap() {
