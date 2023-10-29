@@ -2,6 +2,7 @@
 mod tests_int {
     use crate::{
         command::r#move::execute,
+        Game,
         generator::game::new_testing,
         the_world::{
             damage_types::DamageType,
@@ -12,8 +13,14 @@ mod tests_int {
             modifier_gain::Gain,
             treasure_types::TreasureType::Gold,
         },
-        Game,
     };
+    use crate::command::r#move::ExecuteMoveCommandReport;
+    use crate::my_little_rpg_errors::MyError;
+
+    struct MoveCommandErrorBody {
+        error_message: Box<str>,
+        item_report: Box<str>,
+    }
 
     #[test]
     fn test_execute_move_command() {
@@ -64,27 +71,32 @@ mod tests_int {
         assert_eq!(0, game.game_statistics.loses_in_a_row);
     }
 
-    // #[test]
-    // fn test_execute_move_command_index_out_of_bounds() {
-    //     let mut game = new_testing(Some([1; 16]));
-    //
-    //     let result = execute(&mut game, 11);
-    //
-    //     assert!(result.is_err());
-    //
-    //     let result = result.unwrap_err();
-    //
-    //     assert_eq!(
-    //         Into::<Box<str>>::into(
-    //             "Error: execute_move_command: Index 11 is out of range of places, places is 10 \
-    //              long."
-    //         ),
-    //         result
-    //     );
-    //     assert_eq!(0, result.item_report.len());
-    //     assert_eq!(None, game.treasure.get(&Gold));
-    // }
-    //
+    #[test]
+    fn test_execute_move_command_index_out_of_bounds() {
+        let mut game = new_testing(Some([1; 16]));
+        let result = unwrap_move_error(execute(&mut game, 11));
+
+        assert_eq!(
+            Box::from(
+                "Error: execute_move_command: Index 11 is out of range of places, places is 10 \
+                 long."
+            ),
+            result.error_message
+        );
+        assert_eq!(Box::from("[]"), result.item_report);
+        assert_eq!(None, game.treasure.get(&Gold));
+    }
+
+    fn unwrap_move_error(result: Result<ExecuteMoveCommandReport, MyError>) -> MoveCommandErrorBody {
+        match result.unwrap_err() {
+            MyError::MoveCommand { error_message, item_report } => MoveCommandErrorBody { error_message, item_report },
+            _ => panic!("Did not return the right type of error!")
+        }
+    }
+
+    // TODO The above is how to fix all the tests; use that method.
+    // TODO There is still an issue on how to assert the item reports, because at the moment they will all get printed; while I am only interested in the error.
+
     // #[test]
     // fn test_execute_not_enough_damage() {
     //     let mut game = new_testing(Some([1; 16]));
