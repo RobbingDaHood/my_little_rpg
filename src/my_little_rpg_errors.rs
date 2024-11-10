@@ -1,5 +1,4 @@
 use serde::{Deserialize, Serialize};
-use serde_json::json;
 
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize, Eq, Hash)]
 pub enum MyError {

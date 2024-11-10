@@ -53,13 +53,7 @@ pub fn execute_equip_item(
         Some(game.equipped_items[equipped_item_position].clone()),
     );
     
-    game.equipped_items[equipped_item_position] = inventory_item.expect(
-        format!(
-            "Item at index {} did exist earlier but does not anymore.",
-            inventory_index
-        )
-        .as_str(),
-    );
+    game.equipped_items[equipped_item_position] = inventory_item.unwrap_or_else(|| panic!("Item at index {inventory_index} did exist earlier but does not anymore."));
 
     Ok(ExecuteEquipOrSwapReport {
         new_equipped_items: game.equipped_items.clone(),

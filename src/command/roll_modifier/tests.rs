@@ -59,14 +59,12 @@ mod tests_int {
             0,
             game.difficulty
                 .min_resistance
-                .keys()
-                .cloned()
-                .filter(|attack_type| {
+                .keys().filter(|&attack_type| {
                     cost_modifiers
                         .get(&Cost::FlatMinAttackRequirement(attack_type.clone(), 0))
                         .unwrap()
                         == &0
-                })
+                }).cloned()
                 .count()
         );
 
@@ -74,14 +72,12 @@ mod tests_int {
             0,
             game.difficulty
                 .min_resistance
-                .keys()
-                .cloned()
-                .filter(|attack_type| {
+                .keys().filter(|&attack_type| {
                     cost_modifiers
                         .get(&Cost::FlatMaxAttackRequirement(attack_type.clone(), 0))
                         .unwrap()
                         == &0
-                })
+                }).cloned()
                 .count()
         );
 
@@ -154,14 +150,12 @@ mod tests_int {
             0,
             game.difficulty
                 .min_resistance
-                .keys()
-                .cloned()
-                .filter(|attack_type| {
+                .keys().filter(|&attack_type| {
                     cost_modifiers
                         .get(&Cost::FlatMinResistanceRequirement(attack_type.clone(), 0))
                         .unwrap()
                         == &0
-                })
+                }).cloned()
                 .count()
         );
 
@@ -169,14 +163,12 @@ mod tests_int {
             0,
             game.difficulty
                 .min_resistance
-                .keys()
-                .cloned()
-                .filter(|attack_type| {
+                .keys().filter(|&attack_type| {
                     cost_modifiers
                         .get(&Cost::FlatMaxResistanceRequirement(attack_type.clone(), 0))
                         .unwrap()
                         == &0
-                })
+                }).cloned()
                 .count()
         );
 
@@ -199,14 +191,12 @@ mod tests_int {
             0,
             game.difficulty
                 .min_resistance
-                .keys()
-                .cloned()
-                .filter(|attack_type| {
+                .keys().filter(|&attack_type| {
                     gain_modifiers
                         .get(&Gain::FlatDamage(attack_type.clone(), 0))
                         .unwrap()
                         == &0
-                })
+                }).cloned()
                 .count()
         );
 
@@ -227,14 +217,12 @@ mod tests_int {
             0,
             game.difficulty
                 .min_resistance
-                .keys()
-                .cloned()
-                .filter(|attack_type| {
+                .keys().filter(|&attack_type| {
                     gain_modifiers
                         .get(&Gain::PercentageIncreaseDamage(attack_type.clone(), 0))
                         .unwrap()
                         == &0
-                })
+                }).cloned()
                 .count()
         );
 
@@ -242,14 +230,12 @@ mod tests_int {
             0,
             game.difficulty
                 .min_resistance
-                .keys()
-                .cloned()
-                .filter(|attack_type| {
+                .keys().filter(|&attack_type| {
                     gain_modifiers
                         .get(&Gain::FlatResistanceReduction(attack_type.clone(), 0))
                         .unwrap()
                         == &0
-                })
+                }).cloned()
                 .count()
         );
 
@@ -257,9 +243,7 @@ mod tests_int {
             0,
             game.difficulty
                 .min_resistance
-                .keys()
-                .cloned()
-                .filter(|attack_type| {
+                .keys().filter(|&attack_type| {
                     gain_modifiers
                         .get(&Gain::PercentageIncreaseResistanceReduction(
                             attack_type.clone(),
@@ -267,7 +251,7 @@ mod tests_int {
                         ))
                         .unwrap()
                         == &0
-                })
+                }).cloned()
                 .count()
         );
 

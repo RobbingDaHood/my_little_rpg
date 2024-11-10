@@ -1,13 +1,11 @@
 use std::{
     collections::{
-        hash_map::{Entry, OccupiedEntry},
-        BTreeMap, HashMap,
+        hash_map::{Entry, OccupiedEntry}, HashMap,
     },
     hash::Hash,
-    ops::Deref,
 };
 
-use rand::prelude::{IteratorRandom, SliceRandom};
+use rand::prelude::SliceRandom;
 use rand_pcg::Lcg64Xsh32;
 use serde::{Deserialize, Serialize};
 
@@ -61,18 +59,16 @@ fn get_random_attack_type(
     let mut attack_values: Vec<&DamageType> = unlocks
         .iter()
         .filter(|(damage_kind, damage_amount)| condition(damage_kind, damage_amount))
-        .map(|(damage_kind, damage_amount)| damage_kind)
+        .map(|(damage_kind, _damage_amount)| damage_kind)
         .collect();
 
     attack_values.sort();
-    let picked_type = attack_values
+    attack_values
         .choose(random_generator_state)
         .ok_or(MyError::create_execute_command_error(
             "The given Hashmap is empty!".to_string(),
-        ))?
-        .deref()
-        .clone();
-    Ok(picked_type)
+        ))
+        .map(|&damage_type| damage_type.clone())
 }
 
 pub fn get_mut_random_attack_type<'a>(

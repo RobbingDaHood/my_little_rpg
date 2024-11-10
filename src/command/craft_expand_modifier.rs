@@ -50,8 +50,7 @@ pub fn execute_craft_expand_modifiers(
     }
     let inventory_item = game.inventory[inventory_index].as_ref().ok_or_else(|| {
         MyError::create_execute_command_error(format!(
-            "inventory_index {} is empty.",
-            inventory_index
+            "inventory_index {inventory_index} is empty."
         ))
     })?;
     if usize::from(
@@ -84,7 +83,7 @@ pub fn execute_craft_expand_modifiers(
     //Only need to cost amount of items
     sacrifice_item_indexes.truncate(cost);
 
-    let error_conditions = get_index_specifier_error_conditions(&inventory_item);
+    let error_conditions = get_index_specifier_error_conditions(inventory_item);
     let calculated_sacrifice_item_indexes = calculate_absolute_item_indexes(
         game,
         inventory_index,
@@ -103,13 +102,7 @@ pub fn execute_craft_expand_modifiers(
         game.inventory[sacrifice_item_index] = None;
     }
 
-    let mut inventory_item = game.inventory[inventory_index].as_mut().expect(
-        format!(
-            "Item at index {} did exist earlier but does not anymore.",
-            inventory_index
-        )
-        .as_str(),
-    );
+    let inventory_item = game.inventory[inventory_index].as_mut().unwrap_or_else(|| panic!("Item at index {inventory_index} did exist earlier but does not anymore."));
 
     inventory_item.modifiers.push(new_item_modifier);
 
@@ -129,10 +122,7 @@ fn get_index_specifier_error_conditions(inventory_item: &Item) -> ErrorCondition
         let sacrificed_item_modifiers_count = sacrificed_item.modifiers.len();
         if sacrificed_item_modifiers_count < crafting_item_modifiers_count {
             Some(MyError::create_execute_command_error(format!(
-                "sacrifice_item_index {} need to have at least {} modifiers but it only had {}",
-                sacrifice_item_index,
-                crafting_item_modifiers_count,
-                sacrificed_item_modifiers_count
+                "sacrifice_item_index {sacrifice_item_index} need to have at least {crafting_item_modifiers_count} modifiers but it only had {sacrificed_item_modifiers_count}"
             )))
         } else {
             None

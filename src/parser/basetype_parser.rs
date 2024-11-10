@@ -5,8 +5,7 @@ mod tests;
 pub fn try_parse_usize(string_to_parse: &str) -> Result<usize, MyError> {
     string_to_parse.parse::<usize>().map_err(|error| {
         let error_message = format!(
-            "The following parameter {}, got the following error while parsing: {:?}",
-            string_to_parse, error
+            "The following parameter {string_to_parse}, got the following error while parsing: {error:?}"
         );
         MyError::create_parse_command_error(error_message)
     })
@@ -49,8 +48,7 @@ fn try_parse_possible_relative_indexes_get_absolute(
         operation(relative_too, relative_index_diff).map_or_else(
             || {
                 Err(MyError::create_parse_command_error(format!(
-                    "{}{} created an {flow_type}!",
-                    relative_too, s
+                    "{relative_too}{s} created an {flow_type}!"
                 )))
             },
             |_| Ok(relative_index_diff),

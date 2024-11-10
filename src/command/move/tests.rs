@@ -2,15 +2,9 @@
 mod tests_int {
     use crate::{
         command::r#move::execute,
-        Game,
         generator::game::new_testing,
         the_world::{
-            damage_types::DamageType,
-            item::{CraftingInfo, Item},
-            item_modifier::Modifier,
             item_resource::Type,
-            modifier_cost::Cost,
-            modifier_gain::Gain,
             treasure_types::TreasureType::Gold,
         },
     };
@@ -29,11 +23,11 @@ mod tests_int {
         assert_eq!(None, game.treasure.get(&Gold));
         assert_eq!(None, game.item_resources.get(&Type::Mana));
         assert_eq!(9, game.inventory.len());
-        assert_eq!(0, game.game_statistics.moves_count);
-        assert_eq!(0, game.game_statistics.wins);
-        assert_eq!(0, game.game_statistics.loses);
-        assert_eq!(0, game.game_statistics.wins_in_a_row);
-        assert_eq!(0, game.game_statistics.loses_in_a_row);
+        assert_eq!(0, game.statistics.moves_count);
+        assert_eq!(0, game.statistics.wins);
+        assert_eq!(0, game.statistics.loses);
+        assert_eq!(0, game.statistics.wins_in_a_row);
+        assert_eq!(0, game.statistics.loses_in_a_row);
 
         let result = execute(&mut game, 0).expect_err("Test failed!");
 
@@ -46,11 +40,11 @@ mod tests_int {
         assert_eq!(2, printed_result.matches("\\\"current_item_resources\\\":{\\\"Mana\\\":5}").count());
 
         assert_eq!(9, game.inventory.len());
-        assert_eq!(1, game.game_statistics.moves_count);
-        assert_eq!(0, game.game_statistics.wins);
-        assert_eq!(1, game.game_statistics.loses);
-        assert_eq!(0, game.game_statistics.wins_in_a_row);
-        assert_eq!(1, game.game_statistics.loses_in_a_row);
+        assert_eq!(1, game.statistics.moves_count);
+        assert_eq!(0, game.statistics.wins);
+        assert_eq!(1, game.statistics.loses);
+        assert_eq!(0, game.statistics.wins_in_a_row);
+        assert_eq!(1, game.statistics.loses_in_a_row);
 
         let result = execute(&mut game, 0).expect("Test failed!");
 
@@ -64,11 +58,11 @@ mod tests_int {
         assert_ne!(&0, game.treasure.get(&Gold).unwrap());
         assert_eq!(Some(&1), game.item_resources.get(&Type::Mana));
         assert_eq!(10, game.inventory.len());
-        assert_eq!(2, game.game_statistics.moves_count);
-        assert_eq!(1, game.game_statistics.wins);
-        assert_eq!(1, game.game_statistics.loses);
-        assert_eq!(1, game.game_statistics.wins_in_a_row);
-        assert_eq!(0, game.game_statistics.loses_in_a_row);
+        assert_eq!(2, game.statistics.moves_count);
+        assert_eq!(1, game.statistics.wins);
+        assert_eq!(1, game.statistics.loses);
+        assert_eq!(1, game.statistics.wins_in_a_row);
+        assert_eq!(0, game.statistics.loses_in_a_row);
     }
 
     #[test]

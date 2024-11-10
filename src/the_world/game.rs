@@ -18,5 +18,5 @@ pub struct Game {
     pub(crate) item_resources: HashMap<Type, u64>,
     pub(crate) seed: [u8; 16],
     pub(crate) random_generator_state: Lcg64Xsh32,
-    pub(crate) game_statistics: GameStatistics,
+    pub(crate) statistics: GameStatistics,
 }

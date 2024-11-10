@@ -47,7 +47,7 @@ pub fn execute(game: &mut Game) -> Result<Report, MyError> {
     let new_max_value = random_min_entry.get().div(2);
 
     if new_max_value < 4 && game.difficulty.max_resistance.len() > 1 {
-        game.difficulty.max_resistance.remove(&attack_type);
+        game.difficulty.max_resistance.remove(attack_type);
         random_min_entry.remove();
 
         let max_simultaneous_resistances =
@@ -69,7 +69,7 @@ pub fn execute(game: &mut Game) -> Result<Report, MyError> {
         *game
             .difficulty
             .max_resistance
-            .get_mut(&attack_type)
+            .get_mut(attack_type)
             .unwrap() = max(2, new_max_value);
         let new_min = min(max(1, new_max_value.div(2)), *random_min_entry.get());
         random_min_entry.insert(min(max(1, new_max_value.div(2)), new_min));

@@ -60,7 +60,7 @@ pub fn execute(
         return report_place_does_not_exist(game, index);
     }
 
-    game.game_statistics.moves_count += 1;
+    game.statistics.moves_count += 1;
 
     let mut current_damage = HashMap::new();
     let mut current_resistance_reduction = HashMap::new();
@@ -132,9 +132,9 @@ pub fn execute(
             )
             .claim_rewards(&merged_damage_and_reduced_resistance)
         {
-            game.game_statistics.wins += 1;
-            game.game_statistics.wins_in_a_row += 1;
-            game.game_statistics.loses_in_a_row = 0;
+            game.statistics.wins += 1;
+            game.statistics.wins_in_a_row += 1;
+            game.statistics.loses_in_a_row = 0;
 
             let modified_rewards = rewards
                 .into_iter()
@@ -172,9 +172,9 @@ pub fn execute(
         }
     }
 
-    game.game_statistics.loses += 1;
-    game.game_statistics.loses_in_a_row += 1;
-    game.game_statistics.wins_in_a_row = 0;
+    game.statistics.loses += 1;
+    game.statistics.loses_in_a_row += 1;
+    game.statistics.wins_in_a_row = 0;
 
     Err(MyError::create_move_command_error(
         "You did not deal enough damage to overcome the challenges in this place.".to_string(),
@@ -486,20 +486,20 @@ fn evaluate_item_costs(
                     }
                 }
                 Cost::MinWinsInARow(amount) => {
-                    if game.game_statistics.wins_in_a_row < u64::from(*amount) {
+                    if game.statistics.wins_in_a_row < u64::from(*amount) {
                         return Err(MyError::create_execute_command_error(format!(
                             "Did not fulfill the MinWinsInARow of {} win, only hase {:?} wins in \
                              a row.",
-                            amount, game.game_statistics.wins_in_a_row
+                            amount, game.statistics.wins_in_a_row
                         )));
                     }
                 }
                 Cost::MaxWinsInARow(amount) => {
-                    if game.game_statistics.wins_in_a_row > u64::from(*amount) {
+                    if game.statistics.wins_in_a_row > u64::from(*amount) {
                         return Err(MyError::create_execute_command_error(format!(
                             "Did not fulfill the MaxWinsInARow of {} win, have {:?} wins in a row \
                              and that is too much.",
-                            amount, game.game_statistics.wins_in_a_row
+                            amount, game.statistics.wins_in_a_row
                         )));
                     }
                 }

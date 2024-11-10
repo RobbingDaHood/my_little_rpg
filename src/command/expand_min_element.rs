@@ -1,13 +1,12 @@
 use std::collections::HashMap;
 
-use rand::Rng;
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
 
 use crate::{
     my_little_rpg_errors::MyError,
     the_world::{
-        damage_types::{get_mut_random_attack_type, DamageType},
+        damage_types::get_mut_random_attack_type,
         difficulty::Difficulty,
         treasure_types::{pay_crafting_cost, TreasureType, TreasureType::Gold},
     },
@@ -46,14 +45,14 @@ pub fn execute(game: &mut Game) -> Result<ExecuteExpandMinElementReport, MyError
         &mut game.difficulty.min_resistance,
         &|attack_type, amount| {
             let max_resistance_amount =
-                game.difficulty.max_resistance.get(&attack_type).expect(
+                game.difficulty.max_resistance.get(attack_type).expect(
                     "We expect Max resistance to have the same elements as Min resistance.",
                 );
             let possible_new_min_resistance_amount = *amount + min_resistance_diff;
             *max_resistance_amount > possible_new_min_resistance_amount
         },
     )
-    .map_err(|e| {
+    .map_err(|_e| {
         MyError::create_execute_command_error(
             "There are no element minimum values that can be upgraded, consider expanding a max \
              element value."

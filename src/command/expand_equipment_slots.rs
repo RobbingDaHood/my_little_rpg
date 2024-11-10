@@ -41,10 +41,7 @@ pub fn execute(game: &mut Game) -> Result<ExecuteExpandEquipmentSlotsReport, MyE
     let crafting_cost = execute_expand_equipment_slots_calculate_cost(game);
     pay_crafting_cost(game, &crafting_cost)?;
 
-    let item = game.inventory[first_item_index].take().expect(
-        format!("Item at index {first_item_index} did exist earlier but does not anymore.")
-            .as_str(),
-    );
+    let item = game.inventory[first_item_index].take().unwrap_or_else(|| panic!("Item at index {first_item_index} did exist earlier but does not anymore."));
     game.equipped_items.push(item);
 
     Ok(ExecuteExpandEquipmentSlotsReport {

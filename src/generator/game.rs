@@ -66,7 +66,7 @@ pub fn new(seed: Option<[u8; 16]>) -> Game {
         inventory: Vec::new(),
         seed,
         random_generator_state: random_generator,
-        game_statistics,
+        statistics: game_statistics,
     };
 
     let new_place = new_place(&mut game);
@@ -187,7 +187,7 @@ pub fn new_testing(seed: Option<[u8; 16]>) -> Game {
         inventory,
         seed,
         random_generator_state: random_generator,
-        game_statistics,
+        statistics: game_statistics,
     };
 
     for _i in 0..10 {

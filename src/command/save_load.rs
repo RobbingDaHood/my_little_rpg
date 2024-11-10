@@ -29,7 +29,7 @@ pub fn execute_save_command(
                 "Failed saving the world! Reason: {error_message}"
             )))
         }
-        Ok(_) => Ok("You saved the world!".into()),
+        Ok(()) => Ok("You saved the world!".into()),
     };
 }
 
@@ -55,13 +55,13 @@ pub fn execute_load_command(
     //TODO better way of flattening this?!
     fs::read(file_path)
         .map_err(|error| {
-            let error_message = format!("Failed loading the world! Reason: {}", error);
+            let error_message = format!("Failed loading the world! Reason: {error}");
             MyError::create_save_load_error(error_message)
         })
         .map(|data| serde_json::from_slice::<Game>(data.as_slice()))
         .and_then(|result| {
             result.map_err(|error| {
-                let error_message = format!("Failed loading the world! Reason: {}", error);
+                let error_message = format!("Failed loading the world! Reason: {error}");
                 MyError::create_save_load_error(error_message)
             })
         })
@@ -82,6 +82,6 @@ fn get_file_path(
                 "Failed creating the folder for the save games, Reason: {error_message}"
             )))
         }
-        Ok(_) => Ok(format!("{save_path}{save_name}.json").into()),
+        Ok(()) => Ok(format!("{save_path}{save_name}.json").into()),
     }
 }

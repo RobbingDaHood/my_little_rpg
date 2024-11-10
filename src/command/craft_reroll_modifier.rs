@@ -58,8 +58,7 @@ pub fn execute(
     }
     let inventory_item = game.inventory[inventory_index].as_ref().ok_or_else(|| {
         MyError::create_execute_command_error(format!(
-            "inventory_index {} is empty.",
-            inventory_index
+            "inventory_index {inventory_index} is empty."
         ))
     })?;
     if inventory_item.modifiers.len() <= modifier_index {
@@ -102,13 +101,7 @@ pub fn execute(
         game.inventory[*sacrifice_item_index] = None;
     }
 
-    let mut inventory_item = game.inventory[inventory_index].as_mut().expect(
-        format!(
-            "Item at index {} did exist earlier but does not anymore.",
-            inventory_index
-        )
-        .as_str(),
-    );
+    let inventory_item = game.inventory[inventory_index].as_mut().unwrap_or_else(|| panic!("Item at index {inventory_index} did exist earlier but does not anymore."));
     inventory_item.modifiers[modifier_index] = new_item_modifier;
 
     Ok(ExecuteCraftRerollModifierReport {

@@ -99,8 +99,7 @@ fn get_absolute_index(
     }
     let candidate_item = game.inventory[candidate_index].as_ref().ok_or_else(|| {
         MyError::create_execute_command_error(format!(
-            "index_specifier {:?} is pointing at empty inventory slot.",
-            index_specifier
+            "index_specifier {index_specifier:?} is pointing at empty inventory slot."
         ))
     })?;
     if calculated_selected_item_indexes.contains(&candidate_index) {
@@ -145,9 +144,8 @@ fn get_relative_positive_index(
         .map(|(index, item)| handle_conditions(index, error_conditions, item))
         .ok_or_else(|| {
             MyError::create_execute_command_error(format!(
-                "index_specifier: {:?} did not find any items in inventory from relative point {} \
-                 until end of inventory.",
-                index_specifier, start_index
+                "index_specifier: {index_specifier:?} did not find any items in inventory from relative point {start_index} \
+                 until end of inventory."
             ))
         })?
 }
@@ -170,9 +168,8 @@ fn get_relative_negative_index(
         .map(|(index, item)| handle_conditions(index, error_conditions, item))
         .ok_or_else(|| {
             MyError::create_execute_command_error(format!(
-                "index_specifier: {:?} did not find any items in inventory from relative point {} \
-                 until start of inventory.",
-                index_specifier, start_index
+                "index_specifier: {index_specifier:?} did not find any items in inventory from relative point {start_index} \
+                 until start of inventory."
             ))
         })?
 }

@@ -133,7 +133,7 @@ pub fn execute(game: &mut Game) -> PresentationGameState {
         item_resources: game.item_resources.clone(),
         crafting_action_costs: crafting_actions,
         seed: encode_hex(&game.seed),
-        game_statistics: game.game_statistics.clone(),
+        game_statistics: game.statistics.clone(),
     }
 }
 
