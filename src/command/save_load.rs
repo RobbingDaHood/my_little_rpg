@@ -23,14 +23,14 @@ pub fn execute_save_command(
     save_path: Option<Box<str>>,
 ) -> Result<Box<str>, MyError> {
     let file_path = &*get_file_path(save_name, save_path)?;
-    return match fs::write(file_path, format!("{}", json!(game)).as_bytes()) {
+    match fs::write(file_path, format!("{}", json!(game)).as_bytes()) {
         Err(error_message) => {
             Err(MyError::create_save_load_error(format!(
                 "Failed saving the world! Reason: {error_message}"
             )))
         }
         Ok(()) => Ok("You saved the world!".into()),
-    };
+    }
 }
 
 pub fn execute_load_command_json(
@@ -71,10 +71,7 @@ fn get_file_path(
     save_name: &str,
     save_path: Option<Box<str>>,
 ) -> Result<Box<str>, MyError> {
-    let save_path: Box<str> = match save_path {
-        Some(path) => path,
-        None => "./save_games/".into(),
-    };
+    let save_path: Box<str> = save_path.unwrap_or_else(|| "./save_games/".into());
 
     match create_dir_all(save_path.as_ref()) {
         Err(error_message) => {

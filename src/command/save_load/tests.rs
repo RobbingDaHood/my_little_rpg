@@ -17,7 +17,7 @@ mod tests_int {
         let game = new_testing(Some([1; 16]));
         assert_eq!(
             Box::from("You saved the world!"),
-            execute_save_command(&game, "\"||||!!!save_load_seeding_test", Some("./testing/".into())).unwrap()
+            execute_save_command(&game, "save_load_seeding_test", Some("./testing/".into())).unwrap()
         );
 
         fs::remove_dir_all("./testing/").expect("Had trouble cleanup after save_load_time");
